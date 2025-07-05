@@ -1,8 +1,8 @@
 BeginPackage["DanielS`PatternMatcherVM`BackEnd`",
-    {
-        "DanielS`PatternMatcherVM`BackEnd`Bytecode`",
-        "DanielS`PatternMatcherVM`BackEnd`VirtualMachine`"
-    }
+	{
+		"DanielS`PatternMatcherVM`BackEnd`PatternBytecode`",
+		"DanielS`PatternMatcherVM`BackEnd`VirtualMachine`"
+	}
 ]
 
 

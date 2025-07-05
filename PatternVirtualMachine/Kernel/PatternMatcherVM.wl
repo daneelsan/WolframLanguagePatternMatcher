@@ -6,17 +6,36 @@ ClearAll["DanielS`PatternMatcherVM`*`*"];
 BeginPackage["DanielS`PatternMatcherVM`"];
 
 
-PatternBytecode::usage =
-    "PatternBytecode[...] represents bytecode for a virtual machine of a given pattern expression.";
+CompilePatternToFunction::usage =
+	"CompilePatternToFunction[patt] converts a pattern patt into a Function[\[Ellipsis]].";
 
-PatternToBytecode::usage =
-    "PatternToBytecode[patt] converts a pattern expression into bytecode to be run in a virtual machine.";
+
+PatternBytecode::usage =
+	"PatternBytecode[\[Ellipsis]] represents bytecode for a virtual machine of a given pattern expression.";
+
+
+CompilePatternToBytecode::usage =
+	"CompilePatternToBytecode[patt] converts a pattern expression into bytecode to be run in a virtual machine.";
+
 
 PatternMatcherVirtualMachine::usage =
-    "PatternMatcherVirtualMachine[...] represents a virtual machine that executes pattern bytecode.";
+	"PatternMatcherVirtualMachine[\[Ellipsis]] represents a virtual machine that executes pattern bytecode.";
 
-PatternToFunction::usage =
-    "PatternToFunction[patt] converts a pattern patt into a Function[...].";
+
+CreatePatternMatcherVirtualMachine::usage =
+	"CreatePatternMatcherVirtualMachine[pattObj] creates a virtual machine for the pattern matcher object pattObj$.";
+
+
+PatternMatcherMatch::usage =
+	"PatternMatcherMatch[vm, expr] does pattern matching on the expr using the pattern matcher virtual machine.";
+
+
+PatternMatcherStep::usage =
+	"PatternMatcherStep[vm] runs one step of the pattern matcher virtual machine.";
+
+
+ResetPatternMatcherVirtualMachine::usage =
+	"ResetPatternMatcherVirtualMachine[vm] resets the state of the pattern matcher virtual machine.";
 
 
 Begin["`Private`"];

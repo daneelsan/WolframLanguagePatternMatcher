@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "wolframlanguageruntimev1sdk.h": "c",
+        "wolframlanguageruntimev1.h": "c",
+        "stdexcept": "cpp",
+        "string": "cpp"
+    }
+}

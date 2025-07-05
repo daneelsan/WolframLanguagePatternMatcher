@@ -1,5 +1,6 @@
 #include "PatternMatcherVM.h"
 #include <stdexcept>
+#include <string>
 
 PatternMatcherVM::PatternMatcherVM()
 {

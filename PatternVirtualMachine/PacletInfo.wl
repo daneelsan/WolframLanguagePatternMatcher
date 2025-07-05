@@ -15,7 +15,17 @@ PacletObject[
       {
         "Kernel",
         "Root" -> "Kernel",
-        "Context" -> {"DanielS`PatternMatcherVM`"}
+        "Context" -> {"DanielS`PatternMatcherVM`"},
+        "Symbols" -> {
+          "DanielS`PatternMatcherVM`CompilePatternToBytecode",
+          "DanielS`PatternMatcherVM`CompilePatternToFunction",
+          "DanielS`PatternMatcherVM`PatternBytecode",
+          "DanielS`PatternMatcherVM`PatternMatcherVirtualMachine",
+          "DanielS`PatternMatcherVM`CreatePatternMatcherVirtualMachine",
+          "DanielS`PatternMatcherVM`ResetPatternMatcherVirtualMachine",
+          "DanielS`PatternMatcherVM`PatternMatcherMatch",
+          "DanielS`PatternMatcherVM`PatternMatcherStep"
+        }
       },
       {
         "Documentation",

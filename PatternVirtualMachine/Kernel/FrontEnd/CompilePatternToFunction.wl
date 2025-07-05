@@ -1,10 +1,12 @@
-BeginPackage["DanielS`PatternMatcherVM`FrontEnd`PatternToFunction`"];
+BeginPackage["DanielS`PatternMatcherVM`FrontEnd`CompilePatternToFunction`"];
 
 
 Begin["`Private`"];
 
 
 Needs["DanielS`PatternMatcherVM`"] (* for PatternToFunction *)
+Needs["DanielS`PatternMatcherVM`ErrorHandling`"]
+Needs["DanielS`PatternMatcherVM`MExprUtilities`"]
 
 Needs["CompileAST`Create`Construct`"] (* for CreateMExpr *)
 
@@ -14,14 +16,16 @@ Needs["CompileAST`Create`Construct`"] (* for CreateMExpr *)
 =============================================================================*)
 (*
 	TODO: Consider renaming to PatternToMatchQFunction.
-	If we returned an object with more data, it could be called CompilePatternToFunction.
 *)
 
-Options[PatternToFunction] = {
+Options[CompilePatternToFunction] = {
 	"ApplyOptimizations" -> True
 }
 
-PatternToFunction[patt_, opts:OptionsPattern[]] :=
+CompilePatternToFunction::unsup =
+	"The pattern expression `1` is currently not supported.";
+
+CompilePatternToFunction[patt_, opts:OptionsPattern[]] :=
 	Module[{state},
 		state = <|
 			"VariableCounter" -> CreateDataStructure["Counter", 1],
@@ -55,25 +59,43 @@ PatternToFunction[patt_, opts:OptionsPattern[]] :=
 
 visitPattern[state_, mexpr_] :=
 	Which[
-		isLiteral[mexpr],
+		MExprIsLiteral[mexpr],
 			processLiteral[state, mexpr]
 		,
 		mexpr["normalQ"],
 			Which[
-				isPattern[mexpr],
+				MExprIsPattern[mexpr],
 					processPattern[state, mexpr]
 				,
-				isBlank[mexpr],
+				MExprIsBlank[mexpr],
 					processBlank[state, mexpr]
 				,
-				isPatternTest[mexpr],
+				MExprIsPatternTest[mexpr],
 					processPatternTest[state, mexpr]
 				,
-				isExcept[mexpr],
+				MExprIsExcept[mexpr],
 					processExcept[state, mexpr]
 				,
-				isAlternatives[mexpr],
+				MExprIsAlternatives[mexpr],
 					processAlternatives[state, mexpr]
+				,
+				MExprIsCondition[mexpr],
+					throwUnsupportedPattern[mexpr]
+				,
+				MExprIsRepeated[mexpr],
+					throwUnsupportedPattern[mexpr]
+				,
+				MExprIsRepeatedNull[mexpr],
+					throwUnsupportedPattern[mexpr]
+				,
+				MExprIsBlankSequence[mexpr],
+					throwUnsupportedPattern[mexpr]
+				,
+				MExprIsBlankNullSequence[mexpr],
+					throwUnsupportedPattern[mexpr]
+				,
+				MExprIsPatternSequence[mexpr],
+					throwUnsupportedPattern[mexpr]
 				,
 				True,
 					processNormal[state, mexpr]
@@ -82,39 +104,18 @@ visitPattern[state_, mexpr_] :=
 		True,
 			(* TODO: Improve error handling *)
 			Throw[$Failed]
+	];
+
+
+throwUnsupportedPattern[mexpr_] := (
+	Message[CompilePatternToBytecode::unsup, mexpr["HoldFormExpression"]];
+	ThrowFailure[
+		"CompilePatternToBytecode",
+		CompilePatternToBytecode::unsup,
+		{mexpr["HoldFormExpression"]},
+		<|"Input" -> mexpr["toHeldExpression"]|>
 	]
-
-
-(*======================================
-	isXXXX
-======================================*)
-
-isBlank[patt_] :=
-	patt["hasHead", Blank] && patt["length"] <= 1
-
-
-isPattern[patt_] :=
-	patt["hasHead", Pattern] && patt["length"] == 2 && patt["part", 1]["symbolQ"]
-
-
-isPatternTest[patt_] :=
-	patt["hasHead", PatternTest] && patt["length"] == 2
-
-
-isCondition[patt_] :=
-	patt["hasHead", Condition] && patt["length"] == 2
-
-
-isExcept[patt_] :=
-	patt["hasHead", Except] && Between[patt["length"], {1, 2}]
-
-
-isAlternatives[patt_] :=
-	patt["hasHead", Alternatives] && patt["length"] >= 1
-
-
-isLiteral[patt_] :=
-	Internal`PatternFreeQ[patt["toHeldExpression"]]
+);
 
 
 (*======================================

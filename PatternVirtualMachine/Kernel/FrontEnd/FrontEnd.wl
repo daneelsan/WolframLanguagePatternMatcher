@@ -1,8 +1,8 @@
 BeginPackage["DanielS`PatternMatcherVM`FrontEnd`",
-    {
-        "DanielS`PatternMatcherVM`FrontEnd`PatternToBytecode`",
-        "DanielS`PatternMatcherVM`FrontEnd`PatternToFunction`"
-    }
+	{
+		"DanielS`PatternMatcherVM`FrontEnd`CompilePatternToBytecode`",
+		"DanielS`PatternMatcherVM`FrontEnd`CompilePatternToFunction`"
+	}
 ]
 
 

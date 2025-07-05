@@ -2,45 +2,47 @@ BeginPackage["DanielS`PatternMatcherVM`ErrorHandling`"];
 
 
 CatchFailure::usage =
-    "CatchFailure[expr] catches thrown failures via ThrowFailure[...] that occurred within expr.";
+	"CatchFailure[expr] catches thrown failures via ThrowFailure[...] that occurred within expr.";
 
 ThrowFailure::usage =
-    "ThrowFailure[subTag, msgTemplate, msgParameters, extra] construct a Failure object using the arguments and throws it.";
+	"ThrowFailure[subTag, msgTemplate, msgParameters, extra] construct a Failure object using the arguments and throws it.";
 
 
 Begin["`Private`"];
 
 
 $PMVMCatchThrowTag =
-    "$PMVMCatchThrowTag";
+	"$PMVMCatchThrowTag";
 
 
 (*=============================================================================
-    CatchFailure
+	CatchFailure
 =============================================================================*)
 
 SetAttributes[CatchFailure, HoldFirst];
 
 CatchFailure[expr_] :=
-    Catch[expr, $PMVMCatchThrowTag];
+	Catch[expr, $PMVMCatchThrowTag];
 
 
 (*=============================================================================
-    ThrowFailure
+	ThrowFailure
 =============================================================================*)
 
 SetAttributes[ThrowFailure, HoldFirst];
 
-ThrowFailure[subTag_String, msgTemplate_, msgParameters_Association, extra:_Association:<||>] :=
-    Throw[
-        Failure[
-            "PatternMatcherVirtualMachine`" <> subTag,
-            "MessageTemplate" -> msgTemplate,
-            "MessageParameters" -> msgParameters,
-            extra
-        ],
-        $PMVMCatchThrowTag
-    ];
+ThrowFailure[subTag_String, msgTemplate_, msgParameters_, extra:_Association:<||>] :=
+	Throw[
+		Failure[
+			"PatternMatcherVirtualMachine`" <> subTag,
+			<|
+				"MessageTemplate" -> msgTemplate,
+				"MessageParameters" -> msgParameters,
+				extra
+			|>
+		],
+		$PMVMCatchThrowTag
+	];
 
 
 
