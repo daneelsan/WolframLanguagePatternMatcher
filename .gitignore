@@ -1,4 +1,46 @@
-.DS_Store
-.zig-cache
 *.paclet
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Build directories
 build/
+build-xcode*
+cmake-*
+re-*
+zig-out/
+.zig-cache/
+
+# IDE data
+*.iml
+.idea
+.vscode
+
+# Miscellaneous
+.DS_Store

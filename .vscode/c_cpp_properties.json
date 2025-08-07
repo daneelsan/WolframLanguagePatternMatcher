@@ -5,7 +5,9 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "/Applications/Wolfram.app/Contents/SystemFiles/IncludeFiles/C/**",
-                "/Applications/Wolfram.app/Contents/SystemFiles/Components/StandaloneApplicationsSDK/MacOSX-ARM64/**"
+                "/Applications/Wolfram.app/Contents/SystemFiles/Components/StandaloneApplicationsSDK/MacOSX-ARM64/**",
+                "/Applications/Wolfram.app/Contents/SystemFiles/Links/WSTP/DeveloperKit/MacOSX-ARM64/CompilerAdditions/**",
+                "/Applications/Wolfram.app/Contents/SystemFiles/Links/WSTP/DeveloperKit/MacOSX-ARM64/CompilerAdditions"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
