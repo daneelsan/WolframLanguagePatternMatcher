@@ -30,7 +30,7 @@ Cell[TextData[{
    ButtonBox["CompilePatternToFunction",
     BaseStyle->"Link",
     ButtonData->
-     "paclet:DanielS/PatternMatcherVM/ref/CompilePatternToFunction"], "[", 
+     "paclet:DanielS/PatternMatcher/ref/CompilePatternToFunction"], "[", 
    StyleBox["patt", "TI"], "]"}]], "InlineFormula",ExpressionUUID->
   "d2b09397-af73-4992-809c-d7f226e5b488"],
  "\[LineSeparator]converts a pattern ",
@@ -70,7 +70,7 @@ Cell[TextData[{
    ButtonBox["CompilePatternToFunction",
     BaseStyle->"Link",
     ButtonData->
-     "paclet:DanielS/PatternMatcherVM/ref/CompilePatternToFunction"], "[", 
+     "paclet:DanielS/PatternMatcher/ref/CompilePatternToFunction"], "[", 
    StyleBox["patt", "TI"], "]"}]], "InlineFormula",ExpressionUUID->
   "0d013e38-a2e9-4b3f-9c59-633e07086b4a"],
  " is semantically equivalent to ",
@@ -231,7 +231,7 @@ Needs[\[Ellipsis]].", "MoreInfoText"], BaseStyle -> "IFrameBox"]],
  CellID->850584633,ExpressionUUID->"16eb26e2-cb6c-458c-a30c-77b1cfa0b6eb"],
 
 Cell[BoxData[
- RowBox[{"Needs", "[", "\"\<DanielS`PatternMatcherVM`\>\"", 
+ RowBox[{"Needs", "[", "\"\<DanielS`PatternMatcher`\>\"", 
   "]"}]], "ExampleInitialization",
  CellChangeTimes->{{3.958610595923794*^9, 3.958610596668694*^9}},
  CellID->2124772399,ExpressionUUID->"cc7fd6cf-9128-43dc-b0cf-d15098484e03"]
@@ -683,15 +683,15 @@ Cell["Symbol", "Categorization",
  CellLabel->"Entity Type",
  CellID->1167194247,ExpressionUUID->"d6002bf6-5d8e-4a73-9842-e04ae01259a5"],
 
-Cell["DanielS/PatternMatcherVM", "Categorization",
+Cell["DanielS/PatternMatcher", "Categorization",
  CellLabel->"Paclet Name",
  CellID->942137287,ExpressionUUID->"4113114c-ecea-4cbd-aafe-d07c8c792ed9"],
 
-Cell["DanielS`PatternMatcherVM`", "Categorization",
+Cell["DanielS`PatternMatcher`", "Categorization",
  CellLabel->"Context",
  CellID->1104453278,ExpressionUUID->"2189a008-b19a-473c-949e-0e56182e719e"],
 
-Cell["DanielS/PatternMatcherVM/ref/CompilePatternToFunction", "Categorization",
+Cell["DanielS/PatternMatcher/ref/CompilePatternToFunction", "Categorization",
  CellLabel->"URI",
  CellID->1845082325,ExpressionUUID->"b5b04ba7-0ffe-4343-b6a2-3aaf60f28d51"]
 }, Closed]],
@@ -730,7 +730,7 @@ Cell[BoxData[""], "Template",
 },
 WindowSize->{837, 770},
 WindowMargins->{{5, Automatic}, {Automatic, 0}},
-TaggingRules-><|"Paclet" -> "DanielS/PatternMatcherVM"|>,
+TaggingRules-><|"Paclet" -> "DanielS/PatternMatcher"|>,
 CellContext->"Global`",
 FrontEndVersion->"14.3 for Mac OS X ARM (64-bit) (June 26, 2025)",
 StyleDefinitions->FrontEnd`FileName[{"Wolfram"}, "FunctionPageStylesExt.nb", 

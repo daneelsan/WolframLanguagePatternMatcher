@@ -20,7 +20,7 @@ WindowFrame->Normal*)
 (* Beginning of Notebook Content *)
 Notebook[{
 Cell[BoxData[
- RowBox[{"Needs", "[", "\"\<DanielS`PatternMatcherVM`\>\"", "]"}]], "Environ",\
+ RowBox[{"Needs", "[", "\"\<DanielS`PatternMatcher`\>\"", "]"}]], "Environ",\
 
  CellChangeTimes->{3.958665098805932*^9, 3.958665134716605*^9},
  CellLabel->"In[12]:=",

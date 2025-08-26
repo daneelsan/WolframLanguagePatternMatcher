@@ -1,4 +1,4 @@
-BeginPackage["DanielS`PatternMatcherVM`ErrorHandling`"];
+BeginPackage["DanielS`PatternMatcher`ErrorHandling`"];
 
 
 CatchFailure::usage =

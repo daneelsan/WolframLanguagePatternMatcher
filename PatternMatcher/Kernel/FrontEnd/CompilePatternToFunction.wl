@@ -1,12 +1,12 @@
-BeginPackage["DanielS`PatternMatcherVM`FrontEnd`CompilePatternToFunction`"];
+BeginPackage["DanielS`PatternMatcher`FrontEnd`CompilePatternToFunction`"];
 
 
 Begin["`Private`"];
 
 
-Needs["DanielS`PatternMatcherVM`"] (* for PatternToFunction *)
-Needs["DanielS`PatternMatcherVM`ErrorHandling`"]
-Needs["DanielS`PatternMatcherVM`MExprUtilities`"]
+Needs["DanielS`PatternMatcher`"] (* for PatternToFunction *)
+Needs["DanielS`PatternMatcher`ErrorHandling`"]
+Needs["DanielS`PatternMatcher`MExprUtilities`"]
 
 Needs["CompileAST`Create`Construct`"] (* for CreateMExpr *)
 

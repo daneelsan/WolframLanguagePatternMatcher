@@ -29,7 +29,7 @@ Cell[TextData[{
   RowBox[{
    ButtonBox["PatternMatcherMatch",
     BaseStyle->"Link",
-    ButtonData->"paclet:DanielSPatternMatcherVM/ref/PatternMatcherMatch"], "[", 
+    ButtonData->"paclet:DanielSPatternMatcher/ref/PatternMatcherMatch"], "[", 
    RowBox[{
     StyleBox["vm", "TI"], ",", 
     StyleBox["expr", "TI"]}], "]"}]], "InlineFormula",ExpressionUUID->
@@ -52,7 +52,7 @@ Cell[TextData[{
   RowBox[{
    ButtonBox["PatternMatcherMatch",
     BaseStyle->"Link",
-    ButtonData->"paclet:DanielS/PatternMatcherVM/ref/PatternMatcherMatch"], "[", 
+    ButtonData->"paclet:DanielS/PatternMatcher/ref/PatternMatcherMatch"], "[", 
    RowBox[{
     StyleBox["vm", "TI"], ",", " ", 
     StyleBox["expr", "TI"]}], "]"}]], "InlineFormula",ExpressionUUID->
@@ -81,13 +81,13 @@ Cell[TextData[{
  Cell[BoxData[
   ButtonBox["PatternMatcherMatch",
    BaseStyle->"Link",
-   ButtonData->"paclet:DanielS/PatternMatcherVM/ref/PatternMatcherMatch"]], 
+   ButtonData->"paclet:DanielS/PatternMatcher/ref/PatternMatcherMatch"]], 
   "InlineFormula",ExpressionUUID->"2d171699-f555-44fe-8a01-2e1a02b0cc1a"],
  " calls ",
  Cell[BoxData[
   ButtonBox["PatternMatcherStep",
    BaseStyle->"Link",
-   ButtonData->"paclet:DanielS/PatternMatcherVM/ref/PatternMatcherStep"]], 
+   ButtonData->"paclet:DanielS/PatternMatcher/ref/PatternMatcherStep"]], 
   "InlineFormula",ExpressionUUID->"0bae5ae0-f813-498c-bc38-c5dcfafd961d"],
  " in a controlled loop."
 }], "Notes",
@@ -142,7 +142,7 @@ Cell[TextData[{
   ButtonBox["PatternMatcherVirtualMachine",
    BaseStyle->"Link",
    ButtonData->
-    "paclet:DanielS/PatternMatcherVM/ref/PatternMatcherVirtualMachine"]], 
+    "paclet:DanielS/PatternMatcher/ref/PatternMatcherVirtualMachine"]], 
   "InlineSeeAlsoFunction",
   TaggingRules->{"PageType" -> "Function"},ExpressionUUID->
   "d04f86a3-e55e-405c-8874-496e58f61577"],
@@ -150,7 +150,7 @@ Cell[TextData[{
  Cell[BoxData[
   ButtonBox["PatternMatcherStep",
    BaseStyle->"Link",
-   ButtonData->"paclet:DanielS/PatternMatcherVM/ref/PatternMatcherStep"]], 
+   ButtonData->"paclet:DanielS/PatternMatcher/ref/PatternMatcherStep"]], 
   "InlineSeeAlsoFunction",
   TaggingRules->{"PageType" -> "Function"},ExpressionUUID->
   "aa7f7f5c-2349-4dc3-ae8b-c9ad08288a09"],
@@ -159,7 +159,7 @@ Cell[TextData[{
   ButtonBox["CreatePatternMatcherVirtualMachine",
    BaseStyle->"Link",
    ButtonData->
-    "paclet:DanielS/PatternMatcherVM/ref/CreatePatternMatcherVirtualMachine"]]\
+    "paclet:DanielS/PatternMatcher/ref/CreatePatternMatcherVirtualMachine"]]\
 , "InlineSeeAlsoFunction",
   TaggingRules->{"PageType" -> "Function"},ExpressionUUID->
   "310840f8-5e04-42ef-8ed6-b4ed7b72452c"],
@@ -167,7 +167,7 @@ Cell[TextData[{
  Cell[BoxData[
   ButtonBox["PatternBytecode",
    BaseStyle->"Link",
-   ButtonData->"paclet:DanielS/PatternMatcherVM/ref/PatternBytecode"]], 
+   ButtonData->"paclet:DanielS/PatternMatcher/ref/PatternBytecode"]], 
   "InlineSeeAlsoFunction",
   TaggingRules->{"PageType" -> "Function"},ExpressionUUID->
   "cb8d7638-c41c-4fc6-bca7-5178ea3439a7"],
@@ -176,7 +176,7 @@ Cell[TextData[{
   ButtonBox["CompilePatternToBytecode",
    BaseStyle->"Link",
    ButtonData->
-    "paclet:DanielS/PatternMatcherVM/ref/CompilePatternToBytecode"]], 
+    "paclet:DanielS/PatternMatcher/ref/CompilePatternToBytecode"]], 
   "InlineSeeAlsoFunction",
   TaggingRules->{"PageType" -> "Function"},ExpressionUUID->
   "309cb359-d0e3-4063-a302-8b5823b2cdac"],
@@ -248,7 +248,7 @@ Cell["Related Guides", "MoreAboutSection",
 Cell[TextData[ButtonBox["The Pattern Matcher Virtual Machine",
  BaseStyle->"Link",
  ButtonData->
-  "paclet:DanielS/PatternMatcherVM/guide/ThePatternMatcherVirtualMachine"]], \
+  "paclet:DanielS/PatternMatcher/guide/ThePatternMatcherVirtualMachine"]], \
 "MoreAbout",
  CellChangeTimes->{{3.960648097017188*^9, 3.9606481047695303`*^9}},
  CellID->1744879273,ExpressionUUID->"95e24c8a-632a-4069-9c86-087796fabb94"]
@@ -294,7 +294,7 @@ Needs[\[Ellipsis]].", "MoreInfoText"], BaseStyle -> "IFrameBox"]],
  CellID->985474103,ExpressionUUID->"e87a3c7b-34ef-4312-956d-555380d99a0c"],
 
 Cell[BoxData[
- RowBox[{"Needs", "[", "\"\<DanielS`PatternMatcherVM`\>\"", 
+ RowBox[{"Needs", "[", "\"\<DanielS`PatternMatcher`\>\"", 
   "]"}]], "ExampleInitialization",
  CellID->1469363457,ExpressionUUID->"76c0b00c-e923-45ac-90b3-b66d6c839322"]
 }, Open  ]],
@@ -536,7 +536,7 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nBLANK\"",
        Dynamic[Typeset`open$$], ImageSize -> Automatic]},
      "SummaryPanel"],
     DynamicModuleValues:>{}], "]"}],
-  DanielS`PatternMatcherVM`PatternBytecode[<|"Pattern" -> $CellContext`f[
+  DanielS`PatternMatcher`PatternBytecode[<|"Pattern" -> $CellContext`f[
       Blank[]], 
     "Bytecode" -> {{"TEST_LENGTH", {"int", 1}}, {"CHECK_ABORT"}, {
       "GET_HEAD"}, {"PUSH_EXPR", {"expr", 
@@ -852,7 +852,7 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nBLANK\"",
                     Dynamic[Typeset`open$$], ImageSize -> Automatic]}, 
                     "SummaryPanel"], DynamicModuleValues :> {}], "]"}], 
                    
-                   DanielS`PatternMatcherVM`PatternBytecode[<|
+                   DanielS`PatternMatcher`PatternBytecode[<|
                     "Pattern" -> $CellContext`f[
                     Blank[]], 
                     "Bytecode" -> {{"TEST_LENGTH", {"int", 1}}, {
@@ -889,9 +889,9 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nBLANK\"",
        Dynamic[Typeset`open$$], ImageSize -> Automatic]},
      "SummaryPanel"],
     DynamicModuleValues:>{}], "]"}],
-  DanielS`PatternMatcherVM`PatternMatcherVirtualMachine[<|
+  DanielS`PatternMatcher`PatternMatcherVirtualMachine[<|
    "PatternBytecode" -> 
-    DanielS`PatternMatcherVM`PatternBytecode[<|"Pattern" -> $CellContext`f[
+    DanielS`PatternMatcher`PatternBytecode[<|"Pattern" -> $CellContext`f[
          Blank[]], 
        "Bytecode" -> {{"TEST_LENGTH", {"int", 1}}, {"CHECK_ABORT"}, {
          "GET_HEAD"}, {"PUSH_EXPR", {"expr", 
@@ -1209,7 +1209,7 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nBLANK\"",
                     Dynamic[Typeset`open$$], ImageSize -> Automatic]}, 
                     "SummaryPanel"], DynamicModuleValues :> {}], "]"}], 
                    
-                   DanielS`PatternMatcherVM`PatternBytecode[<|
+                   DanielS`PatternMatcher`PatternBytecode[<|
                     "Pattern" -> $CellContext`f[
                     Blank[]], 
                     "Bytecode" -> {{"TEST_LENGTH", {"int", 1}}, {
@@ -1246,9 +1246,9 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nBLANK\"",
        Dynamic[Typeset`open$$], ImageSize -> Automatic]},
      "SummaryPanel"],
     DynamicModuleValues:>{}], "]"}],
-  DanielS`PatternMatcherVM`PatternMatcherVirtualMachine[<|
+  DanielS`PatternMatcher`PatternMatcherVirtualMachine[<|
    "PatternBytecode" -> 
-    DanielS`PatternMatcherVM`PatternBytecode[<|"Pattern" -> $CellContext`f[
+    DanielS`PatternMatcher`PatternBytecode[<|"Pattern" -> $CellContext`f[
          Blank[]], 
        "Bytecode" -> {{"TEST_LENGTH", {"int", 1}}, {"CHECK_ABORT"}, {
          "GET_HEAD"}, {"PUSH_EXPR", {"expr", 
@@ -1657,7 +1657,7 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nPUSH_EXPR 1\\nSAMEQ\\nGET_PART \
        Dynamic[Typeset`open$$], ImageSize -> Automatic]},
      "SummaryPanel"],
     DynamicModuleValues:>{}], "]"}],
-  DanielS`PatternMatcherVM`PatternBytecode[<|"Pattern" -> $CellContext`f[1, 
+  DanielS`PatternMatcher`PatternBytecode[<|"Pattern" -> $CellContext`f[1, 
       Blank[]], 
     "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
       "GET_HEAD"}, {"PUSH_EXPR", {"expr", 
@@ -2071,7 +2071,7 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nPUSH_EXPR 1\\nSAMEQ\\nGET_PART \
                     Dynamic[Typeset`open$$], ImageSize -> Automatic]}, 
                     "SummaryPanel"], DynamicModuleValues :> {}], "]"}], 
                    
-                   DanielS`PatternMatcherVM`PatternBytecode[<|
+                   DanielS`PatternMatcher`PatternBytecode[<|
                     "Pattern" -> $CellContext`f[1, 
                     Blank[]], 
                     "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {
@@ -2111,9 +2111,9 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nPUSH_EXPR 1\\nSAMEQ\\nGET_PART \
        Dynamic[Typeset`open$$], ImageSize -> Automatic]},
      "SummaryPanel"],
     DynamicModuleValues:>{}], "]"}],
-  DanielS`PatternMatcherVM`PatternMatcherVirtualMachine[<|
+  DanielS`PatternMatcher`PatternMatcherVirtualMachine[<|
    "PatternBytecode" -> 
-    DanielS`PatternMatcherVM`PatternBytecode[<|
+    DanielS`PatternMatcher`PatternBytecode[<|
       "Pattern" -> $CellContext`f[1, 
          Blank[]], 
        "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -2194,7 +2194,7 @@ Cell[BoxData[
    DynamicModuleBox[{TypeSystem`NestedGrid`PackagePrivate`$state$$ = <|
     "InitialData" -> <|
       "PatternBytecode" -> 
-       DanielS`PatternMatcherVM`PatternBytecode[<|
+       DanielS`PatternMatcher`PatternBytecode[<|
          "Pattern" -> $CellContext`f[1, 
             Blank[]], 
           "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -2984,7 +2984,7 @@ Cell[BoxData[
    DynamicModuleBox[{TypeSystem`NestedGrid`PackagePrivate`$state$$ = <|
     "InitialData" -> <|
       "PatternBytecode" -> 
-       DanielS`PatternMatcherVM`PatternBytecode[<|
+       DanielS`PatternMatcher`PatternBytecode[<|
          "Pattern" -> $CellContext`f[1, 
             Blank[]], 
           "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -3761,7 +3761,7 @@ Cell[BoxData[
    DynamicModuleBox[{TypeSystem`NestedGrid`PackagePrivate`$state$$ = <|
     "InitialData" -> <|
       "PatternBytecode" -> 
-       DanielS`PatternMatcherVM`PatternBytecode[<|
+       DanielS`PatternMatcher`PatternBytecode[<|
          "Pattern" -> $CellContext`f[1, 
             Blank[]], 
           "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -4662,7 +4662,7 @@ Cell[BoxData[
    DynamicModuleBox[{TypeSystem`NestedGrid`PackagePrivate`$state$$ = <|
     "InitialData" -> <|
       "PatternBytecode" -> 
-       DanielS`PatternMatcherVM`PatternBytecode[<|
+       DanielS`PatternMatcher`PatternBytecode[<|
          "Pattern" -> $CellContext`f[1, 
             Blank[]], 
           "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -5439,7 +5439,7 @@ Cell[BoxData[
    DynamicModuleBox[{TypeSystem`NestedGrid`PackagePrivate`$state$$ = <|
     "InitialData" -> <|
       "PatternBytecode" -> 
-       DanielS`PatternMatcherVM`PatternBytecode[<|
+       DanielS`PatternMatcher`PatternBytecode[<|
          "Pattern" -> $CellContext`f[1, 
             Blank[]], 
           "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -6217,7 +6217,7 @@ Cell[BoxData[
    DynamicModuleBox[{TypeSystem`NestedGrid`PackagePrivate`$state$$ = <|
     "InitialData" -> <|
       "PatternBytecode" -> 
-       DanielS`PatternMatcherVM`PatternBytecode[<|
+       DanielS`PatternMatcher`PatternBytecode[<|
          "Pattern" -> $CellContext`f[1, 
             Blank[]], 
           "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -6995,7 +6995,7 @@ Cell[BoxData[
    DynamicModuleBox[{TypeSystem`NestedGrid`PackagePrivate`$state$$ = <|
     "InitialData" -> <|
       "PatternBytecode" -> 
-       DanielS`PatternMatcherVM`PatternBytecode[<|
+       DanielS`PatternMatcher`PatternBytecode[<|
          "Pattern" -> $CellContext`f[1, 
             Blank[]], 
           "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -7888,7 +7888,7 @@ Cell[BoxData[
    DynamicModuleBox[{TypeSystem`NestedGrid`PackagePrivate`$state$$ = <|
     "InitialData" -> <|
       "PatternBytecode" -> 
-       DanielS`PatternMatcherVM`PatternBytecode[<|
+       DanielS`PatternMatcher`PatternBytecode[<|
          "Pattern" -> $CellContext`f[1, 
             Blank[]], 
           "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -8665,7 +8665,7 @@ Cell[BoxData[
    DynamicModuleBox[{TypeSystem`NestedGrid`PackagePrivate`$state$$ = <|
     "InitialData" -> <|
       "PatternBytecode" -> 
-       DanielS`PatternMatcherVM`PatternBytecode[<|
+       DanielS`PatternMatcher`PatternBytecode[<|
          "Pattern" -> $CellContext`f[1, 
             Blank[]], 
           "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -9444,7 +9444,7 @@ Cell[BoxData[
    DynamicModuleBox[{TypeSystem`NestedGrid`PackagePrivate`$state$$ = <|
     "InitialData" -> <|
       "PatternBytecode" -> 
-       DanielS`PatternMatcherVM`PatternBytecode[<|
+       DanielS`PatternMatcher`PatternBytecode[<|
          "Pattern" -> $CellContext`f[1, 
             Blank[]], 
           "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -10221,7 +10221,7 @@ Cell[BoxData[
    DynamicModuleBox[{TypeSystem`NestedGrid`PackagePrivate`$state$$ = <|
     "InitialData" -> <|
       "PatternBytecode" -> 
-       DanielS`PatternMatcherVM`PatternBytecode[<|
+       DanielS`PatternMatcher`PatternBytecode[<|
          "Pattern" -> $CellContext`f[1, 
             Blank[]], 
           "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -10992,7 +10992,7 @@ Cell[BoxData[
    DynamicModuleBox[{TypeSystem`NestedGrid`PackagePrivate`$state$$ = <|
     "InitialData" -> <|
       "PatternBytecode" -> 
-       DanielS`PatternMatcherVM`PatternBytecode[<|
+       DanielS`PatternMatcher`PatternBytecode[<|
          "Pattern" -> $CellContext`f[1, 
             Blank[]], 
           "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -12120,7 +12120,7 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nPUSH_EXPR 1\\nSAMEQ\\nGET_PART \
                     Dynamic[Typeset`open$$], ImageSize -> Automatic]}, 
                     "SummaryPanel"], DynamicModuleValues :> {}], "]"}], 
                    
-                   DanielS`PatternMatcherVM`PatternBytecode[<|
+                   DanielS`PatternMatcher`PatternBytecode[<|
                     "Pattern" -> $CellContext`f[1, 
                     Blank[]], 
                     "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {
@@ -12159,9 +12159,9 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nPUSH_EXPR 1\\nSAMEQ\\nGET_PART \
        Dynamic[Typeset`open$$], ImageSize -> Automatic]},
      "SummaryPanel"],
     DynamicModuleValues:>{}], "]"}],
-  DanielS`PatternMatcherVM`PatternMatcherVirtualMachine[<|
+  DanielS`PatternMatcher`PatternMatcherVirtualMachine[<|
    "PatternBytecode" -> 
-    DanielS`PatternMatcherVM`PatternBytecode[<|
+    DanielS`PatternMatcher`PatternBytecode[<|
       "Pattern" -> $CellContext`f[1, 
          Blank[]], 
        "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -12243,7 +12243,7 @@ Cell[TextData[{
   ButtonBox["ResetPatternMatcherVirtualMachine",
    BaseStyle->"Link",
    ButtonData->
-    "paclet:DanielS/PatternMatcherVM/ref/ResetPatternMatcherVirtualMachine"]],
+    "paclet:DanielS/PatternMatcher/ref/ResetPatternMatcherVirtualMachine"]],
    "InlineFormula",ExpressionUUID->"ca985369-48fb-4e70-9b67-951ee7e29a55"],
  ":"
 }], "ExampleText",
@@ -12548,7 +12548,7 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nBLANK\\nGET_PART 2\\nBLANK\"",
                     Dynamic[Typeset`open$$], ImageSize -> Automatic]}, 
                     "SummaryPanel"], DynamicModuleValues :> {}], "]"}], 
                    
-                   DanielS`PatternMatcherVM`PatternBytecode[<|
+                   DanielS`PatternMatcher`PatternBytecode[<|
                     "Pattern" -> $CellContext`f[
                     Blank[], 
                     Blank[]], 
@@ -12587,9 +12587,9 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nBLANK\\nGET_PART 2\\nBLANK\"",
        Dynamic[Typeset`open$$], ImageSize -> Automatic]},
      "SummaryPanel"],
     DynamicModuleValues:>{}], "]"}],
-  DanielS`PatternMatcherVM`PatternMatcherVirtualMachine[<|
+  DanielS`PatternMatcher`PatternMatcherVirtualMachine[<|
    "PatternBytecode" -> 
-    DanielS`PatternMatcherVM`PatternBytecode[<|"Pattern" -> $CellContext`f[
+    DanielS`PatternMatcher`PatternBytecode[<|"Pattern" -> $CellContext`f[
          Blank[], 
          Blank[]], 
        "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -12906,7 +12906,7 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nBLANK\\nGET_PART 2\\nBLANK\"",
                     Dynamic[Typeset`open$$], ImageSize -> Automatic]}, 
                     "SummaryPanel"], DynamicModuleValues :> {}], "]"}], 
                    
-                   DanielS`PatternMatcherVM`PatternBytecode[<|
+                   DanielS`PatternMatcher`PatternBytecode[<|
                     "Pattern" -> $CellContext`f[
                     Blank[], 
                     Blank[]], 
@@ -12945,9 +12945,9 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nBLANK\\nGET_PART 2\\nBLANK\"",
        Dynamic[Typeset`open$$], ImageSize -> Automatic]},
      "SummaryPanel"],
     DynamicModuleValues:>{}], "]"}],
-  DanielS`PatternMatcherVM`PatternMatcherVirtualMachine[<|
+  DanielS`PatternMatcher`PatternMatcherVirtualMachine[<|
    "PatternBytecode" -> 
-    DanielS`PatternMatcherVM`PatternBytecode[<|"Pattern" -> $CellContext`f[
+    DanielS`PatternMatcher`PatternBytecode[<|"Pattern" -> $CellContext`f[
          Blank[], 
          Blank[]], 
        "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -13262,7 +13262,7 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nBLANK\\nGET_PART 2\\nBLANK\"",
                     Dynamic[Typeset`open$$], ImageSize -> Automatic]}, 
                     "SummaryPanel"], DynamicModuleValues :> {}], "]"}], 
                    
-                   DanielS`PatternMatcherVM`PatternBytecode[<|
+                   DanielS`PatternMatcher`PatternBytecode[<|
                     "Pattern" -> $CellContext`f[
                     Blank[], 
                     Blank[]], 
@@ -13301,9 +13301,9 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nBLANK\\nGET_PART 2\\nBLANK\"",
        Dynamic[Typeset`open$$], ImageSize -> Automatic]},
      "SummaryPanel"],
     DynamicModuleValues:>{}], "]"}],
-  DanielS`PatternMatcherVM`PatternMatcherVirtualMachine[<|
+  DanielS`PatternMatcher`PatternMatcherVirtualMachine[<|
    "PatternBytecode" -> 
-    DanielS`PatternMatcherVM`PatternBytecode[<|"Pattern" -> $CellContext`f[
+    DanielS`PatternMatcher`PatternBytecode[<|"Pattern" -> $CellContext`f[
          Blank[], 
          Blank[]], 
        "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -13622,7 +13622,7 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nBLANK\\nGET_PART 2\\nBLANK\"",
                     Dynamic[Typeset`open$$], ImageSize -> Automatic]}, 
                     "SummaryPanel"], DynamicModuleValues :> {}], "]"}], 
                    
-                   DanielS`PatternMatcherVM`PatternBytecode[<|
+                   DanielS`PatternMatcher`PatternBytecode[<|
                     "Pattern" -> $CellContext`f[
                     Blank[], 
                     Blank[]], 
@@ -13661,9 +13661,9 @@ f\\nSAMEQ\\nCHECK_ABORT\\nGET_PART 1\\nBLANK\\nGET_PART 2\\nBLANK\"",
        Dynamic[Typeset`open$$], ImageSize -> Automatic]},
      "SummaryPanel"],
     DynamicModuleValues:>{}], "]"}],
-  DanielS`PatternMatcherVM`PatternMatcherVirtualMachine[<|
+  DanielS`PatternMatcher`PatternMatcherVirtualMachine[<|
    "PatternBytecode" -> 
-    DanielS`PatternMatcherVM`PatternBytecode[<|"Pattern" -> $CellContext`f[
+    DanielS`PatternMatcher`PatternBytecode[<|"Pattern" -> $CellContext`f[
          Blank[], 
          Blank[]], 
        "Bytecode" -> {{"TEST_LENGTH", {"int", 2}}, {"CHECK_ABORT"}, {
@@ -13750,15 +13750,15 @@ Cell["Symbol", "Categorization",
  CellLabel->"Entity Type",
  CellID->542288642,ExpressionUUID->"52cba59a-6379-4f62-9b3d-004efbdd6e80"],
 
-Cell["DanielS/PatternMatcherVM", "Categorization",
+Cell["DanielS/PatternMatcher", "Categorization",
  CellLabel->"Paclet Name",
  CellID->198287221,ExpressionUUID->"08233b8c-260f-43b7-a447-8fd8700f12ec"],
 
-Cell["DanielS`PatternMatcherVM`", "Categorization",
+Cell["DanielS`PatternMatcher`", "Categorization",
  CellLabel->"Context",
  CellID->1866186850,ExpressionUUID->"eacd2f05-a3cb-4f03-8b68-15c9a43f9a01"],
 
-Cell["DanielS/PatternMatcherVM/ref/PatternMatcherMatch", "Categorization",
+Cell["DanielS/PatternMatcher/ref/PatternMatcherMatch", "Categorization",
  CellLabel->"URI",
  CellID->1003723515,ExpressionUUID->"4254c6f9-33cd-4ee4-a6a0-172e6e3f4a44"]
 }, Closed]],
@@ -13797,7 +13797,7 @@ Cell[BoxData[""], "Template",
 },
 WindowSize->{1512, 831},
 WindowMargins->{{0, Automatic}, {Automatic, 0}},
-TaggingRules-><|"Paclet" -> "DanielS/PatternMatcherVM"|>,
+TaggingRules-><|"Paclet" -> "DanielS/PatternMatcher"|>,
 CellContext->"Global`",
 FrontEndVersion->"14.3 for Mac OS X ARM (64-bit) (June 26, 2025)",
 StyleDefinitions->FrontEnd`FileName[{"Wolfram"}, "FunctionPageStylesExt.nb", 

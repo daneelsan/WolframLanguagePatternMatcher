@@ -2,35 +2,38 @@
 
 PacletObject[
   <|
-    "Name" -> "DanielS/PatternMatcherVM",
+    "Name" -> "DanielS/PatternMatcher",
     "Description" -> "A virtual machine for the Wolfram Language pattern matcher",
     "Creator" -> "Daniel Sanchez",
     "License" -> "MIT",
     "PublisherID" -> "DanielS",
     "Version" -> "1.0.0",
-    "WolframVersion" -> "14.3+",
-    "PrimaryContext" -> "DanielS`PatternMatcherVM`",
+    "WolframVersion" -> "14.4+",
+    "PrimaryContext" -> "DanielS`PatternMatcher`",
     "DocumentationURL" -> "https://resources.wolframcloud.com/PacletRepository/resources",
     "Extensions" -> {
       {
         "Kernel",
         "Root" -> "Kernel",
-        "Context" -> {"DanielS`PatternMatcherVM`"},
+        "Context" -> {"DanielS`PatternMatcher`"},
         "Symbols" -> {
-          "DanielS`PatternMatcherVM`CompilePatternToBytecode",
-          "DanielS`PatternMatcherVM`CompilePatternToFunction",
-          "DanielS`PatternMatcherVM`PatternBytecode",
-          "DanielS`PatternMatcherVM`PatternMatcherVirtualMachine",
-          "DanielS`PatternMatcherVM`CreatePatternMatcherVirtualMachine",
-          "DanielS`PatternMatcherVM`ResetPatternMatcherVirtualMachine",
-          "DanielS`PatternMatcherVM`PatternMatcherMatch",
-          "DanielS`PatternMatcherVM`PatternMatcherStep"
+          "DanielS`PatternMatcher`CompilePatternToBytecode",
+          "DanielS`PatternMatcher`CompilePatternToFunction",
+          "DanielS`PatternMatcher`PatternBytecode",
+          "DanielS`PatternMatcher`PatternMatcherVirtualMachine",
+          "DanielS`PatternMatcher`CreatePatternMatcherVirtualMachine",
+          "DanielS`PatternMatcher`ResetPatternMatcherVirtualMachine",
+          "DanielS`PatternMatcher`PatternMatcherMatch",
+          "DanielS`PatternMatcher`PatternMatcherStep"
         }
       },
       {
         "Documentation",
         "Root" -> "Documentation",
         "Language" -> "English"
+      },
+      {
+        "LibraryResources"
       }
     }
   |>

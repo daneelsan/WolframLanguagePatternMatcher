@@ -1,13 +1,13 @@
-BeginPackage["DanielS`PatternMatcherVM`FrontEnd`CompilePatternToBytecode`"]
+BeginPackage["DanielS`PatternMatcher`FrontEnd`CompilePatternToBytecode`"]
 
 
 Begin["`Private`"]
 
 
-Needs["DanielS`PatternMatcherVM`BackEnd`PatternBytecode`"] (* for CreatePatternBytecode *)
-Needs["DanielS`PatternMatcherVM`ErrorHandling`"]
-Needs["DanielS`PatternMatcherVM`MExprUtilities`"]
-Needs["DanielS`PatternMatcherVM`"] (* for CompilePatternToBytecode *)
+Needs["DanielS`PatternMatcher`BackEnd`PatternBytecode`"] (* for CreatePatternBytecode *)
+Needs["DanielS`PatternMatcher`ErrorHandling`"]
+Needs["DanielS`PatternMatcher`MExprUtilities`"]
+Needs["DanielS`PatternMatcher`"] (* for CompilePatternToBytecode *)
 
 Needs["CompileAST`Create`Construct`"] (* for CreateMExpr *)
 

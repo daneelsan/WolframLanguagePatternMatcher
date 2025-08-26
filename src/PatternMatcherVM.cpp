@@ -1,18 +1,18 @@
-#include "PatternMatcherVM.h"
+#include "PatternMatcher.h"
 #include <stdexcept>
 #include <string>
 
-PatternMatcherVM::PatternMatcherVM()
+PatternMatcher::PatternMatcher()
 {
     // Initialize any required resources
 }
 
-PatternMatcherVM::~PatternMatcherVM()
+PatternMatcher::~PatternMatcher()
 {
     // Clean up resources
 }
 
-std::vector<PatternMatcherVM::Instruction> PatternMatcherVM::compilePattern(wlr_expr pattern)
+std::vector<PatternMatcher::Instruction> PatternMatcher::compilePattern(wlr_expr pattern)
 {
     std::vector<Instruction> bytecode;
     // TODO: Implement pattern compilation
@@ -20,7 +20,7 @@ std::vector<PatternMatcherVM::Instruction> PatternMatcherVM::compilePattern(wlr_
     return bytecode;
 }
 
-bool PatternMatcherVM::execute(const std::vector<Instruction> &bytecode, wlr_expr expr)
+bool PatternMatcher::execute(const std::vector<Instruction> &bytecode, wlr_expr expr)
 {
     VMState state;
     state.current_expr = wlr_Clone(expr);

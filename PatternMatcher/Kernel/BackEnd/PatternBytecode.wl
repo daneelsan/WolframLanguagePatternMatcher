@@ -1,4 +1,4 @@
-BeginPackage["DanielS`PatternMatcherVM`BackEnd`PatternBytecode`"]
+BeginPackage["DanielS`PatternMatcher`BackEnd`PatternBytecode`"]
 
 
 CreatePatternBytecode::usage =
@@ -20,7 +20,7 @@ $PatternOpcodes::usage =
 Begin["`Private`"]
 
 
-Needs["DanielS`PatternMatcherVM`"]
+Needs["DanielS`PatternMatcher`"]
 
 
 (*=============================================================================

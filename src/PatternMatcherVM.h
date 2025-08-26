@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-class PatternMatcherVM
+class PatternMatcher
 {
 public:
     // VM state
@@ -64,8 +64,8 @@ public:
         int int_arg;
     };
 
-    PatternMatcherVM();
-    ~PatternMatcherVM();
+    PatternMatcher();
+    ~PatternMatcher();
 
     // Compile a pattern to bytecode
     std::vector<Instruction> compilePattern(wlr_expr pattern);

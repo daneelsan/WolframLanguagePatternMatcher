@@ -1,4 +1,4 @@
-BeginPackage["DanielS`PatternMatcherVM`MExprUtilities`"];
+BeginPackage["DanielS`PatternMatcher`MExprUtilities`"];
 
 
 MExprIsBlank::usage =

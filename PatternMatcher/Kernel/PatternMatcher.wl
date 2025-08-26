@@ -1,9 +1,9 @@
-Unprotect["DanielS`PatternMatcherVM`*"];
-ClearAll["DanielS`PatternMatcherVM`*"];
-ClearAll["DanielS`PatternMatcherVM`*`*"];
+Unprotect["DanielS`PatternMatcher`*"];
+ClearAll["DanielS`PatternMatcher`*"];
+ClearAll["DanielS`PatternMatcher`*`*"];
 
 
-BeginPackage["DanielS`PatternMatcherVM`"];
+BeginPackage["DanielS`PatternMatcher`"];
 
 
 CompilePatternToFunction::usage =
@@ -47,8 +47,8 @@ Begin["`Private`"];
 FunctionCompile[Function[1]];
 
 
-Needs["DanielS`PatternMatcherVM`FrontEnd`"]
-Needs["DanielS`PatternMatcherVM`BackEnd`"]
+Needs["DanielS`PatternMatcher`FrontEnd`"]
+Needs["DanielS`PatternMatcher`BackEnd`"]
 
 
 End[];
@@ -57,4 +57,4 @@ End[];
 EndPackage[];
 
 
-SetAttributes[#, {Protected, ReadProtected}] & /@ Evaluate @ Names["DanielS`PatternMatcherVM`*"];
+SetAttributes[#, {Protected, ReadProtected}] & /@ Evaluate @ Names["DanielS`PatternMatcher`*"];

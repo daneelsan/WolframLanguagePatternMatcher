@@ -51,7 +51,7 @@ Cell[TextData[{
   ButtonBox["CompilePatternToFunction",
    BaseStyle->"Link",
    ButtonData->
-    "paclet:DanielS/PatternMatcherVM/ref/CompilePatternToFunction"]], 
+    "paclet:DanielS/PatternMatcher/ref/CompilePatternToFunction"]], 
   "InlineGuideFunction",
   TaggingRules->{"PageType" -> "Function"},
   CellTags->"c40ac8e4-27e1-4161-a8df-4d4f38357a23",ExpressionUUID->
@@ -67,7 +67,7 @@ Cell[TextData[{
   ButtonBox["CompilePatternToBytecode",
    BaseStyle->"Link",
    ButtonData->
-    "paclet:DanielS/PatternMatcherVM/ref/CompilePatternToBytecode"]], 
+    "paclet:DanielS/PatternMatcher/ref/CompilePatternToBytecode"]], 
   "InlineGuideFunction",
   TaggingRules->{"PageType" -> "Function"},
   CellTags->"c5c6736a-1ff4-4e4e-8fcf-2d9846cbae62",ExpressionUUID->
@@ -89,7 +89,7 @@ Cell[TextData[{
  Cell[BoxData[
   ButtonBox["PatternBytecode",
    BaseStyle->"Link",
-   ButtonData->"paclet:DanielS/PatternMatcherVM/ref/PatternBytecode"]], 
+   ButtonData->"paclet:DanielS/PatternMatcher/ref/PatternBytecode"]], 
   "InlineGuideFunction",
   TaggingRules->{"PageType" -> "Function"},
   CellTags->"c9e040d8-39af-412b-87d8-df0c09e6d909",ExpressionUUID->
@@ -105,7 +105,7 @@ Cell[TextData[{
   ButtonBox["CreatePatternMatcherVirtualMachine",
    BaseStyle->"Link",
    ButtonData->
-    "paclet:DanielS/PatternMatcherVM/ref/CreatePatternMatcherVirtualMachine"]]\
+    "paclet:DanielS/PatternMatcher/ref/CreatePatternMatcherVirtualMachine"]]\
 , "InlineGuideFunction",
   TaggingRules->{"PageType" -> "Function"},
   CellTags->"2a4eaf87-be1f-456b-b406-608ea736bed1",ExpressionUUID->
@@ -121,7 +121,7 @@ Cell[TextData[{
   ButtonBox["PatternMatcherVirtualMachine",
    BaseStyle->"Link",
    ButtonData->
-    "paclet:DanielS/PatternMatcherVM/ref/PatternMatcherVirtualMachine"]], 
+    "paclet:DanielS/PatternMatcher/ref/PatternMatcherVirtualMachine"]], 
   "InlineGuideFunction",
   TaggingRules->{"PageType" -> "Function"},
   CellTags->"c9e040d8-39af-412b-87d8-df0c09e6d909",ExpressionUUID->
@@ -143,7 +143,7 @@ Cell[TextData[{
  Cell[BoxData[
   ButtonBox["PatternMatcherMatch",
    BaseStyle->"Link",
-   ButtonData->"paclet:DanielS/PatternMatcherVM/ref/PatternMatcherMatch"]], 
+   ButtonData->"paclet:DanielS/PatternMatcher/ref/PatternMatcherMatch"]], 
   "InlineGuideFunction",
   TaggingRules->{"PageType" -> "Function"},
   CellTags->"2a4eaf87-be1f-456b-b406-608ea736bed1",ExpressionUUID->
@@ -158,7 +158,7 @@ Cell[TextData[{
  Cell[BoxData[
   ButtonBox["PatternMatcherStep",
    BaseStyle->"Link",
-   ButtonData->"paclet:DanielS/PatternMatcherVM/ref/PatternMatcherStep"]], 
+   ButtonData->"paclet:DanielS/PatternMatcher/ref/PatternMatcherStep"]], 
   "InlineGuideFunction",
   TaggingRules->{"PageType" -> "Function"},
   CellTags->"2a4eaf87-be1f-456b-b406-608ea736bed1",ExpressionUUID->
@@ -300,15 +300,15 @@ Cell["Guide", "Categorization",
  CellLabel->"Entity Type",
  CellID->1994678087,ExpressionUUID->"ad5d2e56-8552-4d13-b744-28443a868012"],
 
-Cell["DanielS/PatternMatcherVM", "Categorization",
+Cell["DanielS/PatternMatcher", "Categorization",
  CellLabel->"Paclet Name",
  CellID->187394892,ExpressionUUID->"f56b09f7-335e-40e8-9e6a-725071e79c5f"],
 
-Cell["DanielS`PatternMatcherVM`", "Categorization",
+Cell["DanielS`PatternMatcher`", "Categorization",
  CellLabel->"Context",
  CellID->1334923342,ExpressionUUID->"278c1ded-ea63-4dd9-a3f5-0fd58a6a88ba"],
 
-Cell["DanielS/PatternMatcherVM/guide/PatternMatcherVirtualMachine", \
+Cell["DanielS/PatternMatcher/guide/PatternMatcherVirtualMachine", \
 "Categorization",
  CellLabel->"URI",
  CellID->1294948785,ExpressionUUID->"fd0cffeb-9e8a-418a-9e4e-ac39c2e6a2f5"]
@@ -326,7 +326,7 @@ Cell["XXXX", "Keywords",
 },
 WindowSize->{700, 770},
 WindowMargins->{{352, Automatic}, {11, Automatic}},
-TaggingRules-><|"Paclet" -> "DanielS/PatternMatcherVM"|>,
+TaggingRules-><|"Paclet" -> "DanielS/PatternMatcher"|>,
 FrontEndVersion->"14.3 for Mac OS X ARM (64-bit) (June 26, 2025)",
 StyleDefinitions->FrontEnd`FileName[{"Wolfram"}, "GuidePageStylesExt.nb", 
   CharacterEncoding -> "UTF-8"],

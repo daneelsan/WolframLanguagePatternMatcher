@@ -1,12 +1,12 @@
-BeginPackage["DanielS`PatternMatcherVM`BackEnd`VirtualMachine`"]
+BeginPackage["DanielS`PatternMatcher`BackEnd`VirtualMachine`"]
 
 
 Begin["`Private`"]
 
 
-Needs["DanielS`PatternMatcherVM`BackEnd`PatternBytecode`"]
-Needs["DanielS`PatternMatcherVM`ErrorHandling`"]
-Needs["DanielS`PatternMatcherVM`"]
+Needs["DanielS`PatternMatcher`BackEnd`PatternBytecode`"]
+Needs["DanielS`PatternMatcher`ErrorHandling`"]
+Needs["DanielS`PatternMatcher`"]
 
 Needs["CompileAST`Create`Construct`"] (* for CreateMExpr *)
 
