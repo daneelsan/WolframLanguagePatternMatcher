@@ -44,7 +44,7 @@ Begin["`Private`"];
 (*
 	TODO: Remove this hack. CreateMExpr should be independent of the compiler.
 *)
-FunctionCompile[Function[1]];
+(*FunctionCompile[Function[1]];*)
 
 
 Needs["DanielS`PatternMatcher`FrontEnd`"]

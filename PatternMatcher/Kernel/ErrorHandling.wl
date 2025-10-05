@@ -7,12 +7,15 @@ CatchFailure::usage =
 ThrowFailure::usage =
 	"ThrowFailure[subTag, msgTemplate, msgParameters, extra] construct a Failure object using the arguments and throws it.";
 
+ThrowLibraryError::usage =
+	"ThrowLibraryError[message] constructs and throws a Failure object with the given message string.";
+
 
 Begin["`Private`"];
 
 
-$PMVMCatchThrowTag =
-	"$PMVMCatchThrowTag";
+$PMCatchThrowTag =
+	"$PMCatchThrowTag";
 
 
 (*=============================================================================
@@ -22,28 +25,33 @@ $PMVMCatchThrowTag =
 SetAttributes[CatchFailure, HoldFirst];
 
 CatchFailure[expr_] :=
-	Catch[expr, $PMVMCatchThrowTag];
+	Catch[expr, $PMCatchThrowTag];
 
 
 (*=============================================================================
 	ThrowFailure
 =============================================================================*)
 
-SetAttributes[ThrowFailure, HoldFirst];
-
 ThrowFailure[subTag_String, msgTemplate_, msgParameters_, extra:_Association:<||>] :=
 	Throw[
 		Failure[
-			"PatternMatcherVirtualMachine`" <> subTag,
+			"PatternMatcher`" <> subTag,
 			<|
 				"MessageTemplate" -> msgTemplate,
 				"MessageParameters" -> msgParameters,
 				extra
 			|>
 		],
-		$PMVMCatchThrowTag
+		$PMCatchThrowTag
 	];
 
+
+(*=============================================================================
+	ThrowLibraryError
+=============================================================================*)
+
+ThrowLibraryError[message_String, msgParameters:_List:{}] :=
+	ThrowFailure["LibraryError", message, msgParameters];
 
 
 End[];

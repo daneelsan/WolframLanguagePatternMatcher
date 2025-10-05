@@ -1,0 +1,107 @@
+// Utility Macros
+#define STRINGIFY(x)            #x
+#define STRINGJOIN(a, b, c, d)        STRINGIFY(a) "." STRINGIFY(b) "." STRINGIFY(c) "." STRINGIFY(d)
+
+// Product definitions (should be specified on the command line)
+#ifndef VERSION_NUMBER
+#define VERSION_NUMBER            14
+#endif
+
+#ifndef MINOR_VERSION_NUMBER
+#define MINOR_VERSION_NUMBER        1
+#endif
+
+#ifndef RELEASE_NUMBER
+#define RELEASE_NUMBER        0
+#endif
+
+#ifndef MINOR_RELEASE_NUMBER
+#define MINOR_RELEASE_NUMBER        0
+#endif
+
+#ifndef HIGH_CREATION_ID
+#define HIGH_CREATION_ID            0
+#endif
+
+#ifndef LOW_CREATION_ID
+#define LOW_CREATION_ID            34464
+#endif
+
+#ifndef VER_COMPANY_STR
+#define VER_COMPANY_STR        "Wolfram Research, Inc."
+#endif
+
+#ifndef VER_PRODUCTNAME_STR
+#define VER_PRODUCTNAME_STR        "Wolfram Library"
+#endif
+
+#ifndef VER_FILEDESCRIPTION_STR
+#define VER_FILEDESCRIPTION_STR    "Wolfram Dynamic Library"
+#endif
+
+#ifndef VER_FILEVERSION
+#define VER_FILEVERSION        VERSION_NUMBER,MINOR_VERSION_NUMBER,HIGH_CREATION_ID,LOW_CREATION_ID
+#endif
+
+#ifndef VER_FILEVERSION_STR
+#define VER_FILEVERSION_STR        LIB_FILE_VERSION_STRING
+#endif
+
+#ifndef VER_PRODUCTVERSION
+#define VER_PRODUCTVERSION        VERSION_NUMBER,MINOR_VERSION_NUMBER,RELEASE_NUMBER,MINOR_RELEASE_NUMBER
+#endif
+
+#ifndef VER_PRODUCTVERSION_STR
+#define VER_PRODUCTVERSION_STR    LIB_VERSION_STRING
+#endif
+
+#ifndef VER_COPYRIGHTYEAR_STR
+#define VER_COPYRIGHTYEAR_STR        "2024"
+#endif
+
+#ifndef VER_COPYRIGHT_STR
+#define VER_COPYRIGHT_STR        "Copyright © 1988-" VER_COPYRIGHTYEAR_STR " " VER_COMPANY_STR
+#endif
+
+#if !defined(_DLL) && !defined(DLL)
+#define VER_TYPE            0x1L
+#else
+#define VER_TYPE            0x2L
+#endif //
+
+#define LIB_VERSION_STRING        STRINGJOIN(VERSION_NUMBER, MINOR_VERSION_NUMBER,RELEASE_NUMBER, MINOR_RELEASE_NUMBER)
+#define LIB_FILE_VERSION_STRING        STRINGJOIN(VERSION_NUMBER,MINOR_VERSION_NUMBER, HIGH_CREATION_ID, LOW_CREATION_ID)
+
+// now the real meat of the resource script...
+
+1 VERSIONINFO
+FILEVERSION            VER_FILEVERSION
+PRODUCTVERSION     VER_PRODUCTVERSION
+FILEFLAGSMASK     0x3FL
+#if !defined(_DEBUG) || !defined(DEBUG)
+FILEFLAGS 0x1L
+#else
+FILEFLAGS 0x0L
+#endif
+FILEOS                 0x40004L
+FILETYPE               VER_TYPE
+FILESUBTYPE            0x0L
+BEGIN
+   BLOCK "StringFileInfo"
+   BEGIN
+       BLOCK "040904B0"
+       BEGIN
+           VALUE "CompanyName",      VER_COMPANY_STR
+           VALUE "FileDescription",      VER_FILEDESCRIPTION_STR
+           VALUE "FileVersion",          VER_FILEVERSION_STR
+           VALUE "InternalName",         VER_PRODUCTNAME_STR
+           VALUE "LegalCopyright",       VER_COPYRIGHT_STR
+           VALUE "ProductName",          VER_PRODUCTNAME_STR
+           VALUE "ProductVersion",       VER_PRODUCTVERSION_STR
+       END
+   END
+   BLOCK "VarFileInfo"
+   BEGIN
+       VALUE "Translation", 0x409, 1200
+   END
+END 

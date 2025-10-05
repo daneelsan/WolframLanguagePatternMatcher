@@ -1,6 +1,8 @@
 tmp/
 *.paclet
 
+LibraryResources/
+
 # Compiled Object files
 *.slo
 *.lo

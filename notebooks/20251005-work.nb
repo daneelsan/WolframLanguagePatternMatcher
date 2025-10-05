@@ -1,0 +1,673 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 15.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     29429,        665]
+NotebookOptionsPosition[     27023,        616]
+NotebookOutlinePosition[     27417,        632]
+CellTagsIndexPosition[     27374,        629]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Init", "Subsection",
+ CellChangeTimes->{{3.968678150453228*^9, 
+  3.9686781507549334`*^9}},ExpressionUUID->"b5b6a0af-1afa-4334-9323-\
+097c84746db5"],
+
+Cell[BoxData[
+ RowBox[{"Exit", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.968678129889373*^9, 3.9686781304371023`*^9}},
+ CellLabel->"In[14]:=",ExpressionUUID->"3f19c5b4-1d35-4c6e-82b4-92f1a9bb6987"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"PacletDirectoryLoad", 
+  "[", "\"\</Users/daniels/Library/CloudStorage/OneDrive-Personal/projects/\
+thesis/wolfram-vm/PatternMatcher\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.96867775428549*^9, 3.968677780291068*^9}},
+ CellLabel->"In[1]:=",ExpressionUUID->"a63cccea-ba42-46af-9e00-521bc5095a8b"],
+
+Cell[BoxData[
+ RowBox[{"{", \
+"\<\"/Users/daniels/Library/CloudStorage/OneDrive-Personal/projects/thesis/\
+wolfram-vm/PatternMatcher\"\>", "}"}]], "Output",
+ CellChangeTimes->{
+  3.96867778167351*^9, 3.9686781470052156`*^9, 3.9686790491577377`*^9, 
+   3.968679125858305*^9, {3.9686801352351017`*^9, 3.968680171394071*^9}, {
+   3.968680216598134*^9, 3.9686802277004747`*^9}, 3.968680576326745*^9, {
+   3.968681186892022*^9, 3.968681210545768*^9}, 3.9686812560268717`*^9, 
+   3.96868132040622*^9, 3.9686813768774977`*^9, 3.9686925419760647`*^9, 
+   3.968692831993578*^9, 3.968692927340178*^9, 3.968692978656907*^9, 
+   3.968693546413732*^9, 3.968695653417062*^9},
+ CellLabel->"Out[1]=",ExpressionUUID->"c7835fcd-92e4-456d-a4db-896f0f4326d6"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"Needs", "[", "\"\<DanielS`PatternMatcher`\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.968677783056419*^9, 3.968677788247069*^9}, {
+  3.968678080572647*^9, 3.9686780821298723`*^9}},
+ CellLabel->"In[2]:=",ExpressionUUID->"57a68c5e-e9d5-40fe-92af-4227053abddc"],
+
+Cell[BoxData[
+ RowBox[{"Needs", "[", "\"\<DanielS`PatternMatcher`AST`\>\"", "]"}]], "Input",\
+
+ CellChangeTimes->{{3.968679061444544*^9, 3.9686790616394653`*^9}},
+ CellLabel->"In[3]:=",ExpressionUUID->"63c93447-b414-4423-8bc2-8edcd78a4cff"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"mexprEnv", "=", 
+  RowBox[{"CreateMExprEnvironment", "[", "]"}]}]], "Input",
+ CellChangeTimes->{{3.968678183856345*^9, 3.9686781871316223`*^9}, {
+  3.968678279252685*^9, 3.9686782846698008`*^9}, {3.968679133141053*^9, 
+  3.968679134972868*^9}},
+ CellLabel->"In[4]:=",ExpressionUUID->"fad750e1-897f-4b57-854b-afee0ceb70e7"],
+
+Cell[BoxData[
+ TagBox[
+  TemplateBox[{
+    RowBox[{
+      StyleBox[
+       TagBox["DataStructure", "SummaryHead"], "NonInterpretableSummary"], 
+      StyleBox["[", "NonInterpretableSummary"], 
+      DynamicModuleBox[{
+       Typeset`open$$ = False, Typeset`embedState$$ = "Ready"}, 
+       TemplateBox[{
+         PaneSelectorBox[{False -> GridBox[{{
+               GraphicsBox[{
+                 Thickness[0.041666666666666664`], {
+                  FaceForm[{
+                    LightDarkSwitched[
+                    RGBColor[0.639, 0.706, 0.8]], 
+                    Opacity[1.]}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{18., 
+                   8.}, {6., 8.}, {6., 16.}, {18., 16.}}}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 
+                   0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{4., 6.}, {4., 
+                   18.}, {7., 18.}, {7., 19.}, {3., 19.}, {3., 5.}, {7., 
+                   5.}, {7., 6.}}}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 
+                   0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{20., 18.}, {20., 
+                   6.}, {17., 6.}, {17., 5.}, {21., 5.}, {21., 19.}, {17., 
+                   19.}, {17., 18.}}}]}, {
+                  FaceForm[{
+                    LightDarkSwitched[
+                    RGBColor[1., 1., 1.]], 
+                    Opacity[1.]}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{17., 
+                   9.}, {7., 9.}, {7., 15.}, {17., 15.}}}]}}, AspectRatio -> 
+                Automatic, ImageSize -> {24., 24.}, 
+                PlotRange -> {{0., 24.}, {0., 24.}}], 
+               GridBox[{{
+                  RowBox[{
+                    TagBox["\"Type:\"", "SummaryItemAnnotation"], 
+                    "\[InvisibleSpace]", 
+                    TagBox[
+                    "\"PatternMatcherLibrary`AST`MExprEnvironment\"", 
+                    "SummaryItem"]}]}}, 
+                GridBoxAlignment -> {
+                 "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, AutoDelete -> 
+                False, GridBoxItemSize -> {
+                 "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+                GridBoxSpacings -> {
+                 "Columns" -> {{2}}, "Rows" -> {{Automatic}}}, 
+                BaseStyle -> {
+                 ShowStringCharacters -> False, NumberMarks -> False, 
+                  PrintPrecision -> 3, ShowSyntaxStyles -> False}]}}, 
+             GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+             AutoDelete -> False, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             BaselinePosition -> {1, 1}], True -> GridBox[{{
+               GraphicsBox[{
+                 Thickness[0.041666666666666664`], {
+                  FaceForm[{
+                    LightDarkSwitched[
+                    RGBColor[0.639, 0.706, 0.8]], 
+                    Opacity[1.]}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{18., 
+                   8.}, {6., 8.}, {6., 16.}, {18., 16.}}}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 
+                   0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{4., 6.}, {4., 
+                   18.}, {7., 18.}, {7., 19.}, {3., 19.}, {3., 5.}, {7., 
+                   5.}, {7., 6.}}}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 
+                   0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{20., 18.}, {20., 
+                   6.}, {17., 6.}, {17., 5.}, {21., 5.}, {21., 19.}, {17., 
+                   19.}, {17., 18.}}}]}, {
+                  FaceForm[{
+                    LightDarkSwitched[
+                    RGBColor[1., 1., 1.]], 
+                    Opacity[1.]}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{17., 
+                   9.}, {7., 9.}, {7., 15.}, {17., 15.}}}]}}, AspectRatio -> 
+                Automatic, ImageSize -> {24., 24.}, 
+                PlotRange -> {{0., 24.}, {0., 24.}}], 
+               GridBox[{{
+                  RowBox[{
+                    TagBox["\"Type:\"", "SummaryItemAnnotation"], 
+                    "\[InvisibleSpace]", 
+                    TagBox[
+                    "\"PatternMatcherLibrary`AST`MExprEnvironment\"", 
+                    "SummaryItem"]}]}}, 
+                GridBoxAlignment -> {
+                 "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, AutoDelete -> 
+                False, GridBoxItemSize -> {
+                 "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+                GridBoxSpacings -> {
+                 "Columns" -> {{2}}, "Rows" -> {{Automatic}}}, 
+                BaseStyle -> {
+                 ShowStringCharacters -> False, NumberMarks -> False, 
+                  PrintPrecision -> 3, ShowSyntaxStyles -> False}]}}, 
+             GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+             AutoDelete -> False, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             BaselinePosition -> {1, 1}]}, 
+          Dynamic[Typeset`open$$], ImageSize -> Automatic]}, "SummaryPanel"], 
+       DynamicModuleValues :> {}], 
+      StyleBox["]", "NonInterpretableSummary"]}]},
+   "CopyTag",
+   DisplayFunction->(#& ),
+   InterpretationFunction->("DataStructure[4333992752]"& )],
+  False,
+  Editable->False,
+  SelectWithContents->True,
+  Selectable->False]], "Output",
+ CellChangeTimes->{
+  3.968678184561297*^9, 3.9686782849800797`*^9, 3.968679056818404*^9, 
+   3.96867913533391*^9, {3.968680135968384*^9, 3.968680172104952*^9}, {
+   3.9686802173215723`*^9, 3.968680228925048*^9}, 3.968680577606724*^9, {
+   3.9686811881445704`*^9, 3.968681211433857*^9}, 3.9686812566413813`*^9, 
+   3.968681321701603*^9, 3.968681378107217*^9, 3.96869254273857*^9, 
+   3.968692835098186*^9, 3.9686929293635902`*^9, 3.968692980059519*^9, 
+   3.968693547687777*^9, 3.9686956546626987`*^9},
+ CellLabel->"Out[4]=",ExpressionUUID->"5a05296d-0a48-459e-8ab8-dcf6cb831c6c"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"mexprLiteral", "=", 
+  RowBox[{"mexprEnv", "[", 
+   RowBox[{"\"\<createMExpr\>\"", ",", "\"\<f\>\""}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.968678287427516*^9, 3.96867830410306*^9}, {
+   3.968680092382101*^9, 3.96868009300177*^9}, {3.968680129164909*^9, 
+   3.968680129638001*^9}, 3.968680165838833*^9, {3.968681243051475*^9, 
+   3.9686812508500137`*^9}, {3.9686925426235447`*^9, 3.968692543210701*^9}, {
+   3.968693552981399*^9, 3.968693555657419*^9}},
+ CellLabel->"In[5]:=",ExpressionUUID->"609dfbc4-7bb4-4d53-9e7f-71c29d86b52b"],
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {Cell["[Debug]",
+      LineColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      FrontFaceColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      BackFaceColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      GraphicsColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      FontColor->RGBColor[0, 
+        Rational[2, 3], 0],ExpressionUUID->
+      "5c63e325-c08f-439d-ad82-f2fa2dbd40e2"], 
+     TagBox[
+      TooltipBox[
+       StyleBox["\<\"Line 86 in MExpr.cpp, function \
+initializeEmbedMethodsCommon\"\>",
+        StripOnInput->False,
+        LineColor->RGBColor[
+         0.33333333333333337`, 0.33333333333333337`, 0.33333333333333337`],
+        FrontFaceColor->RGBColor[
+         0.33333333333333337`, 0.33333333333333337`, 0.33333333333333337`],
+        BackFaceColor->RGBColor[
+         0.33333333333333337`, 0.33333333333333337`, 0.33333333333333337`],
+        GraphicsColor->RGBColor[
+         0.33333333333333337`, 0.33333333333333337`, 0.33333333333333337`],
+        FontColor->RGBColor[
+         0.33333333333333337`, 0.33333333333333337`, 0.33333333333333337`]],
+       "\"/Users/daniels/projects/thesis/wolfram-vm/src/AST/MExpr.cpp\"",
+       TooltipStyle->"TextStyling"],
+      Annotation[#, 
+       "/Users/daniels/projects/thesis/wolfram-vm/src/AST/MExpr.cpp", 
+       "Tooltip"]& ]},
+    {"\[SpanFromAbove]", Cell["\<\
+Initializing embed methods for PatternMatcherLibrary`AST`MExprLiteral\
+\>",
+      FontSize->14,ExpressionUUID->"b7e923c3-c0fe-434d-b82a-0b396a8bf264"]}
+   },
+   AutoDelete->False,
+   GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}],
+  "TextGrid"]], "Print",
+ CellChangeTimes->{
+  3.9686812574726763`*^9, 3.968681323313809*^9, 3.96868137863428*^9, 
+   3.968692544839011*^9, 3.968692837644319*^9, 3.968692930990073*^9, {
+   3.968693548555484*^9, 3.968693561540766*^9}, 3.9686956561112757`*^9},
+ CellLabel->
+  "During evaluation of \
+In[5]:=",ExpressionUUID->"bdd60632-b36e-4e5e-9a06-f6027f41185c"],
+
+Cell[BoxData[
+ TagBox[
+  TemplateBox[{
+    RowBox[{
+      StyleBox[
+       TagBox["DataStructure", "SummaryHead"], "NonInterpretableSummary"], 
+      StyleBox["[", "NonInterpretableSummary"], 
+      DynamicModuleBox[{
+       Typeset`open$$ = False, Typeset`embedState$$ = "Ready"}, 
+       TemplateBox[{
+         PaneSelectorBox[{False -> GridBox[{{
+               GraphicsBox[{
+                 Thickness[0.041666666666666664`], {
+                  FaceForm[{
+                    LightDarkSwitched[
+                    RGBColor[0.639, 0.706, 0.8]], 
+                    Opacity[1.]}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{18., 
+                   8.}, {6., 8.}, {6., 16.}, {18., 16.}}}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 
+                   0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{4., 6.}, {4., 
+                   18.}, {7., 18.}, {7., 19.}, {3., 19.}, {3., 5.}, {7., 
+                   5.}, {7., 6.}}}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 
+                   0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{20., 18.}, {20., 
+                   6.}, {17., 6.}, {17., 5.}, {21., 5.}, {21., 19.}, {17., 
+                   19.}, {17., 18.}}}]}, {
+                  FaceForm[{
+                    LightDarkSwitched[
+                    RGBColor[1., 1., 1.]], 
+                    Opacity[1.]}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{17., 
+                   9.}, {7., 9.}, {7., 15.}, {17., 15.}}}]}}, AspectRatio -> 
+                Automatic, ImageSize -> {24., 24.}, 
+                PlotRange -> {{0., 24.}, {0., 24.}}], 
+               GridBox[{{
+                  RowBox[{
+                    TagBox["\"Type:\"", "SummaryItemAnnotation"], 
+                    "\[InvisibleSpace]", 
+                    TagBox[
+                    "\"PatternMatcherLibrary`AST`MExprLiteral\"", 
+                    "SummaryItem"]}]}}, 
+                GridBoxAlignment -> {
+                 "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, AutoDelete -> 
+                False, GridBoxItemSize -> {
+                 "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+                GridBoxSpacings -> {
+                 "Columns" -> {{2}}, "Rows" -> {{Automatic}}}, 
+                BaseStyle -> {
+                 ShowStringCharacters -> False, NumberMarks -> False, 
+                  PrintPrecision -> 3, ShowSyntaxStyles -> False}]}}, 
+             GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+             AutoDelete -> False, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             BaselinePosition -> {1, 1}], True -> GridBox[{{
+               GraphicsBox[{
+                 Thickness[0.041666666666666664`], {
+                  FaceForm[{
+                    LightDarkSwitched[
+                    RGBColor[0.639, 0.706, 0.8]], 
+                    Opacity[1.]}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{18., 
+                   8.}, {6., 8.}, {6., 16.}, {18., 16.}}}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 
+                   0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{4., 6.}, {4., 
+                   18.}, {7., 18.}, {7., 19.}, {3., 19.}, {3., 5.}, {7., 
+                   5.}, {7., 6.}}}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 
+                   0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{20., 18.}, {20., 
+                   6.}, {17., 6.}, {17., 5.}, {21., 5.}, {21., 19.}, {17., 
+                   19.}, {17., 18.}}}]}, {
+                  FaceForm[{
+                    LightDarkSwitched[
+                    RGBColor[1., 1., 1.]], 
+                    Opacity[1.]}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{17., 
+                   9.}, {7., 9.}, {7., 15.}, {17., 15.}}}]}}, AspectRatio -> 
+                Automatic, ImageSize -> {24., 24.}, 
+                PlotRange -> {{0., 24.}, {0., 24.}}], 
+               GridBox[{{
+                  RowBox[{
+                    TagBox["\"Type:\"", "SummaryItemAnnotation"], 
+                    "\[InvisibleSpace]", 
+                    TagBox[
+                    "\"PatternMatcherLibrary`AST`MExprLiteral\"", 
+                    "SummaryItem"]}]}}, 
+                GridBoxAlignment -> {
+                 "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, AutoDelete -> 
+                False, GridBoxItemSize -> {
+                 "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+                GridBoxSpacings -> {
+                 "Columns" -> {{2}}, "Rows" -> {{Automatic}}}, 
+                BaseStyle -> {
+                 ShowStringCharacters -> False, NumberMarks -> False, 
+                  PrintPrecision -> 3, ShowSyntaxStyles -> False}]}}, 
+             GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+             AutoDelete -> False, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             BaselinePosition -> {1, 1}]}, 
+          Dynamic[Typeset`open$$], ImageSize -> Automatic]}, "SummaryPanel"], 
+       DynamicModuleValues :> {}], 
+      StyleBox["]", "NonInterpretableSummary"]}]},
+   "CopyTag",
+   DisplayFunction->(#& ),
+   InterpretationFunction->("f"& )],
+  False,
+  Editable->False,
+  SelectWithContents->True,
+  Selectable->False]], "Output",
+ CellChangeTimes->{{3.968693548580982*^9, 3.968693561560111*^9}, 
+   3.968695656127277*^9},
+ CellLabel->"Out[5]=",ExpressionUUID->"f3a8688b-9b33-4fee-969a-7579cdea62a8"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"mexprLiteral", "[", "\"\<getID\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.9686935579866867`*^9, 3.968693559026925*^9}},
+ CellLabel->"In[6]:=",ExpressionUUID->"28cbd29a-d88c-4cf9-ad92-1b54c7baa74c"],
+
+Cell[BoxData["0"], "Output",
+ CellChangeTimes->{{3.968693559353982*^9, 3.96869356214911*^9}, 
+   3.968695659353907*^9},
+ CellLabel->"Out[6]=",ExpressionUUID->"94d9b502-f2cb-4a7d-9547-fab82155b068"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"mexprLiteral", "[", "\"\<toString\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.9686935579866867`*^9, 3.968693559026925*^9}, {
+  3.96869362149641*^9, 3.968693623198718*^9}},
+ CellLabel->"In[7]:=",ExpressionUUID->"bc88e754-767a-439d-bd6f-9bb1db3f45be"],
+
+Cell[BoxData["\<\"f\"\>"], "Output",
+ CellChangeTimes->{3.9686936234559803`*^9, 3.9686956603813953`*^9},
+ CellLabel->"Out[7]=",ExpressionUUID->"16ba70b6-afc6-4903-a937-b93bfd28c3c0"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"mexprNormal", "=", 
+  RowBox[{"mexprEnv", "[", 
+   RowBox[{"\"\<createMExpr\>\"", ",", 
+    RowBox[{"f", "[", 
+     RowBox[{"x", ",", "y"}], "]"}]}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.968693657983123*^9, 3.96869366131642*^9}},
+ CellLabel->"In[8]:=",ExpressionUUID->"4fc4a7db-480d-40e1-a04c-efbc541d3e04"],
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {Cell["[Debug]",
+      LineColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      FrontFaceColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      BackFaceColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      GraphicsColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      FontColor->RGBColor[0, 
+        Rational[2, 3], 0],ExpressionUUID->
+      "86c42a90-ee6e-4486-80d8-e810bfda28fb"], 
+     TagBox[
+      TooltipBox[
+       StyleBox["\<\"Line 86 in MExpr.cpp, function \
+initializeEmbedMethodsCommon\"\>",
+        StripOnInput->False,
+        LineColor->RGBColor[
+         0.33333333333333337`, 0.33333333333333337`, 0.33333333333333337`],
+        FrontFaceColor->RGBColor[
+         0.33333333333333337`, 0.33333333333333337`, 0.33333333333333337`],
+        BackFaceColor->RGBColor[
+         0.33333333333333337`, 0.33333333333333337`, 0.33333333333333337`],
+        GraphicsColor->RGBColor[
+         0.33333333333333337`, 0.33333333333333337`, 0.33333333333333337`],
+        FontColor->RGBColor[
+         0.33333333333333337`, 0.33333333333333337`, 0.33333333333333337`]],
+       "\"/Users/daniels/projects/thesis/wolfram-vm/src/AST/MExpr.cpp\"",
+       TooltipStyle->"TextStyling"],
+      Annotation[#, 
+       "/Users/daniels/projects/thesis/wolfram-vm/src/AST/MExpr.cpp", 
+       "Tooltip"]& ]},
+    {"\[SpanFromAbove]", Cell["\<\
+Initializing embed methods for PatternMatcherLibrary`AST`MExprNormal\
+\>",
+      FontSize->14,ExpressionUUID->"66fff7ee-3405-4d34-bf3f-ca4badd0b6ff"]}
+   },
+   AutoDelete->False,
+   GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}],
+  "TextGrid"]], "Print",
+ CellChangeTimes->{3.9686936615818577`*^9, 3.9686956611734533`*^9},
+ CellLabel->
+  "During evaluation of \
+In[8]:=",ExpressionUUID->"b08f4bca-78e0-43ec-b7b0-2d5de6a19d81"],
+
+Cell[BoxData[
+ TagBox[
+  TemplateBox[{
+    RowBox[{
+      StyleBox[
+       TagBox["DataStructure", "SummaryHead"], "NonInterpretableSummary"], 
+      StyleBox["[", "NonInterpretableSummary"], 
+      DynamicModuleBox[{
+       Typeset`open$$ = False, Typeset`embedState$$ = "Ready"}, 
+       TemplateBox[{
+         PaneSelectorBox[{False -> GridBox[{{
+               GraphicsBox[{
+                 Thickness[0.041666666666666664`], {
+                  FaceForm[{
+                    LightDarkSwitched[
+                    RGBColor[0.639, 0.706, 0.8]], 
+                    Opacity[1.]}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{18., 
+                   8.}, {6., 8.}, {6., 16.}, {18., 16.}}}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 
+                   0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{4., 6.}, {4., 
+                   18.}, {7., 18.}, {7., 19.}, {3., 19.}, {3., 5.}, {7., 
+                   5.}, {7., 6.}}}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 
+                   0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{20., 18.}, {20., 
+                   6.}, {17., 6.}, {17., 5.}, {21., 5.}, {21., 19.}, {17., 
+                   19.}, {17., 18.}}}]}, {
+                  FaceForm[{
+                    LightDarkSwitched[
+                    RGBColor[1., 1., 1.]], 
+                    Opacity[1.]}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{17., 
+                   9.}, {7., 9.}, {7., 15.}, {17., 15.}}}]}}, AspectRatio -> 
+                Automatic, ImageSize -> {24., 24.}, 
+                PlotRange -> {{0., 24.}, {0., 24.}}], 
+               GridBox[{{
+                  RowBox[{
+                    TagBox["\"Type:\"", "SummaryItemAnnotation"], 
+                    "\[InvisibleSpace]", 
+                    TagBox[
+                    "\"PatternMatcherLibrary`AST`MExprNormal\"", 
+                    "SummaryItem"]}]}}, 
+                GridBoxAlignment -> {
+                 "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, AutoDelete -> 
+                False, GridBoxItemSize -> {
+                 "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+                GridBoxSpacings -> {
+                 "Columns" -> {{2}}, "Rows" -> {{Automatic}}}, 
+                BaseStyle -> {
+                 ShowStringCharacters -> False, NumberMarks -> False, 
+                  PrintPrecision -> 3, ShowSyntaxStyles -> False}]}}, 
+             GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+             AutoDelete -> False, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             BaselinePosition -> {1, 1}], True -> GridBox[{{
+               GraphicsBox[{
+                 Thickness[0.041666666666666664`], {
+                  FaceForm[{
+                    LightDarkSwitched[
+                    RGBColor[0.639, 0.706, 0.8]], 
+                    Opacity[1.]}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{18., 
+                   8.}, {6., 8.}, {6., 16.}, {18., 16.}}}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 
+                   0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{4., 6.}, {4., 
+                   18.}, {7., 18.}, {7., 19.}, {3., 19.}, {3., 5.}, {7., 
+                   5.}, {7., 6.}}}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 
+                   0}, {0, 1, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{20., 18.}, {20., 
+                   6.}, {17., 6.}, {17., 5.}, {21., 5.}, {21., 19.}, {17., 
+                   19.}, {17., 18.}}}]}, {
+                  FaceForm[{
+                    LightDarkSwitched[
+                    RGBColor[1., 1., 1.]], 
+                    Opacity[1.]}], 
+                  
+                  FilledCurveBox[{{{0, 2, 0}, {0, 1, 0}, {0, 1, 0}}}, {{{17., 
+                   9.}, {7., 9.}, {7., 15.}, {17., 15.}}}]}}, AspectRatio -> 
+                Automatic, ImageSize -> {24., 24.}, 
+                PlotRange -> {{0., 24.}, {0., 24.}}], 
+               GridBox[{{
+                  RowBox[{
+                    TagBox["\"Type:\"", "SummaryItemAnnotation"], 
+                    "\[InvisibleSpace]", 
+                    TagBox[
+                    "\"PatternMatcherLibrary`AST`MExprNormal\"", 
+                    "SummaryItem"]}]}}, 
+                GridBoxAlignment -> {
+                 "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, AutoDelete -> 
+                False, GridBoxItemSize -> {
+                 "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+                GridBoxSpacings -> {
+                 "Columns" -> {{2}}, "Rows" -> {{Automatic}}}, 
+                BaseStyle -> {
+                 ShowStringCharacters -> False, NumberMarks -> False, 
+                  PrintPrecision -> 3, ShowSyntaxStyles -> False}]}}, 
+             GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+             AutoDelete -> False, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             BaselinePosition -> {1, 1}]}, 
+          Dynamic[Typeset`open$$], ImageSize -> Automatic]}, "SummaryPanel"], 
+       DynamicModuleValues :> {}], 
+      StyleBox["]", "NonInterpretableSummary"]}]},
+   "CopyTag",
+   DisplayFunction->(#& ),
+   InterpretationFunction->("$Failed"& )],
+  False,
+  Editable->False,
+  SelectWithContents->True,
+  Selectable->False]], "Output",
+ CellChangeTimes->{3.9686936616156797`*^9, 3.968695661189645*^9},
+ CellLabel->"Out[8]=",ExpressionUUID->"7ba02217-c696-4a51-a43b-1005f09b95bf"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"mexprNormal", "[", "\"\<getID\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.9686936645120907`*^9, 3.968693668205858*^9}},
+ CellLabel->"In[9]:=",ExpressionUUID->"e3084c6a-3c69-4f62-82a4-251ba67a5f52"],
+
+Cell[BoxData["4"], "Output",
+ CellChangeTimes->{{3.9686936656817217`*^9, 3.968693668472755*^9}, 
+   3.968695662770475*^9},
+ CellLabel->"Out[9]=",ExpressionUUID->"0d62fab8-1d60-4041-9828-fa6b8ced859a"]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{1512, 831},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+FrontEndVersion->"15.0 for Mac OS X ARM (64-bit) (October 1, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"8b24110e-3fde-4f82-b783-9f8433059077"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[576, 22, 154, 3, 53, "Subsection",ExpressionUUID->"b5b6a0af-1afa-4334-9323-097c84746db5"],
+Cell[733, 27, 199, 3, 29, "Input",ExpressionUUID->"3f19c5b4-1d35-4c6e-82b4-92f1a9bb6987"],
+Cell[CellGroupData[{
+Cell[957, 34, 322, 5, 29, "Input",ExpressionUUID->"a63cccea-ba42-46af-9e00-521bc5095a8b"],
+Cell[1282, 41, 739, 12, 33, "Output",ExpressionUUID->"c7835fcd-92e4-456d-a4db-896f0f4326d6"]
+}, Open  ]],
+Cell[2036, 56, 283, 4, 29, "Input",ExpressionUUID->"57a68c5e-e9d5-40fe-92af-4227053abddc"],
+Cell[2322, 62, 240, 4, 29, "Input",ExpressionUUID->"63c93447-b414-4423-8bc2-8edcd78a4cff"],
+Cell[CellGroupData[{
+Cell[2587, 70, 346, 6, 29, "Input",ExpressionUUID->"fad750e1-897f-4b57-854b-afee0ceb70e7"],
+Cell[2936, 78, 6254, 127, 57, "Output",ExpressionUUID->"5a05296d-0a48-459e-8ab8-dcf6cb831c6c"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[9227, 210, 559, 9, 29, "Input",ExpressionUUID->"609dfbc4-7bb4-4d53-9e7f-71c29d86b52b"],
+Cell[9789, 221, 1987, 48, 41, "Print",ExpressionUUID->"bdd60632-b36e-4e5e-9a06-f6027f41185c"],
+Cell[11779, 271, 5811, 121, 57, "Output",ExpressionUUID->"f3a8688b-9b33-4fee-969a-7579cdea62a8"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[17627, 397, 223, 3, 29, "Input",ExpressionUUID->"28cbd29a-d88c-4cf9-ad92-1b54c7baa74c"],
+Cell[17853, 402, 197, 3, 33, "Output",ExpressionUUID->"94d9b502-f2cb-4a7d-9547-fab82155b068"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[18087, 410, 274, 4, 29, "Input",ExpressionUUID->"bc88e754-767a-439d-bd6f-9bb1db3f45be"],
+Cell[18364, 416, 182, 2, 33, "Output",ExpressionUUID->"16ba70b6-afc6-4903-a937-b93bfd28c3c0"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[18583, 423, 335, 7, 29, "Input",ExpressionUUID->"4fc4a7db-480d-40e1-a04c-efbc541d3e04"],
+Cell[18921, 432, 1820, 45, 41, "Print",ExpressionUUID->"b08f4bca-78e0-43ec-b7b0-2d5de6a19d81"],
+Cell[20744, 479, 5789, 120, 57, "Output",ExpressionUUID->"7ba02217-c696-4a51-a43b-1005f09b95bf"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[26570, 604, 222, 3, 29, "Input",ExpressionUUID->"e3084c6a-3c69-4f62-82a4-251ba67a5f52"],
+Cell[26795, 609, 200, 3, 33, "Output",ExpressionUUID->"0d62fab8-1d60-4041-9828-fa6b8ced859a"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
