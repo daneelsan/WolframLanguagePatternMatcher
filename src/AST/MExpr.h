@@ -33,6 +33,8 @@ public:
 
 	virtual Expr getExpr() const = 0; // force subclasses to expose Expr
 
+	virtual std::shared_ptr<MExpr> getHead() const = 0;
+
 	virtual bool sameQ(std::shared_ptr<MExpr> other) const = 0;
 
 	std::string toString() const;
@@ -61,8 +63,8 @@ public:
 	MExprNormal(Expr expr, std::shared_ptr<MExpr> head, std::vector<std::shared_ptr<MExpr>> children)
 		: MExpr(Kind::Normal)
 		, _expr(expr)
-		, head(std::move(head))
-		, children(std::move(children))
+		, _head(std::move(head))
+		, _children(std::move(children))
 	{
 	}
 
@@ -70,18 +72,18 @@ public:
 
 	bool sameQ(std::shared_ptr<MExpr> other) const override;
 
-	std::shared_ptr<MExpr> getHead() const { return head; }
+	std::shared_ptr<MExpr> getHead() const override;
 
-	const std::vector<std::shared_ptr<MExpr>>& getChildren() const { return children; }
+	const std::vector<std::shared_ptr<MExpr>>& getChildren() const { return _children; }
 
-	size_t length() const { return children.size(); }
+	size_t length() const { return _children.size(); }
 
 	void initializeEmbedMethods(const char* embedName) override;
 
 private:
 	Expr _expr;
-	std::shared_ptr<MExpr> head;
-	std::vector<std::shared_ptr<MExpr>> children;
+	std::shared_ptr<MExpr> _head;
+	std::vector<std::shared_ptr<MExpr>> _children;
 };
 
 // ---------------- Symbol ----------------
@@ -99,6 +101,8 @@ public:
 	}
 
 	Expr getExpr() const override { return _expr; }
+
+	std::shared_ptr<MExpr> getHead() const override;
 
 	bool sameQ(std::shared_ptr<MExpr> other) const override;
 
@@ -137,6 +141,8 @@ public:
 	}
 
 	Expr getExpr() const override { return _expr; }
+
+	std::shared_ptr<MExpr> getHead() const override;
 
 	bool sameQ(std::shared_ptr<MExpr> other) const override;
 

@@ -110,7 +110,7 @@ public:
 
 	Expr part(mint i);
 
-	Expr head();
+	Expr head() const;
 
 	mint print();
 

@@ -37,6 +37,60 @@ DeleteObject[MExprEnvironment[...]]
 *)
 
 
+(*=============================================================================
+	MExprLiteral
+=============================================================================*)
+
+toMExprLiteralBoxes[mexpr_, fmt_] :=
+	BoxForm`ArrangeSummaryBox[
+		"MExprLiteral",
+		mexpr,
+		"",
+		{
+			BoxForm`SummaryItem[{"id: ", mexpr["getID"]}],
+			BoxForm`SummaryItem[{"value: ", ToString[mexpr["toString"], InputForm]}]
+		},
+		{},
+		fmt
+	];
+
+
+(*=============================================================================
+	MExprSymbol
+=============================================================================*)
+
+toMExprSymbolBoxes[mexpr_, fmt_] :=
+	BoxForm`ArrangeSummaryBox[
+		"MExprSymbol",
+		mexpr,
+		"",
+		{
+			BoxForm`SummaryItem[{"id: ", mexpr["getID"]}],
+			BoxForm`SummaryItem[{"value: ", mexpr["toString"]}]
+		},
+		{},
+		fmt
+	];
+
+
+(*=============================================================================
+	MExprNormal
+=============================================================================*)
+
+toMExprNormalBoxes[mexpr_, fmt_] :=
+	BoxForm`ArrangeSummaryBox[
+		"MExprNormal",
+		mexpr,
+		"",
+		{
+			BoxForm`SummaryItem[{"id: ", mexpr["getID"]}],
+			BoxForm`SummaryItem[{"value: ", mexpr["toString"]}]
+		},
+		{},
+		fmt
+	];
+
+
 End[]
 
 EndPackage[]

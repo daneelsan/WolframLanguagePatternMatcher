@@ -4,6 +4,11 @@
 
 namespace PatternMatcher
 {
+std::shared_ptr<MExpr> MExprSymbol::getHead() const
+{
+	return MExpr::construct(Expr::inertExpression("Symbol"));
+}
+
 bool MExprSymbol::sameQ(std::shared_ptr<MExpr> other) const
 {
 	if (other->getKind() != Kind::Symbol)
@@ -12,8 +17,9 @@ bool MExprSymbol::sameQ(std::shared_ptr<MExpr> other) const
 	return _expr.sameQ(o->_expr) && name == o->name && context == o->context;
 }
 
-namespace MethodInterface {
-    
+namespace MethodInterface
+{
+
 }; // namespace MethodInterface
 
 void MExprSymbol::initializeEmbedMethods(const char* embedName)

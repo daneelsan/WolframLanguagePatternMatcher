@@ -4,6 +4,11 @@
 
 namespace PatternMatcher
 {
+std::shared_ptr<MExpr> MExprNormal::getHead() const
+{
+	return _head;
+}
+
 bool MExprNormal::sameQ(std::shared_ptr<MExpr> other) const
 {
 	if (other->getKind() != Kind::Normal)

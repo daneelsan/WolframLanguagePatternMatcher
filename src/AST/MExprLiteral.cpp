@@ -4,6 +4,11 @@
 
 namespace PatternMatcher
 {
+std::shared_ptr<MExpr> MExprLiteral::getHead() const
+{
+	return MExpr::construct(_expr.head());
+}
+
 bool MExprLiteral::sameQ(std::shared_ptr<MExpr> other) const
 {
 	if (other->getKind() != Kind::Literal)

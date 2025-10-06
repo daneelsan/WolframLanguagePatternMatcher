@@ -59,6 +59,7 @@ std::shared_ptr<MExpr> MExpr::construct(Expr e)
 		// Symbol
 		auto nameOpt = e.as<std::string>();
 		std::string name = nameOpt.value_or("<UnknownSymbol>");
+		// TODO: context and sourceName
 		return std::make_shared<MExprSymbol>(e, "" /*context*/, name /*sourceName*/, name /*name*/);
 	}
 	else if (e.depth() > 1)
@@ -86,9 +87,33 @@ std::shared_ptr<MExpr> MExpr::construct(Expr e)
 namespace MethodInterface
 {
 	template <typename T>
+	Expr getHead(T* mexpr)
+	{
+		auto headMExpr = mexpr->getHead();
+		return MExpr::toExpr(headMExpr);
+	}
+
+	template <typename T>
 	Expr getID(T* mexpr)
 	{
 		return Expr(mexpr->getID());
+	}
+
+	template <typename T>
+	Expr hasHead(T* mexpr, Expr headExpr)
+	{
+		bool res = false;
+		auto headMExprOpt = headExpr.as<std::shared_ptr<MExpr>>();
+		if (headMExprOpt)
+		{
+			res = mexpr->getHead()->sameQ(*headMExprOpt);
+		}
+		else
+		{
+			auto headMExpr = MExpr::construct(headExpr);
+			res = mexpr->getHead()->sameQ(headMExpr);
+		}
+		return toExpr(res);
 	}
 
 	template <typename T>
@@ -115,7 +140,12 @@ void MExpr::initializeEmbedMethodsCommon(const char* embedName)
 {
 	using SharedT = std::shared_ptr<T>;
 	AddCompilerClassMethod_Export(
+		embedName, "getHead", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<SharedT, MethodInterface::getHead<T>>));
+	AddCompilerClassMethod_Export(
 		embedName, "getID", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<SharedT, MethodInterface::getID<T>>));
+	AddCompilerClassMethod_Export(
+		embedName, "hasHead",
+		reinterpret_cast<void*>(&embeddedObjectUnaryMethod<SharedT, Expr, MethodInterface::hasHead<T>>));
 	AddCompilerClassMethod_Export(
 		embedName, "toString", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<SharedT, MethodInterface::toString<T>>));
 	AddCompilerClassMethod_Export(

@@ -95,7 +95,7 @@ Expr Expr::part(mint i)
 	return Expr(Part_E_I_E(instance, i));
 }
 
-Expr Expr::head()
+Expr Expr::head() const
 {
 	return Expr(Part_E_I_E(instance, 0));
 }
