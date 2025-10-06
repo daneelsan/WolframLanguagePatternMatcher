@@ -16,7 +16,7 @@
 namespace PatternMatcher
 {
 /* =======================================================================
- * Converter specializations
+ * Expr to T conversions
  * ======================================================================= */
 
 // std::string specialization

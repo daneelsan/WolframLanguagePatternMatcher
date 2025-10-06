@@ -28,9 +28,11 @@ public:
 	virtual ~MExpr() = default;
 
 	mint getID() const { return _id; }
+
 	Kind getKind() const { return _kind; }
 
 	virtual Expr getExpr() const = 0; // force subclasses to expose Expr
+
 	virtual bool sameQ(std::shared_ptr<MExpr> other) const = 0;
 
 	std::string toString() const;
@@ -66,13 +68,7 @@ public:
 
 	Expr getExpr() const override { return _expr; }
 
-	bool sameQ(std::shared_ptr<MExpr> other) const override
-	{
-		if (other->getKind() != Kind::Normal)
-			return false;
-		auto o = std::static_pointer_cast<MExprNormal>(other);
-		return _expr.sameQ(o->_expr); // TODO: deep compare children
-	}
+	bool sameQ(std::shared_ptr<MExpr> other) const override;
 
 	std::shared_ptr<MExpr> getHead() const { return head; }
 
@@ -104,13 +100,7 @@ public:
 
 	Expr getExpr() const override { return _expr; }
 
-	bool sameQ(std::shared_ptr<MExpr> other) const override
-	{
-		if (other->getKind() != Kind::Symbol)
-			return false;
-		auto o = std::static_pointer_cast<MExprSymbol>(other);
-		return _expr.sameQ(o->_expr) && name == o->name && context == o->context;
-	}
+	bool sameQ(std::shared_ptr<MExpr> other) const override;
 
 	bool isProtected() const { return protectedQ; }
 
@@ -148,13 +138,7 @@ public:
 
 	Expr getExpr() const override { return _expr; }
 
-	bool sameQ(std::shared_ptr<MExpr> other) const override
-	{
-		if (other->getKind() != Kind::Literal)
-			return false;
-		auto o = std::static_pointer_cast<MExprLiteral>(other);
-		return _expr.sameQ(o->_expr);
-	}
+	bool sameQ(std::shared_ptr<MExpr> other) const override;
 
 	void initializeEmbedMethods(const char* embedName) override;
 

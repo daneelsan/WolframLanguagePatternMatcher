@@ -112,6 +112,8 @@ public:
 
 	Expr head();
 
+	mint print();
+
 	void setPart(mint i, Expr val);
 
 	void setPart(Expr i, Expr val);
@@ -120,15 +122,13 @@ public:
 	 * Automatically convert an Expr to an ExprStruct.
 	 * Useful when returning an Expr to a Wolfram Language
 	 * function that expects a ExprStruct.  It should only be used
-	 * with a return value,  not when calling an argument.
+	 * with a return value, not when calling an argument.
 	 */
 	operator ExprStruct() const
 	{
 		const_cast<Expr*>(this)->acquire();
 		return instance;
 	}
-
-	mint print();
 
 	bool sameQ(Expr other) const;
 
@@ -197,28 +197,26 @@ private:
 	mint release() { return Expression_Release_Export(instance); }
 };
 
-/*
- * Generic definition
- */
-template <typename T>
-inline Expr toExpr(T obj);
-
-template <>
-inline Expr toExpr<Expr>(Expr arg)
+/* =======================================================================
+ * T to Expr conversions
+ * ======================================================================= */
+inline Expr toExpr(const Expr& arg)
 {
 	return arg;
 }
 
-template <>
-inline Expr toExpr<mint>(mint arg)
+inline Expr toExpr(mint arg)
 {
 	return Expr(arg);
 }
 
-template <>
-inline Expr toExpr<bool>(bool arg)
+inline Expr toExpr(bool arg)
 {
 	return Expr::inertExpression(arg ? "True" : "False");
 }
+
+// fallback: disabled unless someone defines it
+template <typename T>
+Expr toExpr(const T&) = delete;
 
 }; // namespace PatternMatcher

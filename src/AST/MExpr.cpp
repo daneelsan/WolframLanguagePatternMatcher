@@ -7,10 +7,34 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 namespace PatternMatcher
 {
+// Expr -> MExpr unembedding
+template <typename T>
+std::optional<std::shared_ptr<T>> unembedMExpr(const Expr& e)
+{
+	if constexpr (std::is_same_v<T, MExpr>)
+	{
+		if (auto norm = unembedMExpr<MExprNormal>(e))
+			return norm;
+		if (auto sym = unembedMExpr<MExprSymbol>(e))
+			return sym;
+		if (auto lit = unembedMExpr<MExprLiteral>(e))
+			return lit;
+		return std::nullopt;
+	}
+	return UnembedObject<std::shared_ptr<T>>(e);
+}
+
+template <>
+std::optional<std::shared_ptr<MExpr>> Expr::as<std::shared_ptr<MExpr>>() const
+{
+	return unembedMExpr<MExpr>(*this);
+}
+
 std::string MExpr::toString() const
 {
 	return getExpr().toString();
@@ -62,15 +86,27 @@ std::shared_ptr<MExpr> MExpr::construct(Expr e)
 namespace MethodInterface
 {
 	template <typename T>
-	Expr getIDFunction(T* expr)
+	Expr getID(T* mexpr)
 	{
-		return Expr(expr->getID());
+		return Expr(mexpr->getID());
 	}
 
 	template <typename T>
-	Expr toStringFunction(T* expr)
+	Expr sameQ(T* mexpr, Expr other)
 	{
-		return Expr(expr->toString());
+		bool res = false;
+		auto otherOpt = other.as<std::shared_ptr<MExpr>>();
+		if (otherOpt)
+		{
+			res = mexpr->sameQ(*otherOpt);
+		}
+		return toExpr(res);
+	}
+
+	template <typename T>
+	Expr toString(T* mexpr)
+	{
+		return Expr(mexpr->toString());
 	}
 }; // namespace MethodInterface
 
@@ -78,13 +114,12 @@ template <typename T>
 void MExpr::initializeEmbedMethodsCommon(const char* embedName)
 {
 	using SharedT = std::shared_ptr<T>;
-	PM_DEBUG("Initializing embed methods for ", embedName);
 	AddCompilerClassMethod_Export(
-		embedName, "getID",
-		reinterpret_cast<void*>(&embeddedObjectNullaryMethod<SharedT, MethodInterface::getIDFunction<T>>));
+		embedName, "getID", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<SharedT, MethodInterface::getID<T>>));
 	AddCompilerClassMethod_Export(
-		embedName, "toString",
-		reinterpret_cast<void*>(&embeddedObjectNullaryMethod<SharedT, MethodInterface::toStringFunction<T>>));
+		embedName, "toString", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<SharedT, MethodInterface::toString<T>>));
+	AddCompilerClassMethod_Export(
+		embedName, "sameQ", reinterpret_cast<void*>(&embeddedObjectUnaryMethod<SharedT, Expr, MethodInterface::sameQ<T>>));
 }
 
 // Explicit instantiations:
