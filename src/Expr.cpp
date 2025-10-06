@@ -45,6 +45,17 @@ std::optional<mint> Expr::as<mint>() const
 	return std::nullopt;
 }
 
+// bool specialization
+template <>
+std::optional<bool> Expr::as<bool>() const
+{
+	// TODO: TestGet_Boolean or something
+	if (Expr::construct("BooleanQ", *this).eval().sameQ("True")) {
+		return sameQ("True");
+	}
+	return std::nullopt;
+}
+
 // Expr specialization (identity)
 template <>
 std::optional<Expr> Expr::as<Expr>() const

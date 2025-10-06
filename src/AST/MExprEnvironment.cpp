@@ -7,9 +7,32 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 
 namespace PatternMatcher
 {
+std::shared_ptr<MExprSymbol> MExprEnvironment::getOrCreateSymbol(const Expr& e, const std::string& context,
+																 const std::string& sourceName, bool isSystemProtected)
+{
+	if (isSystemProtected)
+	{
+		auto it = symbol_cache.find(sourceName);
+		if (it != symbol_cache.end())
+		{
+			if (auto cached = it->second.lock())
+			{
+				return cached;
+			}
+		}
+
+		auto mexpr = std::make_shared<MExprSymbol>(e, context, sourceName, sourceName, true);
+		symbol_cache[sourceName] = mexpr;
+		return mexpr;
+	}
+
+	// Non-protected symbols are not cached
+	return std::make_shared<MExprSymbol>(e, context, sourceName, sourceName, false);
+}
 
 std::shared_ptr<MExpr> MExprEnvironment::constructMExpr(Expr e)
 {

@@ -57,31 +57,18 @@ std::shared_ptr<MExpr> MExpr::construct(Expr e)
 {
 	if (e.symbolQ())
 	{
-		// Symbol
-		auto nameOpt = e.as<std::string>();
-		std::string name = nameOpt.value_or("<UnknownSymbol>");
-		// TODO: context and sourceName
-		return std::make_shared<MExprSymbol>(e, "" /*context*/, name /*sourceName*/, name /*name*/);
+		// Improve test above
+		return MExprSymbol::create(e);
 	}
 	else if (e.depth() > 1)
 	{
-		// Normal expressions: head + children
-		Expr headExpr = e.head();
-		auto headMExpr = MExpr::construct(headExpr);
-		std::vector<std::shared_ptr<MExpr>> children;
-		children.reserve(e.length());
-		for (mint i = 1; i <= e.length(); i += 1)
-		{
-			Expr child = e.part(i);
-			children.push_back(MExpr::construct(child));
-		}
-		auto res = std::make_shared<MExprNormal>(e, headMExpr, std::move(children));
-		return res;
+		// Improve test above
+		return MExprNormal::create(e);
 	}
 	else
 	{
 		// Fallback to Literal
-		return std::make_shared<MExprLiteral>(e);
+		return MExprLiteral::create(e);
 	}
 }
 

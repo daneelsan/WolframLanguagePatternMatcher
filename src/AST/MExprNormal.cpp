@@ -4,6 +4,22 @@
 
 namespace PatternMatcher
 {
+std::shared_ptr<MExpr> MExprNormal::create(Expr e)
+{
+	// Normal expressions: head + children
+    mint len = e.length();
+	Expr headExpr = e.head();
+	auto headMExpr = MExpr::construct(headExpr);
+	std::vector<std::shared_ptr<MExpr>> children;
+	children.reserve(len);
+	for (mint i = 1; i <= len; i += 1)
+	{
+		Expr child = e.part(i);
+		children.push_back(MExpr::construct(child));
+	}
+	return std::make_shared<MExprNormal>(e, headMExpr, std::move(children));
+}
+
 std::shared_ptr<MExpr> MExprNormal::getHead() const
 {
 	return _head;

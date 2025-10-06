@@ -5,18 +5,22 @@
 
 #include "AST/MExpr.h"
 
-#include <unordered_set>
+#include <memory>
+#include <string>
+#include <unordered_map>
 
 namespace PatternMatcher
 {
 extern Expr MExprEnvironmentExpr();
 
-class MExpr; // Forward declaration
+ // Forward declaration
+class MExpr;
+class MExprSymbol;
 
 class MExprEnvironment
 {
 private:
-	std::unordered_set<std::shared_ptr<MExpr>> symbol_cache;
+	std::unordered_map<std::string, std::weak_ptr<MExprSymbol>> symbol_cache;
 
 	// Private constructor so no one can create it directly
 	MExprEnvironment() = default;
@@ -35,6 +39,9 @@ public:
 		static MExprEnvironment env; // Guaranteed to be created once (thread-safe since C++11)
 		return env;
 	}
+
+	std::shared_ptr<MExprSymbol> getOrCreateSymbol(const Expr& e, const std::string& context,
+												   const std::string& sourceName, bool isProtected);
 
 	std::shared_ptr<MExpr> constructMExpr(Expr e);
 

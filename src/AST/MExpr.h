@@ -70,6 +70,8 @@ public:
 	{
 	}
 
+	static std::shared_ptr<MExpr> create(Expr expr);
+
 	Expr getExpr() const override { return _expr; }
 
 	bool sameQ(std::shared_ptr<MExpr> other) const override;
@@ -101,6 +103,8 @@ public:
 		, protectedQ(prot)
 	{
 	}
+
+	static std::shared_ptr<MExpr> create(Expr expr);
 
 	Expr getExpr() const override { return _expr; }
 
@@ -141,6 +145,8 @@ public:
 		, _expr(expr)
 	{
 	}
+
+	static std::shared_ptr<MExpr> create(Expr expr);
 
 	Expr getExpr() const override { return _expr; }
 
