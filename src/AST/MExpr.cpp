@@ -1,4 +1,5 @@
 #include "AST/MExpr.h"
+#include "AST/MExprEnvironment.h"
 
 #include "Expr.h"
 #include "Logger.h"

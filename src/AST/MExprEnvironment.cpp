@@ -11,16 +11,16 @@
 namespace PatternMatcher
 {
 
-std::shared_ptr<MExpr> MExprEnvironment::createMExpr(Expr e)
+std::shared_ptr<MExpr> MExprEnvironment::constructMExpr(Expr e)
 {
 	return MExpr::construct(e);
 }
 
 namespace MethodInterface
 {
-	Expr createMExpr(MExprEnvironment* env, Expr e)
+	Expr constructMExpr(MExprEnvironment* env, Expr e)
 	{
-		return MExpr::toExpr(env->createMExpr(e));
+		return MExpr::toExpr(env->constructMExpr(e));
 	}
 }; // namespace MethodInterface
 
@@ -29,16 +29,17 @@ namespace MethodInterface
 void MExprEnvironment::initializeEmbedMethods(const char* embedName)
 {
 	AddCompilerClassMethod_Export(
-		embedName, "createMExpr",
-		reinterpret_cast<void*>(&embeddedObjectUnaryMethod<MExprEnvironment*, Expr, MethodInterface::createMExpr>));
+		embedName, "constructMExpr",
+		reinterpret_cast<void*>(&embeddedObjectUnaryMethod<MExprEnvironment*, Expr, MethodInterface::constructMExpr>));
 };
 
-/// @brief This function allows a MExprEnvironment to be instantiated from Wolfram Language
+/// @brief Get the Expr representing the singleton MExprEnvironment instance.
+/// @return An Expr embedding the singleton MExprEnvironment instance.
 Expr MExprEnvironmentExpr()
 {
-	MExprEnvironment* env = new MExprEnvironment();
-	Expr expr = EmbedObject(env);
-	return expr;
+	// Use the singleton instance
+	MExprEnvironment* env = &MExprEnvironment::instance();
+	return EmbedObject(env);
 }
 
 }; // namespace PatternMatcher

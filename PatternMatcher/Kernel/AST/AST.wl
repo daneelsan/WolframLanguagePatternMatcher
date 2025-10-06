@@ -1,11 +1,13 @@
 BeginPackage["DanielS`PatternMatcher`AST`"]
 
+$MExprEnvironment::usage =
+	"$MExprEnvironment is a global MExpr environment.";
+
+ConstructMExpr::usage =
+	"ConstructMExpr[expr] constructs a MExpr from an expression expr.";
 
 CreateMExprEnvironment::usage =
 	"CreateMExprEnvironment[] creates a new MExpr environment.";
-
-$MExprEnvironment::usage =
-	"$MExprEnvironment is a global MExpr environment.";
 
 
 Begin["`Private`"]
@@ -16,10 +18,18 @@ Needs["DanielS`PatternMatcher`Library`"]
 Needs["DanielS`PatternMatcher`ErrorHandling`"] (* for CatchFailure, ThrowFailure *)
 
 
+(*=============================================================================
+	$MExprEnvironment
+=============================================================================*)
+
 (* Lazily initialize the global MExpr environment. *)
 $MExprEnvironment := $MExprEnvironment =
 	CreateMExprEnvironment[];
 
+
+(*=============================================================================
+	CreateMExprEnvironment
+=============================================================================*)
 
 CreateMExprEnvironment[] :=
 	Module[{mExprEnv},
@@ -35,6 +45,15 @@ CreateMExprEnvironment[] :=
 (* TODO: How to force to release an ObjectInstance manually?
 DeleteObject[MExprEnvironment[...]]
 *)
+
+(*=============================================================================
+	ConstructMExpr
+=============================================================================*)
+
+SetAttributes[ConstructMExpr, HoldAllComplete];
+
+ConstructMExpr[expr_] :=
+	$MExprEnvironment["constructMExpr", expr];
 
 
 (*=============================================================================

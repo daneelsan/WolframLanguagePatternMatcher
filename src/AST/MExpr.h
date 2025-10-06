@@ -3,6 +3,8 @@
 #include "Embeddable.h"
 #include "Expr.h"
 
+#include "AST/MExprEnvironment.h"
+
 #include <memory>
 #include <string>
 #include <vector>
