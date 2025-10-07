@@ -104,11 +104,11 @@ public:
 
 	Expr eval();
 
-	mint length();
+	mint length() const;
 
-	mint depth();
+	mint depth() const;
 
-	Expr part(mint i);
+	Expr part(mint i) const;
 
 	Expr head() const;
 
@@ -144,7 +144,7 @@ public:
 
 	static Expr throwError(std::string txt, Expr);
 
-	static Expr inertExpression(const char* txt);
+	static Expr ToExpression(const char* txt);
 
 	static Expr createNormal(mint len, Expr head);
 
@@ -167,7 +167,7 @@ public:
 	template <typename... TArgs>
 	static Expr construct(const char* headStr, TArgs... args)
 	{
-		Expr head = Expr::inertExpression(headStr);
+		Expr head = Expr::ToExpression(headStr);
 		return Expr::construct(head, std::forward<TArgs>(args)...);
 	}
 
@@ -179,15 +179,15 @@ public:
 
 	static std::optional<ExprStruct> unembedObjectInstance(Expr, const char*);
 
-	bool stringQ();
+	bool stringQ() const;
 
-	bool ruleQ();
+	bool ruleQ() const;
 
-	bool listQ();
+	bool listQ() const;
 
-	bool symbolQ();
+	bool symbolQ() const;
 
-	std::string toString();
+	std::string toString() const;
 
 private:
 	ExprStruct instance;
@@ -212,7 +212,7 @@ inline Expr toExpr(mint arg)
 
 inline Expr toExpr(bool arg)
 {
-	return Expr::inertExpression(arg ? "True" : "False");
+	return Expr::ToExpression(arg ? "True" : "False");
 }
 
 // fallback: disabled unless someone defines it

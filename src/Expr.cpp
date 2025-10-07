@@ -91,17 +91,17 @@ Expr Expr::eval()
 	return Expr(Evaluate_E_E(instance));
 }
 
-mint Expr::length()
+mint Expr::length() const
 {
 	return Length_Expression_Integer(instance);
 }
 
-mint Expr::depth()
+mint Expr::depth() const
 {
 	return Depth_Expression_Integer(instance);
 }
 
-Expr Expr::part(mint i)
+Expr Expr::part(mint i) const
 {
 	return Expr(Part_E_I_E(instance, i));
 }
@@ -128,11 +128,11 @@ bool Expr::sameQ(Expr other) const
 
 bool Expr::sameQ(const char* txt) const
 {
-	return SameQ_E_E_Boolean(instance, inertExpression(txt).instance);
+	return SameQ_E_E_Boolean(instance, Expr::ToExpression(txt).instance);
 }
 
 // Return a string from a String Expr.
-std::string Expr::toString()
+std::string Expr::toString() const
 {
 	Expr toStrExpr = Expr::construct("ToString", *this).eval();
 	return toStrExpr.as<std::string>().value_or("");
@@ -142,27 +142,27 @@ std::string Expr::toString()
  * Return true if an expr string.
  * Doesn't need to free the bytes.
  */
-bool Expr::stringQ()
+bool Expr::stringQ() const
 {
 	const char* bytes;
 	return TestGet_CString(instance, &bytes);
 }
 
 // Return true if an expr list.
-bool Expr::listQ()
+bool Expr::listQ() const
 {
-	return head().sameQ(inertExpression("List"));
+	return head().sameQ(Expr::ToExpression("List"));
 }
 
 // Return true if an expr rule.
-bool Expr::ruleQ()
+bool Expr::ruleQ() const
 {
-	return length() == 2 && head().sameQ(inertExpression("Rule"));
+	return length() == 2 && head().sameQ(Expr::ToExpression("Rule"));
 }
 
-bool Expr::symbolQ()
+bool Expr::symbolQ() const
 {
-	return length() == 0 && head().sameQ(inertExpression("Symbol"));
+	return length() == 0 && head().sameQ(Expr::ToExpression("Symbol"));
 }
 
 /*
@@ -175,7 +175,7 @@ Expr Expr::createNormal(mint len, Expr head)
 
 Expr Expr::createNormal(mint len, const char* head)
 {
-	return Expr::createNormal(len, Expr::inertExpression(head));
+	return Expr::createNormal(len, Expr::ToExpression(head));
 }
 
 /*
@@ -199,14 +199,14 @@ std::optional<ExprStruct> Expr::unembedObjectInstance(Expr self, const char* cla
 	return std::nullopt;
 }
 
-Expr Expr::inertExpression(const char* txt)
+Expr Expr::ToExpression(const char* txt)
 {
 	return Expr(CreateGeneralExpr(txt));
 }
 
 Expr Expr::failure()
 {
-	return Expr::inertExpression("$Failed");
+	return Expr::ToExpression("$Failed");
 }
 
 Expr Expr::throwError(const char* txt)

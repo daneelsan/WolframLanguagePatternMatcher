@@ -53,7 +53,7 @@ Expr MExpr::toExpr(std::shared_ptr<MExpr> mexpr)
 	return Expr::throwError("Unexpected MExpr subclass in toExpr.");
 }
 
-std::shared_ptr<MExpr> MExpr::construct(Expr e)
+std::shared_ptr<MExpr> MExpr::construct(const Expr& e)
 {
 	if (e.symbolQ())
 	{
@@ -70,6 +70,22 @@ std::shared_ptr<MExpr> MExpr::construct(Expr e)
 		// Fallback to Literal
 		return MExprLiteral::create(e);
 	}
+}
+
+bool MExpr::hasHead(std::shared_ptr<MExpr> headMExpr) const
+{
+	return getHead()->sameQ(headMExpr);
+}
+
+bool MExpr::hasHead(const Expr& headExpr) const
+{
+	auto headMExpr = MExpr::construct(headExpr);
+	return hasHead(headMExpr);
+}
+
+bool MExpr::hasHead(const char* headName) const
+{
+	return hasHead(Expr::ToExpression(headName));
 }
 
 namespace MethodInterface
@@ -94,14 +110,19 @@ namespace MethodInterface
 		auto headMExprOpt = headExpr.as<std::shared_ptr<MExpr>>();
 		if (headMExprOpt)
 		{
-			res = mexpr->getHead()->sameQ(*headMExprOpt);
+			res = mexpr->hasHead(*headMExprOpt);
 		}
 		else
 		{
-			auto headMExpr = MExpr::construct(headExpr);
-			res = mexpr->getHead()->sameQ(headMExpr);
+			res = mexpr->hasHead(headExpr);
 		}
 		return toExpr(res);
+	}
+
+	template <typename T>
+	Expr length(T* mexpr)
+	{
+		return Expr(mexpr->length());
 	}
 
 	template <typename T>
@@ -134,6 +155,8 @@ void MExpr::initializeEmbedMethodsCommon(const char* embedName)
 	AddCompilerClassMethod_Export(
 		embedName, "hasHead",
 		reinterpret_cast<void*>(&embeddedObjectUnaryMethod<SharedT, Expr, MethodInterface::hasHead<T>>));
+	AddCompilerClassMethod_Export(
+		embedName, "length", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<SharedT, MethodInterface::length<T>>));
 	AddCompilerClassMethod_Export(
 		embedName, "toString", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<SharedT, MethodInterface::toString<T>>));
 	AddCompilerClassMethod_Export(

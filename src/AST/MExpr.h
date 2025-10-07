@@ -35,7 +35,15 @@ public:
 
 	virtual Expr getExpr() const = 0; // force subclasses to expose Expr
 
+	virtual size_t length() const = 0;
+
 	virtual std::shared_ptr<MExpr> getHead() const = 0;
+
+	bool hasHead(std::shared_ptr<MExpr> headMExpr) const;
+
+	bool hasHead(const Expr& headExpr) const;
+
+	bool hasHead(const char* headName) const;
 
 	virtual bool sameQ(std::shared_ptr<MExpr> other) const = 0;
 
@@ -43,7 +51,7 @@ public:
 
 	static Expr toExpr(std::shared_ptr<MExpr> expr);
 
-	static std::shared_ptr<MExpr> construct(Expr e);
+	static std::shared_ptr<MExpr> construct(const Expr& e);
 
 	virtual void initializeEmbedMethods(const char*) = 0;
 
@@ -70,18 +78,28 @@ public:
 	{
 	}
 
-	static std::shared_ptr<MExpr> create(Expr expr);
+	/// @brief Create a new MExprNormal from an Expr by recursively constructing MExprs for the head and children.
+	static std::shared_ptr<MExpr> create(const Expr& expr);
 
 	Expr getExpr() const override { return _expr; }
 
 	bool sameQ(std::shared_ptr<MExpr> other) const override;
 
+	/// @brief Get the head of the normal expression.
 	std::shared_ptr<MExpr> getHead() const override;
+
+	/// @brief Get the number of children of the normal expression.
+	size_t length() const override;
 
 	const std::vector<std::shared_ptr<MExpr>>& getChildren() const { return _children; }
 
-	size_t length() const { return _children.size(); }
+	/// @brief Get the i-th child (1-based index).
+	/// @param i The index of the child to get (1-based).
+	/// @return The i-th child MExpr.
+	std::shared_ptr<MExpr> part(mint i) const;
 
+	/// @brief Initialize embedding methods for the MExprNormal instance.
+	/// @param embedName The name to use for embedding.
 	void initializeEmbedMethods(const char* embedName) override;
 
 private:
@@ -104,9 +122,16 @@ public:
 	{
 	}
 
-	static std::shared_ptr<MExpr> create(Expr expr);
+	/// @brief  Create a new MExprSymbol from an Expr.
+	/// @details This creates a new MExprSymbol from the given Expr.
+	/// It extracts the context, source name, and protection status of the symbol.
+	/// @param expr The Expr representing the symbol.
+	/// @return The created MExprSymbol instance.
+	static std::shared_ptr<MExpr> create(const Expr& expr);
 
 	Expr getExpr() const override { return _expr; }
+
+	size_t length() const override { return 0; }
 
 	std::shared_ptr<MExpr> getHead() const override;
 
@@ -146,9 +171,15 @@ public:
 	{
 	}
 
-	static std::shared_ptr<MExpr> create(Expr expr);
+	/// @brief  Create a new MExprLiteral from an Expr.
+	/// @details This creates a new MExprLiteral from the given Expr.
+	/// @param expr The Expr representing the literal.
+	/// @return The created MExprLiteral instance.
+	static std::shared_ptr<MExpr> create(const Expr& expr);
 
 	Expr getExpr() const override { return _expr; }
+
+	size_t length() const override { return 0; }
 
 	std::shared_ptr<MExpr> getHead() const override;
 

@@ -34,7 +34,7 @@ std::shared_ptr<MExprSymbol> MExprEnvironment::getOrCreateSymbol(const Expr& e, 
 	return std::make_shared<MExprSymbol>(e, context, sourceName, sourceName, false);
 }
 
-std::shared_ptr<MExpr> MExprEnvironment::constructMExpr(Expr e)
+std::shared_ptr<MExpr> MExprEnvironment::constructMExpr(const Expr& e)
 {
 	return MExpr::construct(e);
 }

@@ -8,24 +8,30 @@
 
 namespace PatternMatcher
 {
-// TODO: Consider if the Expr should be passed by reference instead
-// This should avoid unnecessary refcounting.
-static std::string getSymbolContext(Expr e)
+// Get the symbol context, e.g. "System`" or "Global`"
+// Returns empty string on failure (caller should handle)
+static std::string getSymbolContext(const Expr& e)
 {
 	auto contextExpr = Expr::construct("Context", e).eval();
 	auto contextOpt = contextExpr.as<std::string>();
-	// TODO: assert here
+	if (!contextOpt)
+	{
+		PM_ERROR("getSymbolContext failed for: ", e);
+		return "";
+	}
 	return *contextOpt;
 }
 
-static bool isProtectedSymbol(Expr e)
+// Return whether the symbol has the Protected attribute.
+// If something goes wrong, default to false.
+static bool isProtectedSymbol(const Expr& e)
 {
 	auto attrExpr = Expr::construct("Attributes", e).eval();
-	auto res = Expr::construct("MemberQ", attrExpr, Expr::inertExpression("Protected")).eval();
+	auto res = Expr::construct("MemberQ", attrExpr, Expr::ToExpression("Protected")).eval();
 	return res.as<bool>().value_or(false);
 }
 
-std::shared_ptr<MExpr> MExprSymbol::create(Expr e)
+std::shared_ptr<MExpr> MExprSymbol::create(const Expr& e)
 {
 	std::string context = getSymbolContext(e);
 	std::string sourceName = e.toString();
@@ -37,7 +43,7 @@ std::shared_ptr<MExpr> MExprSymbol::create(Expr e)
 
 std::shared_ptr<MExpr> MExprSymbol::getHead() const
 {
-	return MExpr::construct(Expr::inertExpression("Symbol"));
+	return MExprSymbol::create(Expr::ToExpression("Symbol"));
 }
 
 bool MExprSymbol::sameQ(std::shared_ptr<MExpr> other) const

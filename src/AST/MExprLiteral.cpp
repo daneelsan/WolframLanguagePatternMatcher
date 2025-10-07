@@ -4,7 +4,7 @@
 
 namespace PatternMatcher
 {
-std::shared_ptr<MExpr> MExprLiteral::create(Expr e)
+std::shared_ptr<MExpr> MExprLiteral::create(const Expr& e)
 {
 	return std::make_shared<MExprLiteral>(e);
 }

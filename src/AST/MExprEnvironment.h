@@ -34,16 +34,29 @@ public:
 
 	~MExprEnvironment() = default;
 
+	/// @brief Get the singleton instance of MExprEnvironment.
+	/// @details This method returns a reference to the singleton instance of MExprEnvironment.
+	/// It is thread-safe and guarantees that only one instance is created.
+	/// @return A reference to the singleton MExprEnvironment instance.
 	static MExprEnvironment& instance()
 	{
 		static MExprEnvironment env; // Guaranteed to be created once (thread-safe since C++11)
 		return env;
 	}
 
+	/// @brief Get or create a symbol MExpr.
+	/// @param e The Expr representing the symbol.
+	/// @param context The context of the symbol.
+	/// @param sourceName The name of the symbol as it appears on the source.
+	/// @param isSystemProtected Whether the symbol is a protected System` symbol.
+	/// @return A shared_ptr to the symbol MExpr.
 	std::shared_ptr<MExprSymbol> getOrCreateSymbol(const Expr& e, const std::string& context,
-												   const std::string& sourceName, bool isProtected);
+												   const std::string& sourceName, bool isSystemProtected);
 
-	std::shared_ptr<MExpr> constructMExpr(Expr e);
+	/// @brief Construct a new MExpr from an Expr.
+	/// @param e The Expr to convert.
+	/// @return A shared_ptr to the new MExpr.
+	std::shared_ptr<MExpr> constructMExpr(const Expr& e);
 
 	/// @brief Initialize the embedding in an expression.
 	/// @param embedName The name to use for embedding.

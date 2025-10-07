@@ -90,6 +90,8 @@ add_library(${PROJECT_NAME} SHARED
     src/AST/MExprLiteral.cpp
     src/AST/MExprSymbol.cpp
     src/AST/MExprEnvironment.cpp
+    src/AST/MExprPatternTools.cpp
+    src/VM/VirtualMachine.cpp
 )
 
 # Include directories

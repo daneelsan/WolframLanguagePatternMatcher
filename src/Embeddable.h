@@ -119,7 +119,7 @@ namespace detail
 		SetupEmbed<T*>(inst, customDeleter);
 
 		ExprStruct val = reinterpret_cast<ExprStruct>(inst);
-		Expr head = Expr::inertExpression(embedName);
+		Expr head = Expr::ToExpression(embedName);
 		return Expr::embedObjectInstance(val, embedName, head);
 	}
 
@@ -134,7 +134,7 @@ namespace detail
 		// is released. NOTE: Maybe this is inefficient.
 		auto* inst = new std::shared_ptr<T>(obj);
 		ExprStruct val = reinterpret_cast<ExprStruct>(inst);
-		Expr head = Expr::inertExpression(embedName);
+		Expr head = Expr::ToExpression(embedName);
 		return Expr::embedObjectInstance(val, embedName, head);
 	}
 
