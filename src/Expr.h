@@ -210,6 +210,7 @@ inline Expr toExpr(mint arg)
 	return Expr(arg);
 }
 
+// TODO: Find a better way to do expr bools
 inline Expr toExpr(bool arg)
 {
 	return Expr::ToExpression(arg ? "True" : "False");

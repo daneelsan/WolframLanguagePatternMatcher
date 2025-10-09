@@ -9,6 +9,7 @@
 #include "Logger.h"
 
 #include "AST/MExprEnvironment.h"
+#include "VM/VirtualMachine.h"
 
 using namespace PatternMatcher;
 
@@ -28,6 +29,10 @@ ExprStruct InstantiateObject(ExprStruct arg)
 	if (part.sameQ("\"MExprEnvironment\""))
 	{
 		return MExprEnvironmentExpr();
+	}
+	else if (part.sameQ("\"VirtualMachine\""))
+	{
+		return VirtualMachineExpr();
 	}
 
 	return Expr::throwError("It is not known how to instantiate `1`.", part);

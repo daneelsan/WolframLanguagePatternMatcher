@@ -92,6 +92,8 @@ add_library(${PROJECT_NAME} SHARED
     src/AST/MExprEnvironment.cpp
     src/AST/MExprPatternTools.cpp
     src/VM/VirtualMachine.cpp
+    src/VM/Bytecode.cpp
+    src/VM/Opcode.cpp
 )
 
 # Include directories
