@@ -386,28 +386,50 @@ std::shared_ptr<PatternBytecode> PatternBytecode::CompilePatternToBytecode(const
 	st.emit(Opcode::HALT, {});
 
 	// Set metadata
-	st.out->set_metadata(st.nextExprReg, st.nextBoolReg, st.lexical);
+	st.out->set_metadata(mexpr, st.nextExprReg, st.nextBoolReg, st.lexical);
 
 	// optionally emit a final instruction to move boolean result to a known place if needed
 
 	return st.out;
 }
 
-namespace MethodInterface
+namespace PatternBytecodeInterface
 {
-	Expr length(PatternBytecode* bytecode)
+	Expr getBoolRegisterCount(std::shared_ptr<PatternBytecode> bytecode)
+	{
+		return Expr(static_cast<mint>(bytecode->getBoolRegisterCount()));
+	}
+	Expr getExprRegisterCount(std::shared_ptr<PatternBytecode> bytecode)
+	{
+		return Expr(static_cast<mint>(bytecode->getExprRegisterCount()));
+	}
+	Expr getPattern(std::shared_ptr<PatternBytecode> bytecode)
+	{
+		return MExpr::toExpr(bytecode->getPattern());
+	}
+	Expr length(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(static_cast<mint>(bytecode->length()));
 	}
-	Expr toString(PatternBytecode* bytecode)
+	Expr toBoxes(Expr objExpr, Expr fmt)
+	{
+		return Expr::construct("DanielS`PatternMatcher`BackEnd`PatternBytecode`Private`toBoxes", objExpr, fmt);
+	}
+	Expr toString(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(bytecode->toString());
 	}
-}; // namespace MethodInterface
+}; // namespace PatternBytecodeInterface
 
 void PatternBytecode::initializeEmbedMethods(const char* embedName)
 {
-	RegisterMethod<std::shared_ptr<PatternBytecode>, MethodInterface::length>(embedName, "length");
-	RegisterMethod<std::shared_ptr<PatternBytecode>, MethodInterface::toString>(embedName, "toString");
+	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::getBoolRegisterCount>(
+		embedName, "getBoolRegisterCount");
+	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::getExprRegisterCount>(
+		embedName, "getExprRegisterCount");
+	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::getPattern>(embedName, "getPattern");
+	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::length>(embedName, "length");
+	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::toBoxes>(embedName, "toBoxes");
+	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::toString>(embedName, "toString");
 }
 }; // namespace PatternMatcher

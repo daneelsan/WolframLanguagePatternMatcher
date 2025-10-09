@@ -46,22 +46,24 @@ PatternBytecodeQ[_] :=
 =============================================================================*)
 
 toBoxes[obj_, fmt_] :=
-	Module[{pattern, bytecode},
-		pattern = obj["Pattern"];
-		bytecode = obj["Bytecode"];
+	Module[{pattern, disassembly, exprRegisterCount, boolRegisterCount},
+		pattern = obj["getPattern"];
+		disassembly = obj["toString"];
+		exprRegisterCount = obj["getExprRegisterCount"];
+		boolRegisterCount = obj["getBoolRegisterCount"];
 		BoxForm`ArrangeSummaryBox[
 			"PatternBytecode",
 			obj,
 			None,
 			{
-				BoxForm`SummaryItem[{"Pattern: ", ClickToCopy[pattern]}]
+				BoxForm`SummaryItem[{"Pattern: ", pattern}],
+				BoxForm`SummaryItem[{"Number of Expr registers: ", exprRegisterCount}],
+				BoxForm`SummaryItem[{"Number of Bool registers: ", boolRegisterCount}]
 			},
 			{
-				BoxForm`SummaryItem[{"Pattern: ", ClickToCopy[pattern]}],
-				BoxForm`SummaryItem[{"Bytecode: ", ClickToCopy[PatternBytecodeDissasembly[obj], bytecode]}]
-			}, 
-			fmt,
-			"CompleteReplacement" -> True
+				BoxForm`SummaryItem[{"Disassembly: ", ClickToCopy[disassembly]}]
+			},
+			fmt
 		]
 	];
 

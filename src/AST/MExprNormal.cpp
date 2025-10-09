@@ -61,18 +61,23 @@ std::shared_ptr<MExpr> MExprNormal::part(mint i) const
 	}
 }
 
-namespace MethodInterface
+namespace MExprNormalInterface
 {
-	Expr part(MExprNormal* mexpr, mint i)
+	Expr part(std::shared_ptr<MExprNormal> mexpr, mint i)
 	{
 		auto childMExpr = mexpr->part(i);
 		return MExpr::toExpr(childMExpr);
 	}
-}; // namespace MethodInterface
+	Expr toBoxes(Expr objExpr, Expr fmt)
+	{
+		return Expr::construct("DanielS`PatternMatcher`AST`Private`toMExprNormalBoxes", objExpr, fmt).eval();
+	}
+}; // namespace MExprNormalInterface
 
 void MExprNormal::initializeEmbedMethods(const char* embedName)
 {
 	initializeEmbedMethodsCommon<MExprNormal>(embedName);
-    RegisterMethod<std::shared_ptr<MExprNormal>, MethodInterface::part>(embedName, "part");
+	RegisterMethod<std::shared_ptr<MExprNormal>, MExprNormalInterface::part>(embedName, "part");
+	RegisterMethod<std::shared_ptr<MExprNormal>, MExprNormalInterface::toBoxes>(embedName, "toBoxes");
 }
 }; // namespace PatternMatcher

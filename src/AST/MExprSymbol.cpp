@@ -54,13 +54,17 @@ bool MExprSymbol::sameQ(std::shared_ptr<MExpr> other) const
 	return _expr.sameQ(o->_expr) && name == o->name && context == o->context;
 }
 
-namespace MethodInterface
+namespace MExprSymbolInterface
 {
-
-}; // namespace MethodInterface
+	Expr toBoxes(Expr objExpr, Expr fmt)
+	{
+		return Expr::construct("DanielS`PatternMatcher`AST`Private`toMExprSymbolBoxes", objExpr, fmt).eval();
+	}
+}; // namespace MExprSymbolInterface
 
 void MExprSymbol::initializeEmbedMethods(const char* embedName)
 {
 	initializeEmbedMethodsCommon<MExprSymbol>(embedName);
+	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::toBoxes>(embedName, "toBoxes");
 }
 }; // namespace PatternMatcher

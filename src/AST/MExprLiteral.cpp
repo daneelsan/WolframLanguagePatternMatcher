@@ -22,8 +22,17 @@ bool MExprLiteral::sameQ(std::shared_ptr<MExpr> other) const
 	return _expr.sameQ(o->_expr);
 }
 
+namespace MExprLiteralInterface
+{
+	Expr toBoxes(Expr objExpr, Expr fmt)
+	{
+		return Expr::construct("DanielS`PatternMatcher`AST`Private`toMExprLiteralBoxes", objExpr, fmt).eval();
+	}
+}; // namespace MExprLiteralInterface
+
 void MExprLiteral::initializeEmbedMethods(const char* embedName)
 {
 	initializeEmbedMethodsCommon<MExprLiteral>(embedName);
+	RegisterMethod<std::shared_ptr<MExprLiteral>, MExprLiteralInterface::toBoxes>(embedName, "toBoxes");
 }
 }; // namespace PatternMatcher

@@ -383,12 +383,14 @@ ExprStruct invokeExprFirstMethod(Expr expr, Expr selfExpr, std::index_sequence<I
 /// @param self The embedded object instance.
 /// @param index_sequence The index sequence for unpacking arguments.
 /// @return An ExprStruct representing the result of the method call.
+// Invoke method with instance
 template <typename EmbeddedT, auto method, size_t... Is>
 ExprStruct invokeMethod(Expr expr, EmbeddedT& self, std::index_sequence<Is...>)
 {
 	using Traits = MethodTraits<decltype(method)>;
 	using BaseT = element_type_t<EmbeddedT>;
 	using ArgsTuple = typename Traits::ArgsTuple;
+	using InstanceParamType = typename Traits::InstanceType;
 
 	// Extract all arguments
 	auto argsTuple = std::make_tuple(extractArg<std::tuple_element_t<Is, ArgsTuple>>(expr, Is)...);
@@ -399,20 +401,39 @@ ExprStruct invokeMethod(Expr expr, EmbeddedT& self, std::index_sequence<Is...>)
 		return methodErrorFailure<BaseT>();
 	}
 
-	// Get instance pointer
-	auto* instance = [&]() {
+	// Determine what to pass as the instance parameter
+	// The method might expect: T*, const T*, T&, std::shared_ptr<T>, etc.
+	if constexpr (is_shared_ptr_v<InstanceParamType>)
+	{
+		// Method expects std::shared_ptr<T>
 		if constexpr (is_shared_ptr_v<EmbeddedT>)
 		{
-			return self.get();
+			// We have a shared_ptr, method wants a shared_ptr - pass it directly
+			return method(self, *std::get<Is>(argsTuple)...);
 		}
 		else
 		{
-			return self;
+			// We have a raw pointer but method wants shared_ptr - ERROR
+			static_assert(is_shared_ptr_v<EmbeddedT>, "Method expects shared_ptr but object is embedded as raw pointer");
 		}
-	}();
+	}
+	else
+	{
+		// Method expects a raw pointer T*
+		auto* instance = [&]() {
+			if constexpr (is_shared_ptr_v<EmbeddedT>)
+			{
+				return self.get();
+			}
+			else
+			{
+				return self;
+			}
+		}();
 
-	// Call the method
-	return method(instance, *std::get<Is>(argsTuple)...);
+		// Call the method
+		return method(instance, *std::get<Is>(argsTuple)...);
+	}
 }
 
 /* =======================================================================

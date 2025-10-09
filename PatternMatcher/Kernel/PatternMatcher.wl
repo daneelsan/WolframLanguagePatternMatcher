@@ -47,6 +47,7 @@ Begin["`Private`"];
 (*FunctionCompile[Function[1]];*)
 
 
+Needs["DanielS`PatternMatcher`AST`"]
 Needs["DanielS`PatternMatcher`FrontEnd`"]
 Needs["DanielS`PatternMatcher`BackEnd`"]
 

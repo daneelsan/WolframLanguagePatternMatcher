@@ -5,6 +5,8 @@
 #include "ClassSupport.h"
 #include "Expr.h"
 
+#include "AST/MExpr.h"
+
 #include <initializer_list>
 #include <string>
 #include <unordered_map>
@@ -28,18 +30,25 @@ public:
 	/// @brief Get the instructions of the bytecode.
 	const std::vector<Instruction>& getInstructions() const { return _instrs; }
 
+	/// @brief Get the length of the bytecode.
+	/// @return The length of the bytecode in bytes.
+	size_t length() const { return _instrs.size(); }
+
+	int getExprRegisterCount() const { return exprRegisterCount; }
+	int getBoolRegisterCount() const { return boolRegisterCount; }
+	std::shared_ptr<MExpr> getPattern() const { return pattern; }
+
 	// convenience
 	void push_instr(Opcode op, std::initializer_list<Operand> ops_);
 
-	void set_metadata(int exprRegs, int boolRegs, const std::unordered_map<std::string, ExprRegIndex>& lexical)
+	void set_metadata(std::shared_ptr<MExpr> pattern, int exprRegs, int boolRegs, const std::unordered_map<std::string, ExprRegIndex>& lexical)
 	{
-		exprRegisterCount = exprRegs;
-		boolRegisterCount = boolRegs;
+		this->pattern = pattern;
+		this->exprRegisterCount = exprRegs;
+		this->boolRegisterCount = boolRegs;
 		// TODO: move?
-		lexicalMap = lexical;
+		this->lexicalMap = lexical;
 	}
-
-	size_t length() const { return _instrs.size(); }
 
 	/// @brief Converts the bytecode to a string representation.
 	/// @return The string representation of the bytecode.
@@ -55,6 +64,7 @@ public:
 	void initializeEmbedMethods(const char* embedName);
 
 private:
+	std::shared_ptr<MExpr> pattern; // original pattern expression (for reference/debugging)
 	std::vector<Instruction> _instrs;
 
 	// metadata
