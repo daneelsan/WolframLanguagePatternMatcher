@@ -407,11 +407,7 @@ namespace MethodInterface
 
 void PatternBytecode::initializeEmbedMethods(const char* embedName)
 {
-	AddCompilerClassMethod_Export(
-		embedName, "length",
-		reinterpret_cast<void*>(&embeddedObjectNullaryMethod<std::shared_ptr<PatternBytecode>, MethodInterface::length>));
-	AddCompilerClassMethod_Export(
-		embedName, "toString",
-		reinterpret_cast<void*>(&embeddedObjectNullaryMethod<std::shared_ptr<PatternBytecode>, MethodInterface::toString>));
+	RegisterMethod<std::shared_ptr<PatternBytecode>, MethodInterface::length>(embedName, "length");
+	RegisterMethod<std::shared_ptr<PatternBytecode>, MethodInterface::toString>(embedName, "toString");
 }
 }; // namespace PatternMatcher

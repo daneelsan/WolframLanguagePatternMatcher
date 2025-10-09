@@ -51,9 +51,7 @@ namespace MethodInterface
 /// @param embedName The name to use for embedding.
 void MExprEnvironment::initializeEmbedMethods(const char* embedName)
 {
-	AddCompilerClassMethod_Export(
-		embedName, "constructMExpr",
-		reinterpret_cast<void*>(&embeddedObjectUnaryMethod<MExprEnvironment*, Expr, MethodInterface::constructMExpr>));
+	RegisterMethod<MExprEnvironment*, MethodInterface::constructMExpr>(embedName, "constructMExpr");
 };
 
 /// @brief Get the Expr representing the singleton MExprEnvironment instance.

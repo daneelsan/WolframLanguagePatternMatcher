@@ -33,20 +33,11 @@ CreatePatternMatcherVirtualMachine[] :=
 		If[!PatternMatcherVirtualMachineQ[vm],
 			ThrowFailure["VirtualMachine", "Failed to create the VirtualMachine object: `1`.", {vm}]
 		];
-		initPatternVirtualMachine[];
 		vm
 	];
 
 CreatePatternMatcherVirtualMachine[__] :=
 	$Failed;
-
-
-$toBoxesInitialized = False;
-
-initPatternVirtualMachine[] /; !TrueQ[$toBoxesInitialized] := (
-	Compile`Class`SetClassMethods["PatternMatcherLibrary`VM`VirtualMachine", {}, {"toBoxes" -> toBoxes}];
-	$toBoxesInitialized = True;
-);
 
 
 (*=============================================================================

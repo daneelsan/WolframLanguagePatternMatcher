@@ -148,19 +148,12 @@ template <typename T>
 void MExpr::initializeEmbedMethodsCommon(const char* embedName)
 {
 	using SharedT = std::shared_ptr<T>;
-	AddCompilerClassMethod_Export(
-		embedName, "getHead", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<SharedT, MethodInterface::getHead<T>>));
-	AddCompilerClassMethod_Export(
-		embedName, "getID", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<SharedT, MethodInterface::getID<T>>));
-	AddCompilerClassMethod_Export(
-		embedName, "hasHead",
-		reinterpret_cast<void*>(&embeddedObjectUnaryMethod<SharedT, Expr, MethodInterface::hasHead<T>>));
-	AddCompilerClassMethod_Export(
-		embedName, "length", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<SharedT, MethodInterface::length<T>>));
-	AddCompilerClassMethod_Export(
-		embedName, "toString", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<SharedT, MethodInterface::toString<T>>));
-	AddCompilerClassMethod_Export(
-		embedName, "sameQ", reinterpret_cast<void*>(&embeddedObjectUnaryMethod<SharedT, Expr, MethodInterface::sameQ<T>>));
+	RegisterMethod<SharedT, MethodInterface::getHead<T>>(embedName, "getHead");
+	RegisterMethod<SharedT, MethodInterface::getID<T>>(embedName, "getID");
+	RegisterMethod<SharedT, MethodInterface::hasHead<T>>(embedName, "hasHead");
+	RegisterMethod<SharedT, MethodInterface::length<T>>(embedName, "length");
+	RegisterMethod<SharedT, MethodInterface::toString<T>>(embedName, "toString");
+	RegisterMethod<SharedT, MethodInterface::sameQ<T>>(embedName, "sameQ");
 }
 
 // Explicit instantiations:

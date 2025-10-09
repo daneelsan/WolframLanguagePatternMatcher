@@ -73,8 +73,6 @@ namespace MethodInterface
 void MExprNormal::initializeEmbedMethods(const char* embedName)
 {
 	initializeEmbedMethodsCommon<MExprNormal>(embedName);
-	AddCompilerClassMethod_Export(
-		embedName, "part",
-		reinterpret_cast<void*>(&embeddedObjectUnaryMethod<std::shared_ptr<MExprNormal>, mint, MethodInterface::part>));
+    RegisterMethod<std::shared_ptr<MExprNormal>, MethodInterface::part>(embedName, "part");
 }
 }; // namespace PatternMatcher

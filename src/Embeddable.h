@@ -269,6 +269,7 @@ struct MethodTraits<R (*)(T*, Args...)>
 	using InstanceType = T*;
 	using ArgsTuple = std::tuple<Args...>;
 	static constexpr size_t ArgCount = sizeof...(Args);
+	static constexpr bool NeedsUnembed = true;
 };
 
 // Specialization for shared_ptr methods
@@ -279,22 +280,28 @@ struct MethodTraits<R (*)(std::shared_ptr<T>, Args...)>
 	using InstanceType = std::shared_ptr<T>;
 	using ArgsTuple = std::tuple<Args...>;
 	static constexpr size_t ArgCount = sizeof...(Args);
+	static constexpr bool NeedsUnembed = true;
 };
 
-// Specialization for Expr-only methods (no instance)
+// Specialization for Expr-first methods (instance passed as Expr, needs unembedding)
 template <typename R, typename... Args>
 struct MethodTraits<R (*)(Expr, Args...)>
 {
 	using ReturnType = R;
-	using InstanceType = void; // Special marker
-	using ArgsTuple = std::tuple<Expr, Args...>;
+	using InstanceType = Expr; // Instance comes as Expr
+	using ArgsTuple = std::tuple<Args...>;
 	static constexpr size_t ArgCount = sizeof...(Args);
+	static constexpr bool NeedsUnembed = false; // Don't unembed, pass Expr directly
 };
 
 /* =======================================================================
  *  Method Dispatcher
  * ======================================================================= */
-// Unified method dispatcher
+/// @brief Dispatcher to call an embedded object method from WL.
+/// @tparam EmbeddedT The type of the embedded object (e.g., `T*` or `std::shared_ptr<T>`).
+/// @tparam method The method to call, specified as a function pointer.
+/// @param raw_expr The raw `ExprStruct` containing the expression with the method call.
+/// @return An `ExprStruct` representing the result of the method call, or an error.
 template <typename EmbeddedT, auto method>
 ExprStruct embeddedObjectMethod(ExprStruct raw_expr)
 {
@@ -304,23 +311,25 @@ ExprStruct embeddedObjectMethod(ExprStruct raw_expr)
 	Expr expr(raw_expr, true);
 	constexpr size_t expectedArgs = Traits::ArgCount;
 
-	// Handle Expr-only methods (no unembedding needed)
-	if constexpr (std::is_same_v<typename Traits::InstanceType, void>)
+	// Traditional method: needs to unembed instance first
+	if (expr.length() != expectedArgs + 1)
 	{
-		if (expr.length() != expectedArgs)
-		{
-			return methodErrorArgumentCount<BaseT>(expectedArgs, expr.length());
-		}
-		return invokeExprMethod<method>(expr, std::make_index_sequence<expectedArgs> {});
+		return methodErrorArgumentCount<BaseT>(expectedArgs, expr.length());
+	}
+
+	// Check if this is an Expr-first method (instance passed as Expr)
+	if constexpr (std::is_same_v<typename Traits::InstanceType, Expr>)
+	{
+		// Method signature: Expr (*)(Expr, Args...)
+		// The first Expr contains the embedded instance. No need to unembed here.
+		Expr selfExpr = expr.head();
+		// Pass selfExpr as-is, plus other arguments
+		return invokeExprFirstMethod<method>(expr, selfExpr, std::make_index_sequence<expectedArgs> {});
 	}
 	else
 	{
-		// Need to unembed instance
-		if (expr.length() != expectedArgs + 1)
-		{
-			return methodErrorArgumentCount<BaseT>(expectedArgs, expr.length());
-		}
-
+		// Method signature: R (*)(T*, Args...) or R (*)(std::shared_ptr<T>, Args...)
+		// Need to unembed the instance first.
 		Expr selfExpr = expr.head();
 		std::optional<EmbeddedT> selfOpt = UnembedObject<EmbeddedT>(selfExpr);
 		if (!selfOpt)
@@ -332,38 +341,6 @@ ExprStruct embeddedObjectMethod(ExprStruct raw_expr)
 	}
 }
 
-template <typename T>
-std::optional<T> extractArgForExpr(Expr expr, size_t index)
-{
-	if constexpr (std::is_same_v<T, Expr>)
-	{
-		return expr.part(index + 1); // For Expr, just return the part
-	}
-	else
-	{
-		return expr.part(index + 1).as<T>();
-	}
-}
-
-// Invoke Expr-only method
-template <auto method, size_t... Is>
-ExprStruct invokeExprMethod(Expr expr, std::index_sequence<Is...>)
-{
-	using Traits = MethodTraits<decltype(method)>;
-	using BaseT = element_type_t<typename Traits::InstanceType>;
-	using ArgsTuple = typename Traits::ArgsTuple;
-
-	// For Expr methods, arguments start at part(1)
-	auto argsTuple = std::make_tuple(extractArgForExpr<std::tuple_element_t<Is, ArgsTuple>>(expr, Is)...);
-
-	if (!(std::get<Is>(argsTuple).has_value() && ...))
-	{
-		return methodErrorFailure<BaseT>();
-	}
-
-	return method(*std::get<Is>(argsTuple)...);
-}
-
 // Helper to extract and convert arguments
 template <typename T>
 std::optional<T> extractArg(Expr expr, size_t index)
@@ -371,7 +348,41 @@ std::optional<T> extractArg(Expr expr, size_t index)
 	return expr.part(index + 2).as<T>(); // +2 because part(1) is head, part(2) is first arg
 }
 
-// Invoke method with instance
+/// @brief Invoke a method with the first argument as an Expr (instance passed as Expr)
+/// @tparam method The method to invoke.
+/// @tparam ...Is Index sequence for unpacking arguments.
+/// @param expr The expression containing the method call.
+/// @param selfExpr The Expr representing the instance.
+/// @param index_sequence The index sequence for unpacking arguments.
+/// @return An ExprStruct representing the result of the method call.
+template <auto method, size_t... Is>
+ExprStruct invokeExprFirstMethod(Expr expr, Expr selfExpr, std::index_sequence<Is...>)
+{
+	using Traits = MethodTraits<decltype(method)>;
+	using ArgsTuple = typename Traits::ArgsTuple;
+	using BaseT = element_type_t<typename Traits::InstanceType>;
+
+	// Extract remaining arguments (not the first Expr which is selfExpr)
+	auto argsTuple = std::make_tuple(extractArg<std::tuple_element_t<Is, ArgsTuple>>(expr, Is)...);
+
+	// Check all arguments are valid
+	if (!(std::get<Is>(argsTuple).has_value() && ...))
+	{
+		return methodErrorFailure<BaseT>();
+	}
+
+	// Call method with selfExpr as first arg, then unpacked additional args
+	return method(selfExpr, *std::get<Is>(argsTuple)...);
+}
+
+/// @brief Invoke a method with the instance as the first parameter
+/// @tparam EmbeddedT The type of the embedded object (e.g., `T*` or `std::shared_ptr<T>`).
+/// @tparam method The method to invoke.
+/// @tparam ...Is Index sequence for unpacking arguments.
+/// @param expr The expression containing the method call.
+/// @param self The embedded object instance.
+/// @param index_sequence The index sequence for unpacking arguments.
+/// @return An ExprStruct representing the result of the method call.
 template <typename EmbeddedT, auto method, size_t... Is>
 ExprStruct invokeMethod(Expr expr, EmbeddedT& self, std::index_sequence<Is...>)
 {
@@ -407,132 +418,13 @@ ExprStruct invokeMethod(Expr expr, EmbeddedT& self, std::index_sequence<Is...>)
 /* =======================================================================
  *  Method Registration
  * ======================================================================= */
+/// @brief Register a method for an embedded object type.
+/// @tparam EmbeddedT The type of the embedded object (e.g., `T*` or `std::shared_ptr<T>`).
+/// @tparam method The method to register, specified as a function pointer.
+/// @param embedName The name used for embedding the object type.
 template <typename EmbeddedT, auto method>
 void RegisterMethod(const char* embedName, const char* methodName)
 {
 	AddCompilerClassMethod_Export(embedName, methodName, reinterpret_cast<void*>(&embeddedObjectMethod<EmbeddedT, method>));
 }
-
-/* =======================================================================
- *  Method Invocation
- * ======================================================================= */
-
-/// @brief Method implementation with no arguments for an embedded object.
-/// @tparam `EmbeddedT` The type of the embedded object (either `shared_ptr<T>` or `T*`).
-/// @tparam `method` The method to call on the embedded object (must be callable with `element_type_t<EmbeddedT>*`).
-/// @param raw_expr The `ExprStruct` containing the object instance.
-/// @return An `ExprStruct` representing the result of the method call.
-template <typename EmbeddedT, Expr (*method)(element_type_t<EmbeddedT>*)>
-ExprStruct embeddedObjectNullaryMethod(ExprStruct raw_expr)
-{
-	static_assert(is_shared_ptr_v<EmbeddedT> || std::is_pointer_v<EmbeddedT>, "EmbeddedT must be shared_ptr<T> or T*");
-	using BaseT = element_type_t<EmbeddedT>;
-
-	Expr expr(raw_expr, true);
-	if (expr.length() != 1)
-	{
-		return methodErrorArgumentCount<BaseT>(0, expr.length());
-	}
-
-	Expr selfExpr = expr.head();
-	std::optional<EmbeddedT> selfOpt = UnembedObject<EmbeddedT>(selfExpr);
-	if (selfOpt)
-	{
-		if constexpr (is_shared_ptr_v<EmbeddedT>)
-		{
-			return method(selfOpt->get());
-		}
-		else
-		{
-			return method(*selfOpt);
-		}
-	}
-	return methodErrorFailure<BaseT>();
-}
-
-/// @brief Method implementation with 1 argument for a base object.
-/// @tparam `EmbeddedT` The type of the embedded object (either `shared_ptr<T>` or `T*`).
-/// @tparam `Arg1T` The type of the first argument.
-/// @tparam `method` The method to call on the embedded object.
-/// @param raw_expr The raw expression containing the embedded object and argument.
-/// @return An `ExprStruct` representing the result of the method call.
-template <typename EmbeddedT, typename Arg1T, Expr (*method)(element_type_t<EmbeddedT>*, Arg1T)>
-ExprStruct embeddedObjectUnaryMethod(ExprStruct raw_expr)
-{
-	static_assert(is_shared_ptr_v<EmbeddedT> || std::is_pointer_v<EmbeddedT>, "EmbeddedT must be shared_ptr<T> or T*");
-	using BaseT = element_type_t<EmbeddedT>;
-
-	Expr expr(raw_expr, true);
-	if (expr.length() != 2)
-	{
-		return methodErrorArgumentCount<BaseT>(1, expr.length());
-	}
-
-	Expr selfExpr = expr.head();
-	std::optional<EmbeddedT> selfOpt = UnembedObject<EmbeddedT>(selfExpr);
-	Expr arg1Expr = expr.part(2);
-	std::optional<Arg1T> arg1Opt = arg1Expr.as<Arg1T>();
-	if (selfOpt && arg1Opt)
-	{
-		if constexpr (is_shared_ptr_v<EmbeddedT>)
-		{
-			return method(selfOpt->get(), *arg1Opt);
-		}
-		else
-		{
-			return method(*selfOpt, *arg1Opt);
-		}
-	}
-	return methodErrorFailure<BaseT>();
-}
-
-/// @brief Method implementation with 1 argument for a base object.
-/// @tparam `EmbeddedT` The type of the embedded object (either `shared_ptr<T>` or `T*`).
-/// @tparam `Arg1T` The type of the first argument.
-/// @tparam `Arg2T` The type of the second argument.
-/// @tparam `method` The method to call on the embedded object.
-/// @param raw_expr The raw expression containing the embedded object and arguments.
-/// @return An `ExprStruct` representing the result of the method call.
-template <typename EmbeddedT, typename Arg1T, typename Arg2T, Expr (*method)(element_type_t<EmbeddedT>*, Arg1T, Arg2T)>
-ExprStruct embeddedObjectBinaryMethod(ExprStruct raw_expr)
-{
-	static_assert(is_shared_ptr_v<EmbeddedT> || std::is_pointer_v<EmbeddedT>, "EmbeddedT must be shared_ptr<T> or T*");
-	using BaseT = element_type_t<EmbeddedT>;
-
-	Expr expr(raw_expr, true);
-	if (expr.length() != 3)
-	{
-		return methodErrorArgumentCount<BaseT>(2, expr.length());
-	}
-
-	Expr selfExpr = expr.head();
-	std::optional<EmbeddedT> selfOpt = UnembedObject<EmbeddedT>(selfExpr);
-	if (!selfOpt)
-	{
-		return methodErrorFailure<BaseT>();
-	}
-	Expr arg1Expr = expr.part(2);
-	std::optional<Arg1T> arg1Opt = arg1Expr.as<Arg1T>();
-	if (!arg1Opt)
-	{
-		return methodErrorFailure<BaseT>();
-	}
-
-	Expr arg2Expr = expr.part(3);
-	std::optional<Arg2T> arg2Opt = arg2Expr.as<Arg2T>();
-	if (!arg2Opt)
-	{
-		return methodErrorFailure<BaseT>();
-	}
-
-	if constexpr (is_shared_ptr_v<EmbeddedT>)
-	{
-		return method(selfOpt->get(), *arg1Opt, *arg2Opt);
-	}
-	else
-	{
-		return method(*selfOpt, *arg1Opt, *arg2Opt);
-	}
-}
-
 }; // namespace PatternMatcher
