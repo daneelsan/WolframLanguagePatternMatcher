@@ -46,8 +46,8 @@ enum class Opcode {
 	HALT,/*              <no operands>   stop execution                      */
 
 	// bookkeeping ops (begin/end block)
-	BEGIN_BLOCK,/*  label? no operands                                       */
-	END_BLOCK,/*    label? no operands                                       */
+	BEGIN_BLOCK,/*      label.           signals the beginning of a block    */
+	END_BLOCK,/*        label.           signals the end of a block          */
 
 	// Debug / helper
 	DEBUG_PRINT,/*       A               print R[A] (for debugging)          */

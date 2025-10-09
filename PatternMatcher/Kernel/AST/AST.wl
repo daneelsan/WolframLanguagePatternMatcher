@@ -85,7 +85,7 @@ toMExprSymbolBoxes[mexpr_, fmt_] :=
 		"",
 		{
 			BoxForm`SummaryItem[{"id: ", mexpr["getID"]}],
-			BoxForm`SummaryItem[{"value: ", mexpr["toString"]}]
+			BoxForm`SummaryItem[{"lexical name: ", mexpr["getLexicalName"]}]
 		},
 		{},
 		fmt

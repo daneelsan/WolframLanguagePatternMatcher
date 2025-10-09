@@ -11,40 +11,63 @@
 #include <memory>
 #include <string>
 #include <sstream>
+#include <iomanip>
 #include <vector>
 
 namespace PatternMatcher
 {
-void PatternBytecode::push_instr(Opcode op, std::initializer_list<Operand> ops_)
-{
-	_instrs.push_back(Instruction { op, std::vector<Operand>(ops_) });
-}
-
 std::string PatternBytecode::toString() const
 {
 	std::ostringstream out;
+
+	auto formatLabel = [&](Label L) {
+		auto it = labelMap.find(L);
+		if (it != labelMap.end())
+			out << "\nL" << L << ":\n";
+	};
+
+	out << std::left;
+	size_t width = 18; // align operands roughly
+
 	for (size_t i = 0; i < _instrs.size(); ++i)
 	{
-		out << i << ": " << opcodeName(_instrs[i].opcode);
+		// Check if this instruction is the start of a label
+		for (auto& kv : labelMap)
+		{
+			if (kv.second == i)
+			{
+				out << "\nL" << kv.first << ":\n";
+				break;
+			}
+		}
+
+		// Print opcode and operands
+		out << std::setw(4) << i << "  " << std::setw(width) << opcodeName(_instrs[i].opcode);
+
 		if (!_instrs[i].ops.empty())
 		{
-			out << " ";
-			for (size_t j = 0; j < _instrs[i].ops.size(); ++j)
+			bool first = true;
+			for (auto& op : _instrs[i].ops)
 			{
-				out << operandToString(_instrs[i].ops[j]);
-				if (j + 1 < _instrs[i].ops.size())
+				if (!first)
 					out << ", ";
+				out << operandToString(op);
+				first = false;
 			}
 		}
 		out << "\n";
 	}
+
+	out << "\n----------------------------------------\n";
 	out << "Expr registers: " << exprRegisterCount << ", Bool registers: " << boolRegisterCount << "\n";
+
 	if (!lexicalMap.empty())
 	{
-		out << "lexicalMap:\n";
+		out << "Lexical bindings:\n";
 		for (auto& p : lexicalMap)
-			out << "  " << p.first << " -> r" << p.second << "\n";
+			out << "  " << std::setw(12) << p.first << " → %e" << p.second << "\n";
 	}
+
 	return out.str();
 }
 
@@ -52,19 +75,44 @@ std::string PatternBytecode::toString() const
 	Pattern Compilation
 ===========================================================================*/
 
-/// Simple register allocator + compiler state
+/// CompilerState: manages registers, labels, and bytecode emission
 struct CompilerState
 {
 	std::shared_ptr<PatternBytecode> out = std::make_shared<PatternBytecode>();
-	ExprRegIndex nextExprReg = 1; // reserve r0 for input expression
-	BoolRegIndex nextBoolReg = 0;
+
+	ExprRegIndex nextExprReg = 1; // reserve %e0 for input expression
+	BoolRegIndex nextBoolReg = 1; // reserve %b0 for final match result
+	Label nextLabel = 0;
+
 	std::unordered_map<std::string, ExprRegIndex> lexical; // lexical var -> reg
 
+	//=========================//
+	//  Register allocators
+	//=========================//
 	ExprRegIndex allocExprReg() { return nextExprReg++; }
 	BoolRegIndex allocBoolReg() { return nextBoolReg++; }
 
-	// convenience append instruction
+	//=========================//
+	//  Label management
+	//=========================//
+	Label newLabel() { return nextLabel++; }
+
+	/// Bind a label to the current instruction index (like LLVM block label)
+	void bindLabel(Label L) { out->addLabel(L); }
+
+	//=========================//
+	//  Instruction emission
+	//=========================//
 	void emit(Opcode op, std::initializer_list<Operand> ops = {}) { out->push_instr(op, ops); }
+
+	/// Debug helper: emit a labeled block marker
+	void beginBlock(Label L)
+	{
+		out->addLabel(L);
+		emit(Opcode::BEGIN_BLOCK, { OpLabel(L) });
+	}
+
+	void endBlock(Label L) { emit(Opcode::END_BLOCK, { OpLabel(L) }); }
 };
 
 /*
@@ -74,18 +122,18 @@ struct CompilerState
  * Convention:
  *   - Input expression to match is in r0.
  *   - compilePattern will allocate registers as needed.
+ *   - compilePattern will not modify r0 (input expression).
  */
-static BoolRegIndex compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr);
+static void compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr, Label failLabel);
 
 /* Helper: compile literal match: produce bool reg */
 static BoolRegIndex compileLiteralMatch(CompilerState& st, std::shared_ptr<MExpr> mexpr)
 {
-	// allocate an expr reg to hold the literal immediate
+	// Allocate an expression register for the literal
 	ExprRegIndex rLit = st.allocExprReg();
 	st.emit(Opcode::LOAD_IMM, { OpExprReg(rLit), OpImm(mexpr->getExpr()) });
-	// allocate bool reg
+	// Compare input expression (%e0) with literal rLit
 	BoolRegIndex b = st.allocBoolReg();
-	// SAMEQ b, %e0, rLit
 	st.emit(Opcode::SAMEQ, { OpBoolReg(b), OpExprReg(0), OpExprReg(rLit) });
 	return b;
 }
@@ -94,84 +142,69 @@ static BoolRegIndex compileLiteralMatch(CompilerState& st, std::shared_ptr<MExpr
 static BoolRegIndex compileBlank(CompilerState& st, std::shared_ptr<MExprNormal> mexpr)
 {
 	// Blank[] matches any single expression -> always true.
-	// If Blank[f], then check head equality
 	if (mexpr->length() == 0)
 	{
-		// always true
+		// Emit a literal boolean True
 		BoolRegIndex b = st.allocBoolReg();
-		// For simplicity set b := true by creating an expression True and comparing True to True
-		// TODO: Add a LOAD_TRUE opcode to simplify this
-		ExprRegIndex rT = st.allocExprReg();
-		st.emit(Opcode::LOAD_IMM, { OpExprReg(rT), OpImm(Expr::ToExpression("True")) });
-		st.emit(Opcode::SAMEQ, { OpBoolReg(b), OpExprReg(rT), OpExprReg(rT) });
+		st.emit(Opcode::LOAD_IMM, { OpBoolReg(b), OpImm(true) });
 		return b;
 	}
-	else
-	{
-		// mexpr has a head requirement (e.g., Blank[f])
-		// Get head of input into rH, compare to head immediate
-		ExprRegIndex rH = st.allocExprReg();
-		st.emit(Opcode::GET_HEAD, { OpExprReg(rH), OpExprReg(0) });
-		// head immediate is the mexpr->part(1) expression
-		Expr headExpr = mexpr->part(1)->getExpr();
-		ExprRegIndex rHeadImm = st.allocExprReg();
-		st.emit(Opcode::LOAD_IMM, { OpExprReg(rHeadImm), OpImm(headExpr) });
-		BoolRegIndex b = st.allocBoolReg();
-		st.emit(Opcode::SAMEQ, { OpBoolReg(b), OpExprReg(rH), OpExprReg(rHeadImm) });
-		return b;
-	}
+
+	// Otherwise: Blank[f] → check Head[%e0] == f
+	ExprRegIndex rH = st.allocExprReg();
+	st.emit(Opcode::GET_HEAD, { OpExprReg(rH), OpExprReg(0) });
+
+	Expr headExpr = mexpr->part(1)->getExpr();
+	ExprRegIndex rHeadImm = st.allocExprReg();
+	st.emit(Opcode::LOAD_IMM, { OpExprReg(rHeadImm), OpImm(headExpr) });
+
+	BoolRegIndex b = st.allocBoolReg();
+	st.emit(Opcode::SAMEQ, { OpBoolReg(b), OpExprReg(rH), OpExprReg(rHeadImm) });
+
+	return b;
 }
 
 /* Helper: compile Pattern[sym, patt] */
-static BoolRegIndex compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr)
+static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, Label failLabel)
 {
 	// parts: part(1) is symbol (lexical name), part(2) is subpattern
 	auto parts = mexpr->getChildren();
 	if (parts.size() < 2)
 	{
-		// malformed; fail
-		BoolRegIndex bf = st.allocBoolReg();
-		// set bf := false by comparing a False symbol to True symbol
-		ExprRegIndex rF = st.allocExprReg();
-		st.emit(Opcode::LOAD_IMM, { OpExprReg(rF), OpImm(Expr::ToExpression("False")) });
-		ExprRegIndex rT = st.allocExprReg();
-		st.emit(Opcode::LOAD_IMM, { OpExprReg(rT), OpImm(Expr::ToExpression("True")) });
-		st.emit(Opcode::SAMEQ, { OpBoolReg(bf), OpExprReg(rF), OpExprReg(rT) });
-		return bf;
+		// malformed -> jump directly to failLabel
+		st.emit(Opcode::JUMP, { OpLabel(failLabel) });
+		return;
 	}
 
-	// get lexical name: first child should be symbol MExprSymbol
-	auto symM = parts[0];
-	std::string lexName = symM->getExpr().toString(); // fallback; MExprSymbol ideally has getName()
-	// If this lexical name has been seen before, check equality with stored var. Otherwise bind.
+	// part(1): symbol name; part(2): subpattern
+	auto symM = std::static_pointer_cast<MExprSymbol>(parts[0]); // This was validated by MExprIsPattern
+	std::string lexName = symM->getLexicalName();
+
 	auto it = st.lexical.find(lexName);
 	if (it != st.lexical.end())
 	{
-		// repeated variable: compare current expression (r0) to stored reg
+		// repeated variable: compare current expr (%e0) with stored one
 		ExprRegIndex storedReg = it->second;
 		BoolRegIndex b = st.allocBoolReg();
 		st.emit(Opcode::SAMEQ, { OpBoolReg(b), OpExprReg(storedReg), OpExprReg(0) });
-		return b;
+		st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(b), OpLabel(failLabel) });
+		return;
 	}
-	else
-	{
-		// first occurrence: bind var -> r0, record lexical mapping and then compile subpattern
-		ExprRegIndex bindReg = st.allocExprReg();
-		// Move r0 into bindReg (or treat binding as alias)
-		st.emit(Opcode::MOVE, { OpExprReg(bindReg), OpExprReg(0) });
-		st.lexical[lexName] = bindReg;
-		// emit BIND_VAR as explicit bookkeeping as well
-		st.emit(Opcode::BIND_VAR, { OpIdent(lexName), OpExprReg(bindReg) });
 
-		// compile the subpattern: but the subpattern expects input in r0; it will compare directly to r0 or use registers.
-		auto subp = parts[1];
-		BoolRegIndex bsub = compilePatternRec(st, subp);
-		return bsub;
-	}
+	// first occurrence → bind current expr (%e0)
+	ExprRegIndex bindReg = st.allocExprReg();
+	st.emit(Opcode::MOVE, { OpExprReg(bindReg), OpExprReg(0) });
+	st.lexical[lexName] = bindReg;
+
+	st.emit(Opcode::BIND_VAR, { OpIdent(lexName), OpExprReg(bindReg) });
+
+	// recursively compile subpattern
+	auto subp = parts[1];
+	compilePatternRec(st, subp, failLabel);
 }
 
 /* Helper: compile PatternTest[patt, test] */
-static BoolRegIndex compilePatternTest(CompilerState& st, std::shared_ptr<MExprNormal> mexpr)
+/*static BoolRegIndex compilePatternTest(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, Label failLabel)
 {
 	// mexpr children: [subpatt, testExpr]
 	auto parts = mexpr->getChildren();
@@ -196,10 +229,10 @@ static BoolRegIndex compilePatternTest(CompilerState& st, std::shared_ptr<MExprN
 	// NOTE: this uses labels that are approximate; we will patch labels after generation.
 	// Simpler: return bres (caller may combine). For now just return bres and assume caller handles sequencing.
 	return bres;
-}
+}*/
 
 /* Helper: compile Except[notPatt] or Except[notPatt, patt] */
-static BoolRegIndex compileExcept(CompilerState& st, std::shared_ptr<MExprNormal> mexpr)
+/*static BoolRegIndex compileExcept(CompilerState& st, std::shared_ptr<MExprNormal> mexpr)
 {
 	auto parts = mexpr->getChildren();
 	// compile notPatt -> bnot
@@ -216,7 +249,7 @@ static BoolRegIndex compileExcept(CompilerState& st, std::shared_ptr<MExprNormal
 		return b2;
 	}
 	return bout;
-}
+}*/
 
 /* Helper: compile Alternatives (p1 | p2 | ... ) */
 /*
@@ -262,84 +295,83 @@ static BoolRegIndex compileAlternatives(CompilerState& st, std::shared_ptr<MExpr
 */
 
 /* Helper: compile normal expressions head[arg1, arg2, ...] */
-static BoolRegIndex compileNormal(CompilerState& st, std::shared_ptr<MExprNormal> mexpr)
+static void compileNormal(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, Label failLabel)
 {
-	// compile as:
-	// TEST_LENGTH input == argsLen
-	// GET_HEAD -> compare to head immediate
-	// for each arg i: GET_PART i into reg, then recursively compile the subpattern for that part with input replaced by reg?
-
 	size_t argsLen = mexpr->length();
-	// Test length
+
+	// --- 1. Test argument length ---
 	BoolRegIndex bLen = st.allocBoolReg();
 	st.emit(Opcode::TEST_LENGTH, { OpBoolReg(bLen), OpExprReg(0), OpImm(argsLen) });
+	st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(bLen), OpLabel(failLabel) });
 
-	// Check head equality
-	Expr headExpr = mexpr->getHead()->getExpr();
+	// --- 2. Check head equality ---
 	ExprRegIndex rHead = st.allocExprReg();
 	st.emit(Opcode::GET_HEAD, { OpExprReg(rHead), OpExprReg(0) });
+
+	Expr headExpr = mexpr->getHead()->getExpr();
 	ExprRegIndex rHeadImm = st.allocExprReg();
 	st.emit(Opcode::LOAD_IMM, { OpExprReg(rHeadImm), OpImm(headExpr) });
+
 	BoolRegIndex bHeadEq = st.allocBoolReg();
 	st.emit(Opcode::SAMEQ, { OpBoolReg(bHeadEq), OpExprReg(rHead), OpExprReg(rHeadImm) });
+	st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(bHeadEq), OpLabel(failLabel) });
 
-	// short-circuit: if head != then fail
-	// compile arguments: for each arg i, get part i into rArg and compile subpattern
-	// we'll naively compile each argument by temporarily moving it into r0 and compiling subpattern expecting r0 as
-	// input. To do that we need to MOVE r0 <- partVal and call compilePatternRec. But that modifies r0; we need to
-	// restore r0. Save r0 to a temp register
+	// --- 3. Save r0 before recursive calls ---
 	ExprRegIndex rSaved = st.allocExprReg();
 	st.emit(Opcode::MOVE, { OpExprReg(rSaved), OpExprReg(0) });
-	BoolRegIndex finalBool = bHeadEq; // we'll combine with args by AND (not implemented as op), so we will check args
-									  // sequentially.
 
+	// --- 4. Compile each argument subpattern ---
 	for (mint i = 1; i <= (mint) argsLen; ++i)
 	{
 		ExprRegIndex rPart = st.allocExprReg();
-		st.emit(Opcode::GET_PART, { OpExprReg(rPart), OpExprReg(0), OpImm(Expr(i)) }); // we used integer as Expr(i) - hack
-		// move rPart into r0 for subpattern
+		st.emit(Opcode::GET_PART, { OpExprReg(rPart), OpExprReg(0), OpImm(i) });
+
+		// Move part into input (register 0)
 		st.emit(Opcode::MOVE, { OpExprReg(0), OpExprReg(rPart) });
-		// compile subpattern
-		// get i-th child
+
 		auto child = mexpr->part(i);
-		BoolRegIndex bchild = compilePatternRec(st, child);
-		// combine finalBool := finalBool AND bchild
-		// We don't have AND; safe fallback: if finalBool false, short-circuit; else result is bchild
-		// We'll just set finalBool := bchild if headEq true else false; (imprecise but works as initial pass)
-		finalBool = bchild;
-		// restore r0
+		compilePatternRec(st, child, failLabel); // propagate failure label
+
+		// Restore input
 		st.emit(Opcode::MOVE, { OpExprReg(0), OpExprReg(rSaved) });
 	}
 
-	// If no args (argsLen==0) finalBool already bHeadEq
-	return finalBool;
+	// success: if we reach here, everything matched
 }
 
 /* Recursive compiler dispatcher */
-static BoolRegIndex compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr)
+static void compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr, Label failLabel)
 {
 	// dispatch based on kind
 	switch (mexpr->getKind())
 	{
 		case MExpr::Kind::Literal:
 		{
-			return compileLiteralMatch(st, mexpr);
+			BoolRegIndex b = compileLiteralMatch(st, mexpr);
+			st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(b), OpLabel(failLabel) });
+			return;
 		}
-		break;
 		case MExpr::Kind::Symbol:
-			// A bare symbol as pattern behaves like literal; compare head or treat as literal?
-			// We'll treat symbol in pattern position as literal: same as literal match for the symbol expression.
-			return compileLiteralMatch(st, mexpr);
+		{
+			// TODO: What about symbols that have bindings?
+			// For now treat as literal match.
+			BoolRegIndex b = compileLiteralMatch(st, mexpr);
+			st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(b), OpLabel(failLabel) });
+			return;
+		}
 		case MExpr::Kind::Normal:
 			auto mexprNormal = std::static_pointer_cast<MExprNormal>(mexpr);
 			if (MExprIsBlank(mexpr))
 			{
-				return compileBlank(st, mexprNormal);
+				BoolRegIndex b = compileBlank(st, mexprNormal);
+				st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(b), OpLabel(failLabel) });
+				return;
 			}
-			// else if (MExprIsPattern(mexpr))
-			// {
-			// 	return compilePattern(st, mexpr);
-			// }
+			else if (MExprIsPattern(mexpr))
+			{
+				compilePattern(st, mexprNormal, failLabel);
+				return;
+			}
 			// else if (MExprIsPatternTest(mexpr))
 			// {
 			// 	return compilePatternTest(st, mexpr);
@@ -352,44 +384,51 @@ static BoolRegIndex compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> 
 			// {
 			// 	return compileExcept(st, mexprNormal);
 			// }
-			// else
-			// {
-			// 	return compileNormal(st, mexprNormal);
-			// }
+			else
+			{
+				compileNormal(st, mexprNormal, failLabel);
+				return;
+			}
 	}
 
-	// fallback: fail
-	BoolRegIndex bf = st.allocBoolReg();
-	ExprRegIndex rF = st.allocExprReg();
-	ExprRegIndex rT = st.allocExprReg();
-	st.emit(Opcode::LOAD_IMM, { OpExprReg(rF), OpImm(Expr::ToExpression("False")) });
-	st.emit(Opcode::LOAD_IMM, { OpExprReg(rT), OpImm(Expr::ToExpression("True")) });
-	st.emit(Opcode::SAMEQ, { OpBoolReg(bf), OpExprReg(rF), OpExprReg(rT) });
-	return bf;
+	// fallback: immediate failure
+	st.emit(Opcode::JUMP, { OpLabel(failLabel) });
 }
 
-/* Entry point */
-std::shared_ptr<PatternBytecode> PatternBytecode::CompilePatternToBytecode(const Expr& pattern)
+/* Entry point for compiling a top-level pattern */
+std::shared_ptr<PatternBytecode> PatternBytecode::CompilePatternToBytecode(const Expr& patternExpr)
 {
-	// Build MExpr from pattern for easier structural analysis
-	auto mexpr = MExpr::construct(pattern);
+	auto pattern = MExpr::construct(patternExpr);
 
 	CompilerState st;
-	// reserve r0 as input (convention)
-	st.nextExprReg = 1; // r0 is reserved; allocExprReg returns 1 first -> r1 etc.
-	st.nextBoolReg = 0;
 
-	// top-level compile: returns a boolean register
-	BoolRegIndex resultBool = compilePatternRec(st, mexpr);
+	// Label allocation
+	Label entryLabel = st.newLabel();
+	Label failLabel = st.newLabel();
+	Label successLabel = st.newLabel();
 
-	// Emit HALT
+	// Entry block
+	st.beginBlock(entryLabel);
+
+	// Compile the pattern
+	compilePatternRec(st, pattern, failLabel);
+
+	// If we reach here, pattern matched successfully
+	st.emit(Opcode::JUMP, { OpLabel(successLabel) });
+
+	// Failure block
+	st.beginBlock(failLabel);
+	st.emit(Opcode::DEBUG_PRINT, { OpImm(Expr("Pattern failed")) });
+	st.emit(Opcode::LOAD_IMM, { OpBoolReg(0), OpImm(false) }); // load false into %b0
 	st.emit(Opcode::HALT, {});
 
-	// Set metadata
-	st.out->set_metadata(mexpr, st.nextExprReg, st.nextBoolReg, st.lexical);
+	// Success block
+	st.beginBlock(successLabel);
+	st.emit(Opcode::DEBUG_PRINT, { OpImm(Expr("Pattern succeeded")) });
+	st.emit(Opcode::LOAD_IMM, { OpBoolReg(0), OpImm(true) }); // load true into %b0
+	st.emit(Opcode::HALT, {});
 
-	// optionally emit a final instruction to move boolean result to a known place if needed
-
+	st.out->set_metadata(pattern, st.nextExprReg, st.nextBoolReg, st.lexical);
 	return st.out;
 }
 

@@ -50,9 +50,8 @@
  * line number, file name, function name and user-provided args. Formatting can be customized on the Wolfram Language side.
  * @note This macro is only active with PM_LOG_DEBUG or PM_LOG_WARNING compilation flag.
  */
-#define PM_WARNING(...)                                                                                            \
-	PatternMatcher::Logger::log<PatternMatcher::Logger::Level::Warning>(__LINE__, __FILE__, __func__, \
-																					  __VA_ARGS__)
+#define PM_WARNING(...) \
+	PatternMatcher::Logger::log<PatternMatcher::Logger::Level::Warning>(__LINE__, __FILE__, __func__, __VA_ARGS__)
 #else
 #define PM_WARNING(...) ((void) 0)
 #endif

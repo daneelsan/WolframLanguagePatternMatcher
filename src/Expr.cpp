@@ -50,7 +50,8 @@ template <>
 std::optional<bool> Expr::as<bool>() const
 {
 	// TODO: TestGet_Boolean or something
-	if (Expr::construct("BooleanQ", *this).eval().sameQ("True")) {
+	if (Expr::construct("BooleanQ", *this).eval().sameQ("True"))
+	{
 		return sameQ("True");
 	}
 	return std::nullopt;
@@ -135,6 +136,13 @@ bool Expr::sameQ(const char* txt) const
 std::string Expr::toString() const
 {
 	Expr toStrExpr = Expr::construct("ToString", *this).eval();
+	return toStrExpr.as<std::string>().value_or("");
+}
+
+// Return a string from a String Expr.
+std::string Expr::toInputFormString() const
+{
+	Expr toStrExpr = Expr::construct("ToString", *this, Expr::ToExpression("InputForm")).eval();
 	return toStrExpr.as<std::string>().value_or("");
 }
 

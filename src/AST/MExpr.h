@@ -145,6 +145,8 @@ public:
 
 	const std::string& getName() const { return name; }
 
+	const std::string& getLexicalName() const { return sourceName; } // TODO: change if we add renaming
+
 	void rename(const std::string& newName)
 	{
 		if (!protectedQ)

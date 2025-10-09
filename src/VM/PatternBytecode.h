@@ -38,10 +38,20 @@ public:
 	int getBoolRegisterCount() const { return boolRegisterCount; }
 	std::shared_ptr<MExpr> getPattern() const { return pattern; }
 
-	// convenience
-	void push_instr(Opcode op, std::initializer_list<Operand> ops_);
+	/// @brief Add an instruction to the bytecode.
+	/// @param op The opcode of the instruction.
+	/// @param ops_ The operands of the instruction.
+	void push_instr(Opcode op, std::initializer_list<Operand> ops_)
+	{
+		_instrs.push_back(Instruction { op, std::vector<Operand>(ops_) });
+	}
 
-	void set_metadata(std::shared_ptr<MExpr> pattern, int exprRegs, int boolRegs, const std::unordered_map<std::string, ExprRegIndex>& lexical)
+	/// @brief Add a label to the bytecode.
+	/// @param L The label to add.
+	void addLabel(Label L) { labelMap[L] = _instrs.size(); }
+
+	void set_metadata(std::shared_ptr<MExpr> pattern, int exprRegs, int boolRegs,
+					  const std::unordered_map<std::string, ExprRegIndex>& lexical)
 	{
 		this->pattern = pattern;
 		this->exprRegisterCount = exprRegs;
@@ -71,6 +81,7 @@ private:
 	int exprRegisterCount = 0; // number of registers used for Expr values
 	int boolRegisterCount = 0; // number of boolean registers (optional)
 	std::unordered_map<std::string, ExprRegIndex> lexicalMap; // pattern variable -> reg
+	std::unordered_map<Label, size_t> labelMap;
 };
 
 template <>

@@ -189,6 +189,8 @@ public:
 
 	std::string toString() const;
 
+	std::string toInputFormString() const;
+
 private:
 	ExprStruct instance;
 

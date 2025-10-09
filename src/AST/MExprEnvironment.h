@@ -13,7 +13,7 @@ namespace PatternMatcher
 {
 extern Expr MExprEnvironmentExpr();
 
- // Forward declaration
+// Forward declaration
 class MExpr;
 class MExprSymbol;
 

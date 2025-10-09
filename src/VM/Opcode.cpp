@@ -69,7 +69,7 @@ std::string operandToString(const Operand& op)
 	if (std::holds_alternative<ImmExpr>(op))
 	{
 		auto expr = std::get<ImmExpr>(op);
-		return "Expr(\"" + expr.toString() + "\")";
+		return "Expr(\"" + expr.toInputFormString() + "\")";
 	}
 	if (std::holds_alternative<ImmMint>(op))
 	{
