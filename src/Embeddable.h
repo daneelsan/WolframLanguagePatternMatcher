@@ -8,7 +8,9 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <type_traits>
+#include <utility>
 
 /*
  * Deal with embedding object instances into WL expressions.
@@ -250,6 +252,165 @@ Expr methodErrorFailure()
 	std::string msg = EmbedName<T>();
 	msg += " method failed.";
 	return Expr::throwError(msg);
+}
+
+/* =======================================================================
+ *  MethodTraits
+ * ======================================================================= */
+// Trait to detect method signature
+template <typename>
+struct MethodTraits;
+
+// Specialization for raw pointer methods
+template <typename R, typename T, typename... Args>
+struct MethodTraits<R (*)(T*, Args...)>
+{
+	using ReturnType = R;
+	using InstanceType = T*;
+	using ArgsTuple = std::tuple<Args...>;
+	static constexpr size_t ArgCount = sizeof...(Args);
+};
+
+// Specialization for shared_ptr methods
+template <typename R, typename T, typename... Args>
+struct MethodTraits<R (*)(std::shared_ptr<T>, Args...)>
+{
+	using ReturnType = R;
+	using InstanceType = std::shared_ptr<T>;
+	using ArgsTuple = std::tuple<Args...>;
+	static constexpr size_t ArgCount = sizeof...(Args);
+};
+
+// Specialization for Expr-only methods (no instance)
+template <typename R, typename... Args>
+struct MethodTraits<R (*)(Expr, Args...)>
+{
+	using ReturnType = R;
+	using InstanceType = void; // Special marker
+	using ArgsTuple = std::tuple<Expr, Args...>;
+	static constexpr size_t ArgCount = sizeof...(Args);
+};
+
+/* =======================================================================
+ *  Method Dispatcher
+ * ======================================================================= */
+// Unified method dispatcher
+template <typename EmbeddedT, auto method>
+ExprStruct embeddedObjectMethod(ExprStruct raw_expr)
+{
+	using Traits = MethodTraits<decltype(method)>;
+	using BaseT = element_type_t<EmbeddedT>;
+
+	Expr expr(raw_expr, true);
+	constexpr size_t expectedArgs = Traits::ArgCount;
+
+	// Handle Expr-only methods (no unembedding needed)
+	if constexpr (std::is_same_v<typename Traits::InstanceType, void>)
+	{
+		if (expr.length() != expectedArgs)
+		{
+			return methodErrorArgumentCount<BaseT>(expectedArgs, expr.length());
+		}
+		return invokeExprMethod<method>(expr, std::make_index_sequence<expectedArgs> {});
+	}
+	else
+	{
+		// Need to unembed instance
+		if (expr.length() != expectedArgs + 1)
+		{
+			return methodErrorArgumentCount<BaseT>(expectedArgs, expr.length());
+		}
+
+		Expr selfExpr = expr.head();
+		std::optional<EmbeddedT> selfOpt = UnembedObject<EmbeddedT>(selfExpr);
+		if (!selfOpt)
+		{
+			return methodErrorFailure<BaseT>();
+		}
+
+		return invokeMethod<EmbeddedT, method>(expr, *selfOpt, std::make_index_sequence<expectedArgs> {});
+	}
+}
+
+template <typename T>
+std::optional<T> extractArgForExpr(Expr expr, size_t index)
+{
+	if constexpr (std::is_same_v<T, Expr>)
+	{
+		return expr.part(index + 1); // For Expr, just return the part
+	}
+	else
+	{
+		return expr.part(index + 1).as<T>();
+	}
+}
+
+// Invoke Expr-only method
+template <auto method, size_t... Is>
+ExprStruct invokeExprMethod(Expr expr, std::index_sequence<Is...>)
+{
+	using Traits = MethodTraits<decltype(method)>;
+	using BaseT = element_type_t<typename Traits::InstanceType>;
+	using ArgsTuple = typename Traits::ArgsTuple;
+
+	// For Expr methods, arguments start at part(1)
+	auto argsTuple = std::make_tuple(extractArgForExpr<std::tuple_element_t<Is, ArgsTuple>>(expr, Is)...);
+
+	if (!(std::get<Is>(argsTuple).has_value() && ...))
+	{
+		return methodErrorFailure<BaseT>();
+	}
+
+	return method(*std::get<Is>(argsTuple)...);
+}
+
+// Helper to extract and convert arguments
+template <typename T>
+std::optional<T> extractArg(Expr expr, size_t index)
+{
+	return expr.part(index + 2).as<T>(); // +2 because part(1) is head, part(2) is first arg
+}
+
+// Invoke method with instance
+template <typename EmbeddedT, auto method, size_t... Is>
+ExprStruct invokeMethod(Expr expr, EmbeddedT& self, std::index_sequence<Is...>)
+{
+	using Traits = MethodTraits<decltype(method)>;
+	using BaseT = element_type_t<EmbeddedT>;
+	using ArgsTuple = typename Traits::ArgsTuple;
+
+	// Extract all arguments
+	auto argsTuple = std::make_tuple(extractArg<std::tuple_element_t<Is, ArgsTuple>>(expr, Is)...);
+
+	// Check all arguments are valid
+	if (!(std::get<Is>(argsTuple).has_value() && ...))
+	{
+		return methodErrorFailure<BaseT>();
+	}
+
+	// Get instance pointer
+	auto* instance = [&]() {
+		if constexpr (is_shared_ptr_v<EmbeddedT>)
+		{
+			return self.get();
+		}
+		else
+		{
+			return self;
+		}
+	}();
+
+	// Call the method
+	return method(instance, *std::get<Is>(argsTuple)...);
+}
+
+/* =======================================================================
+ *  Method Registration
+ * ======================================================================= */
+template <typename EmbeddedT, auto method>
+void RegisterMethod(const char* embedName, const char* methodName)
+{
+	AddCompilerClassMethod_Export(embedName, methodName, reinterpret_cast<void*>(&embeddedObjectMethod<EmbeddedT, method>));
 }
 
 /* =======================================================================

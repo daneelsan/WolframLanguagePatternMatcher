@@ -62,6 +62,10 @@ namespace MethodInterface
 		vm->reset();
 		return Expr::ToExpression("Null");
 	}
+	Expr toBoxes(Expr vmExpr, Expr fmt)
+	{
+		return Expr::construct("DanielS`PatternMatcher`BackEnd`VirtualMachine`Private`toBoxes", vmExpr, fmt);
+	}
 	Expr toString(VirtualMachine* vm)
 	{
 		return Expr("PatternMatcherLibrary`VM`VirtualMachine[...]");
@@ -70,22 +74,13 @@ namespace MethodInterface
 
 void VirtualMachine::initializeEmbedMethods(const char* embedName)
 {
-	AddCompilerClassMethod_Export(
-		embedName, "compilePattern",
-		reinterpret_cast<void*>(&embeddedObjectUnaryMethod<VirtualMachine*, Expr, MethodInterface::compilePattern>));
-	AddCompilerClassMethod_Export(
-		embedName, "getCycles",
-		reinterpret_cast<void*>(&embeddedObjectNullaryMethod<VirtualMachine*, MethodInterface::getCycles>));
-	AddCompilerClassMethod_Export(
-		embedName, "getPC", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<VirtualMachine*, MethodInterface::getPC>));
-	AddCompilerClassMethod_Export(
-		embedName, "isHalted",
-		reinterpret_cast<void*>(&embeddedObjectNullaryMethod<VirtualMachine*, MethodInterface::isHalted>));
-	AddCompilerClassMethod_Export(
-		embedName, "reset", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<VirtualMachine*, MethodInterface::reset>));
-	AddCompilerClassMethod_Export(
-		embedName, "toString",
-		reinterpret_cast<void*>(&embeddedObjectNullaryMethod<VirtualMachine*, MethodInterface::toString>));
+	RegisterMethod<VirtualMachine*, MethodInterface::compilePattern>(embedName, "compilePattern");
+	RegisterMethod<VirtualMachine*, MethodInterface::getCycles>(embedName, "getCycles");
+	RegisterMethod<VirtualMachine*, MethodInterface::getPC>(embedName, "getPC");
+	RegisterMethod<VirtualMachine*, MethodInterface::isHalted>(embedName, "isHalted");
+	RegisterMethod<VirtualMachine*, MethodInterface::reset>(embedName, "reset");
+	RegisterMethod<VirtualMachine*, MethodInterface::toBoxes>(embedName, "toBoxes");
+	RegisterMethod<VirtualMachine*, MethodInterface::toString>(embedName, "toString");
 }
 
 Expr VirtualMachineExpr()
