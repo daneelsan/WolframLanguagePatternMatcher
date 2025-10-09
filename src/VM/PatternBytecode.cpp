@@ -17,7 +17,7 @@ namespace PatternMatcher
 {
 void PatternBytecode::push_instr(Opcode op, std::initializer_list<Operand> ops_)
 {
-	_instrs.push_back(BytecodeInstruction { op, std::vector<Operand>(ops_) });
+	_instrs.push_back(Instruction { op, std::vector<Operand>(ops_) });
 }
 
 std::string PatternBytecode::toString() const

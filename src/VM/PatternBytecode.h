@@ -12,28 +12,21 @@
 
 namespace PatternMatcher
 {
-struct BytecodeInstruction
-{
-	Opcode opcode;
-	std::vector<Operand> ops;
-};
-
 class PatternBytecode
 {
-private:
-	std::vector<BytecodeInstruction> _instrs;
-
-	// metadata
-	int exprRegisterCount = 0; // number of registers used for Expr values
-	int boolRegisterCount = 0; // number of boolean registers (optional)
-	std::unordered_map<std::string, ExprRegIndex> lexicalMap; // pattern variable -> reg
 
 public:
+	struct Instruction
+	{
+		Opcode opcode;
+		std::vector<Operand> ops;
+	};
+
 	PatternBytecode() = default;
 	~PatternBytecode() = default;
 
 	/// @brief Get the instructions of the bytecode.
-	const std::vector<BytecodeInstruction>& getInstructions() const { return _instrs; }
+	const std::vector<Instruction>& getInstructions() const { return _instrs; }
 
 	// convenience
 	void push_instr(Opcode op, std::initializer_list<Operand> ops_);
@@ -60,6 +53,14 @@ public:
 	/// @brief Initializes the embedded methods for the Bytecode class.
 	/// @param embedName The name to use for embedding.
 	void initializeEmbedMethods(const char* embedName);
+
+private:
+	std::vector<Instruction> _instrs;
+
+	// metadata
+	int exprRegisterCount = 0; // number of registers used for Expr values
+	int boolRegisterCount = 0; // number of boolean registers (optional)
+	std::unordered_map<std::string, ExprRegIndex> lexicalMap; // pattern variable -> reg
 };
 
 template <>
