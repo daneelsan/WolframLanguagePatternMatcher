@@ -1,4 +1,4 @@
-#include "VM/Bytecode.h"
+#include "VM/PatternBytecode.h"
 #include "VM/Opcode.h"
 
 #include "AST/MExpr.h"
@@ -15,12 +15,12 @@
 
 namespace PatternMatcher
 {
-void Bytecode::push_instr(Opcode op, std::initializer_list<Operand> ops_)
+void PatternBytecode::push_instr(Opcode op, std::initializer_list<Operand> ops_)
 {
 	_instrs.push_back(BytecodeInstruction { op, std::vector<Operand>(ops_) });
 }
 
-std::string Bytecode::toString() const
+std::string PatternBytecode::toString() const
 {
 	std::ostringstream out;
 	for (size_t i = 0; i < _instrs.size(); ++i)
@@ -55,7 +55,7 @@ std::string Bytecode::toString() const
 /// Simple register allocator + compiler state
 struct CompilerState
 {
-	std::shared_ptr<Bytecode> out = std::make_shared<Bytecode>();
+	std::shared_ptr<PatternBytecode> out = std::make_shared<PatternBytecode>();
 	ExprRegIndex nextExprReg = 1; // reserve r0 for input expression
 	BoolRegIndex nextBoolReg = 0;
 	std::unordered_map<std::string, ExprRegIndex> lexical; // lexical var -> reg
@@ -369,7 +369,7 @@ static BoolRegIndex compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> 
 }
 
 /* Entry point */
-std::shared_ptr<Bytecode> Bytecode::CompilePatternToBytecode(const Expr& pattern)
+std::shared_ptr<PatternBytecode> PatternBytecode::CompilePatternToBytecode(const Expr& pattern)
 {
 	// Build MExpr from pattern for easier structural analysis
 	auto mexpr = MExpr::construct(pattern);
@@ -395,23 +395,23 @@ std::shared_ptr<Bytecode> Bytecode::CompilePatternToBytecode(const Expr& pattern
 
 namespace MethodInterface
 {
-	Expr length(Bytecode* bytecode)
+	Expr length(PatternBytecode* bytecode)
 	{
 		return Expr(static_cast<mint>(bytecode->length()));
 	}
-	Expr toString(Bytecode* bytecode)
+	Expr toString(PatternBytecode* bytecode)
 	{
 		return Expr(bytecode->toString());
 	}
 }; // namespace MethodInterface
 
-void Bytecode::initializeEmbedMethods(const char* embedName)
+void PatternBytecode::initializeEmbedMethods(const char* embedName)
 {
 	AddCompilerClassMethod_Export(
 		embedName, "length",
-		reinterpret_cast<void*>(&embeddedObjectNullaryMethod<std::shared_ptr<Bytecode>, MethodInterface::length>));
+		reinterpret_cast<void*>(&embeddedObjectNullaryMethod<std::shared_ptr<PatternBytecode>, MethodInterface::length>));
 	AddCompilerClassMethod_Export(
 		embedName, "toString",
-		reinterpret_cast<void*>(&embeddedObjectNullaryMethod<std::shared_ptr<Bytecode>, MethodInterface::toString>));
+		reinterpret_cast<void*>(&embeddedObjectNullaryMethod<std::shared_ptr<PatternBytecode>, MethodInterface::toString>));
 }
 }; // namespace PatternMatcher

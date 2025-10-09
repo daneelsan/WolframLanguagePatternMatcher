@@ -18,7 +18,7 @@ struct BytecodeInstruction
 	std::vector<Operand> ops;
 };
 
-class Bytecode
+class PatternBytecode
 {
 private:
 	std::vector<BytecodeInstruction> _instrs;
@@ -29,8 +29,8 @@ private:
 	std::unordered_map<std::string, ExprRegIndex> lexicalMap; // pattern variable -> reg
 
 public:
-	Bytecode() = default;
-	~Bytecode() = default;
+	PatternBytecode() = default;
+	~PatternBytecode() = default;
 
 	/// @brief Get the instructions of the bytecode.
 	const std::vector<BytecodeInstruction>& getInstructions() const { return _instrs; }
@@ -55,7 +55,7 @@ public:
 	/// @brief Compiles a pattern expression into bytecode.
 	/// @param expr The pattern expression to compile.
 	/// @return A shared pointer to the compiled bytecode.
-	static std::shared_ptr<Bytecode> CompilePatternToBytecode(const Expr& expr);
+	static std::shared_ptr<PatternBytecode> CompilePatternToBytecode(const Expr& expr);
 
 	/// @brief Initializes the embedded methods for the Bytecode class.
 	/// @param embedName The name to use for embedding.
@@ -63,7 +63,7 @@ public:
 };
 
 template <>
-inline const char* EmbedName<Bytecode>()
+inline const char* EmbedName<PatternBytecode>()
 {
 	return "PatternMatcherLibrary`VM`PatternBytecode";
 }

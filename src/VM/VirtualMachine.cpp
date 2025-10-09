@@ -1,7 +1,7 @@
 #include "VM/VirtualMachine.h"
 
 #include "AST/MExpr.h"
-#include "VM/Bytecode.h"
+#include "VM/PatternBytecode.h"
 
 #include "Embeddable.h"
 #include "Expr.h"
@@ -42,7 +42,7 @@ namespace MethodInterface
 {
 	Expr compilePattern(VirtualMachine* vm, Expr expr)
 	{
-		auto bytecode = Bytecode::CompilePatternToBytecode(expr);
+		auto bytecode = PatternBytecode::CompilePatternToBytecode(expr);
 		return EmbedObject(bytecode);
 	}
 	Expr getPC(VirtualMachine* vm)
