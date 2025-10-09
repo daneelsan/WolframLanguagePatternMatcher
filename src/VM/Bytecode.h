@@ -46,6 +46,8 @@ public:
 		lexicalMap = lexical;
 	}
 
+	size_t length() const { return _instrs.size(); }
+
 	/// @brief Converts the bytecode to a string representation.
 	/// @return The string representation of the bytecode.
 	std::string toString() const;
@@ -63,6 +65,6 @@ public:
 template <>
 inline const char* EmbedName<Bytecode>()
 {
-	return "PatternMatcherLibrary`VM`Bytecode";
+	return "PatternMatcherLibrary`VM`PatternBytecode";
 }
 }; // namespace PatternMatcher

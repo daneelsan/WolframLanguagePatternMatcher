@@ -1,10 +1,6 @@
 BeginPackage["DanielS`PatternMatcher`BackEnd`PatternBytecode`"]
 
 
-CreatePatternBytecode::usage =
-	"CreatePatternBytecode[assoc] creates the PatternBytecode[...] object.";
-
-
 PatternBytecodeQ::usage =
 	"PatternBytecodeQ[x] returns True if x is a valid PatternBytecode[...] object, and False otherwise.";
 
@@ -28,34 +24,9 @@ Needs["DanielS`PatternMatcher`"]
 =============================================================================*)
 
 PatternBytecodeDissasembly[obj_?PatternBytecodeQ] :=
-	Module[{bytecode = obj["Bytecode"], res},
-		(* TODO: Indent when block scope *)
-		res = Map[
-			Replace[{
-				{op_, {_, arg_}} :> StringJoin[op, " ", ToString[arg]],
-				{op_} :> op
-			}],
-			bytecode
-		];
-		StringRiffle[res, "\n"]
-	];
+	obj["toString"];
 
 PatternBytecodeDissasembly[x_] :=
-	$Failed;
-
-
-(*=============================================================================
-	CreatePatternBytecode
-=============================================================================*)
-
-CreatePatternBytecode[pattern_, assoc_Association] :=
-	System`Private`SetValid @
-		PatternBytecode[<|
-			"Pattern" -> pattern,
-			assoc
-		|>];
-
-CreatePatternBytecode[__] :=
 	$Failed;
 
 
@@ -63,8 +34,8 @@ CreatePatternBytecode[__] :=
 	PatternBytecodeQ
 =============================================================================*)
 
-PatternBytecodeQ[x_PatternBytecode] :=
-	System`Private`ValidQ[Unevaluated[x]];
+PatternBytecodeQ[x_?Compile`Utilities`Class`Impl`ObjectInstanceQ] :=
+	x["_class"] === "PatternMatcherLibrary`VM`PatternBytecode";
 
 PatternBytecodeQ[_] :=
 	False;
@@ -74,27 +45,7 @@ PatternBytecodeQ[_] :=
 	PatternBytecode
 =============================================================================*)
 
-PatternBytecode /: (obj_PatternBytecode)["Properties"] /; PatternBytecodeQ[obj] :=
-	{
-		"Bytecode",
-		"Pattern"
-	};
-
-PatternBytecode /: (obj:PatternBytecode[assoc_])[field_String] /; PatternBytecodeQ[obj] && KeyExistsQ[assoc, field] :=
-	assoc[field];
-
-PatternBytecode /: (obj:PatternBytecode[assoc_])["Part", n_Integer] /; PatternBytecodeQ[obj] :=
-	assoc["Bytecode"][[n]];
-
-
-PatternBytecode /: Length[obj_PatternBytecode] /; PatternBytecodeQ[obj] :=
-	Length[obj["Bytecode"]];
-
-PatternBytecode /: Normal[obj_PatternBytecode] /; PatternBytecodeQ[obj] :=
-	obj["Pattern"];
-
-
-PatternBytecode /: MakeBoxes[obj_PatternBytecode, fmt_] /; PatternBytecodeQ[obj] :=
+toBoxes[obj_, fmt_] :=
 	Module[{pattern, bytecode},
 		pattern = obj["Pattern"];
 		bytecode = obj["Bytecode"];

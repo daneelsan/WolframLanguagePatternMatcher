@@ -1,6 +1,10 @@
 BeginPackage["DanielS`PatternMatcher`BackEnd`VirtualMachine`"]
 
 
+PatternMatcherVirtualMachineQ::usage =
+	"PatternMatcherVirtualMachineQ[x] returns True if x is a valid PatternMatcherVirtualMachine[...] object, and False otherwise.";
+
+
 Begin["`Private`"]
 
 

@@ -38,7 +38,7 @@ std::string Bytecode::toString() const
 		}
 		out << "\n";
 	}
-	out << "Expr registers: " << exprRegisterCount << " Bool registers: " << boolRegisterCount << "\n";
+	out << "Expr registers: " << exprRegisterCount << ", Bool registers: " << boolRegisterCount << "\n";
 	if (!lexicalMap.empty())
 	{
 		out << "lexicalMap:\n";
@@ -395,6 +395,10 @@ std::shared_ptr<Bytecode> Bytecode::CompilePatternToBytecode(const Expr& pattern
 
 namespace MethodInterface
 {
+	Expr length(Bytecode* bytecode)
+	{
+		return Expr(static_cast<mint>(bytecode->length()));
+	}
 	Expr toString(Bytecode* bytecode)
 	{
 		return Expr(bytecode->toString());
@@ -404,6 +408,10 @@ namespace MethodInterface
 void Bytecode::initializeEmbedMethods(const char* embedName)
 {
 	AddCompilerClassMethod_Export(
-		embedName, "toString", reinterpret_cast<void*>(&embeddedObjectNullaryMethod<Bytecode*, MethodInterface::toString>));
+		embedName, "length",
+		reinterpret_cast<void*>(&embeddedObjectNullaryMethod<std::shared_ptr<Bytecode>, MethodInterface::length>));
+	AddCompilerClassMethod_Export(
+		embedName, "toString",
+		reinterpret_cast<void*>(&embeddedObjectNullaryMethod<std::shared_ptr<Bytecode>, MethodInterface::toString>));
 }
 }; // namespace PatternMatcher

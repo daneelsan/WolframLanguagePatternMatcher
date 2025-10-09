@@ -52,29 +52,29 @@ std::string operandToString(const Operand& op)
 {
 	if (std::holds_alternative<ExprRegOp>(op))
 	{
-		return std::string("%e") + std::to_string(std::get<ExprRegOp>(op).v);
+		return "%e" + std::to_string(std::get<ExprRegOp>(op).v);
 	}
 	if (std::holds_alternative<BoolRegOp>(op))
 	{
-		return std::string("%b") + std::to_string(std::get<BoolRegOp>(op).v);
+		return "%b" + std::to_string(std::get<BoolRegOp>(op).v);
 	}
 	if (std::holds_alternative<LabelOp>(op))
 	{
-		return std::string("L") + std::to_string(std::get<LabelOp>(op).v);
+		return "L" + std::to_string(std::get<LabelOp>(op).v);
 	}
 	if (std::holds_alternative<Ident>(op))
 	{
-		return std::string("id:`") + std::get<Ident>(op) + "`";
+		return "id:`" + std::get<Ident>(op) + "`";
 	}
 	if (std::holds_alternative<ImmExpr>(op))
 	{
 		auto expr = std::get<ImmExpr>(op);
-		return std::string("imm:") + expr.toString();
+		return "Expr(\"" + expr.toString() + "\")";
 	}
 	if (std::holds_alternative<ImmMint>(op))
 	{
 		auto n = std::get<ImmMint>(op);
-		return std::string("imm:") + std::to_string(n.v);
+		return std::to_string(n.v);
 	}
 	return "<none>";
 }
