@@ -43,6 +43,9 @@ LogFilterSelector::usage =
 LogHandler::usage =
 	"Handler for processing and outputting log messages.";
 
+TraceHandler::usage =
+	"Handler for processing and outputting trace log messages.";
+
 LogToAssociation::usage =
 	"Convert log message components to an association.";
 
@@ -141,6 +144,8 @@ If[TrueQ @ $Notebooks,
 	FormattedLog := LogToString
 ]
 
+FormattedTrace := LogToShortString;
+
 
 (************* Functions filtering log messages *************)
 
@@ -175,6 +180,12 @@ PrintLogToNotebook[args___] :=
 	Print @ FormattedLog[args];
 PrintLogToNotebook[LogFiltered] := DiscardLog[];
 
+
+PrintTraceToNotebook[args___] :=
+	Print @ FormattedTrace[args];
+PrintTraceToNotebook[LogFiltered] := DiscardLog[];
+
+
 (* Print to Messages window. Remember that this window may be hidden by default. *)
 PrintLogToMessagesWindow[args___] :=
 	NotebookWrite[MessagesNotebook[], Cell[RawBoxes @ ToBoxes[FormattedLog[args]], "Output"]];
@@ -193,9 +204,14 @@ PrintLogToSymbol[LogFiltered] := DiscardLog[];
 (* This is a "selector" called by other functions below. Feel free to modify/Block this symbol, see examples. *)
 PrintLogFunctionSelector := PrintLogToNotebook;
 
+PrintTraceFunctionSelector := PrintTraceToNotebook;
+
 
 (* This is a function the library will call from the C++ code. It all starts here. Feel free to modify/Block this symbol, see examples. *)
 LogHandler := PrintLogFunctionSelector @* LogFilterSelector;
+
+(* Callback for trace logs *)
+TraceHandler := PrintTraceFunctionSelector @* LogFilterSelector;
 
 End[];
 

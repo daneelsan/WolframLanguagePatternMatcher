@@ -87,7 +87,7 @@ bool VirtualMachine::step()
 		{
 			if (!instr.ops.empty())
 			{
-				PM_DEBUG("VM_DEBUG_PRINT: ", operandToString(instr.ops[0]));
+				PM_TRACE("VM_DEBUG_PRINT: ", operandToString(instr.ops[0]));
 			}
 			break;
 		}
@@ -99,7 +99,7 @@ bool VirtualMachine::step()
 				if (auto immExpr = std::get_if<ImmExpr>(&instr.ops[1]))
 				{
 					exprRegs[dstExprReg->v] = *immExpr;
-					PM_DEBUG("LOAD_IMM %e", dstExprReg->v, " <- ", immExpr->toString());
+					PM_TRACE("LOAD_IMM %e", dstExprReg->v, " <- ", immExpr->toString());
 				}
 				else
 				{
@@ -118,7 +118,7 @@ bool VirtualMachine::step()
 					// Load immediate mint into the boolean register (nonzero -> true)
 					bool res = (immMint->v != 0);
 					boolRegs[dstBoolReg->v] = res;
-					PM_DEBUG("LOAD_IMM %e", dstBoolReg->v, " <- ", (res) ? "True" : "False");
+					PM_TRACE("LOAD_IMM %e", dstBoolReg->v, " <- ", (res) ? "True" : "False");
 				}
 				else
 				{
@@ -137,7 +137,7 @@ bool VirtualMachine::step()
 			if (dst && src)
 			{
 				exprRegs[dst->v] = exprRegs[src->v];
-				PM_DEBUG("MOVE %e", dst->v, " <- %e", src->v, " (", exprRegs[src->v].toString(), ")");
+				PM_TRACE("MOVE %e", dst->v, " <- %e", src->v, " (", exprRegs[src->v].toString(), ")");
 			}
 			else
 			{
@@ -156,7 +156,7 @@ bool VirtualMachine::step()
 			{
 				const auto& expr = exprRegs[srcExpr->v];
 				exprRegs[dstExpr->v] = expr.head();
-				PM_DEBUG("GET_HEAD %e", dstExpr->v, " := head(%e", srcExpr->v, ")");
+				PM_TRACE("GET_HEAD %e", dstExpr->v, " := head(%e", srcExpr->v, ")");
 			}
 			else
 			{
@@ -180,7 +180,7 @@ bool VirtualMachine::step()
 				if (index >= 1 && index <= expr.length()) // TODO: If compilation was correct, this should always be true
 				{
 					exprRegs[dstExpr->v] = expr.part(index);
-					PM_DEBUG("GET_PART %e", dstExpr->v, " := part(", index, ", %e", srcExpr->v, ")");
+					PM_TRACE("GET_PART %e", dstExpr->v, " := part(", index, ", %e", srcExpr->v, ")");
 				}
 				else
 					PM_ERROR("GET_PART: Index out of bounds");
@@ -205,7 +205,7 @@ bool VirtualMachine::step()
 				size_t len = expr.length();
 				bool result = (len == static_cast<size_t>(immLen->v));
 				boolRegs[dstBool->v] = result;
-				PM_DEBUG("TEST_LENGTH %b", dstBool->v, " := length(%e", srcExpr->v, ") == ", immLen->v, " -> ",
+				PM_TRACE("TEST_LENGTH %b", dstBool->v, " := length(%e", srcExpr->v, ") == ", immLen->v, " -> ",
 						 (result ? "True" : "False"));
 			}
 			else
@@ -227,7 +227,7 @@ bool VirtualMachine::step()
 				// TODO: Careful about evaluating the exprs in sameQ?
 				bool result = exprRegs[lhs->v].sameQ(exprRegs[rhs->v]);
 				boolRegs[dstBool->v] = result;
-				PM_DEBUG("SAMEQ %b", dstBool->v, " := (%e", lhs->v, " == %e", rhs->v, ") -> ", (result ? "True" : "False"));
+				PM_TRACE("SAMEQ %b", dstBool->v, " := (%e", lhs->v, " == %e", rhs->v, ") -> ", (result ? "True" : "False"));
 			}
 			else
 			{
@@ -250,7 +250,7 @@ bool VirtualMachine::step()
 					return false;
 				}
 				pc = targetOpt.value();
-				PM_DEBUG("JUMP to L", L->v, " (pc=", pc, ")");
+				PM_TRACE("JUMP to L", L->v, " (pc=", pc, ")");
 			}
 			else
 			{
@@ -284,11 +284,11 @@ bool VirtualMachine::step()
 						return false;
 					}
 					pc = targetOpt.value();
-					PM_DEBUG("JUMP_IF_FALSE %b", breg->v, " to L", L->v, " (pc=", pc, ")");
+					PM_TRACE("JUMP_IF_FALSE %b", breg->v, " to L", L->v, " (pc=", pc, ")");
 				}
 				else
 				{
-					PM_DEBUG("JUMP_IF_FALSE %b", breg->v, " not taken (value is true)");
+					PM_TRACE("JUMP_IF_FALSE %b", breg->v, " not taken (value is true)");
 				}
 			}
 			else
@@ -316,7 +316,7 @@ bool VirtualMachine::step()
 			}
 			// store a copy of the expression value in the current frame
 			frames.back().insert_or_assign(*ident, exprRegs[ereg->v]);
-			PM_DEBUG("BIND_VAR: ", *ident, " <- %e", ereg->v, "  (", exprRegs[ereg->v].toString(), ")");
+			PM_TRACE("BIND_VAR: ", *ident, " <- %e", ereg->v, "  (", exprRegs[ereg->v].toString(), ")");
 			break;
 		}
 		case Opcode::BEGIN_BLOCK:
@@ -327,13 +327,13 @@ bool VirtualMachine::step()
 			if (!instr.ops.empty())
 			{
 				if (auto L = std::get_if<LabelOp>(&instr.ops[0]))
-					PM_DEBUG("BEGIN_BLOCK L", L->v, " (frame depth=", frames.size(), ")");
+					PM_TRACE("BEGIN_BLOCK L", L->v, " (frame depth=", frames.size(), ")");
 				else
-					PM_DEBUG("BEGIN_BLOCK (frame depth=", frames.size(), ")");
+					PM_TRACE("BEGIN_BLOCK (frame depth=", frames.size(), ")");
 			}
 			else
 			{
-				PM_DEBUG("BEGIN_BLOCK (frame depth=", frames.size(), ")");
+				PM_TRACE("BEGIN_BLOCK (frame depth=", frames.size(), ")");
 			}
 			break;
 		}
@@ -345,13 +345,13 @@ bool VirtualMachine::step()
 				if (!instr.ops.empty())
 				{
 					if (auto L = std::get_if<LabelOp>(&instr.ops[0]))
-						PM_DEBUG("END_BLOCK L", L->v, " (popped, depth=", frames.size(), ")");
+						PM_TRACE("END_BLOCK L", L->v, " (popped, depth=", frames.size(), ")");
 					else
-						PM_DEBUG("END_BLOCK (popped, depth=", frames.size(), ")");
+						PM_TRACE("END_BLOCK (popped, depth=", frames.size(), ")");
 				}
 				else
 				{
-					PM_DEBUG("END_BLOCK (popped, depth=", frames.size(), ")");
+					PM_TRACE("END_BLOCK (popped, depth=", frames.size(), ")");
 				}
 			}
 			else

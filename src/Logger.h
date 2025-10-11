@@ -68,6 +68,13 @@
 #define PM_ERROR(...) ((void) 0)
 #endif
 
+#ifdef PM_LOG_LEVEL_TRACE
+#define PM_TRACE(...) \
+	PatternMatcher::Logger::trace<PatternMatcher::Logger::Level::Trace>(__LINE__, __FILE__, __func__, __VA_ARGS__)
+#else
+#define PM_TRACE(...) ((void) 0)
+#endif
+
 namespace PatternMatcher
 {
 class Logger
@@ -75,6 +82,7 @@ class Logger
 public:
 	enum class Level
 	{
+		Trace,
 		Debug,
 		Warning,
 		Error
@@ -84,6 +92,8 @@ public:
 	{
 		switch (l)
 		{
+			case Level::Trace:
+				return "Trace";
 			case Level::Debug:
 				return "Debug";
 			case Level::Warning:
@@ -98,6 +108,19 @@ public:
 	template <Level logLevel, typename... TArgs>
 	static void log(int line, const char* file, const char* function, TArgs&&... args)
 	{
+		logOrTrace<logLevel>(logHandlerName, line, file, function, std::forward<TArgs>(args)...);
+	}
+
+	template <Level logLevel, typename... TArgs>
+	static void trace(int line, const char* file, const char* function, TArgs&&... args)
+	{
+		logOrTrace<logLevel>(traceHandlerName, line, file, function, std::forward<TArgs>(args)...);
+	}
+
+private:
+	template <Level logLevel, typename... TArgs>
+	static void logOrTrace(const char* logHandlerName, int line, const char* file, const char* function, TArgs&&... args)
+	{
 		Expr logExpr = Expr::createNormal(4 + sizeof...(TArgs), logHandlerName);
 		logExpr.setPart(1, Expr(to_string(logLevel)));
 		logExpr.setPart(2, Expr(static_cast<mint>(line)));
@@ -109,7 +132,7 @@ public:
 		logExpr.eval();
 	}
 
-private:
 	static constexpr const char* logHandlerName = "DanielS`PatternMatcher`Utilities`Logger`LogHandler";
+	static constexpr const char* traceHandlerName = "DanielS`PatternMatcher`Utilities`Logger`TraceHandler";
 }; // namespace Logger
 } // namespace PatternMatcher

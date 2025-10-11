@@ -110,9 +110,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${WSTP_LIBRARIES}
 )
 
-# TODO: Make this depend on Debug build type
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-    PM_LOG_DEBUG
+    PM_LOG_DEBUG # TODO: Make this depend on Debug build type
+    PM_LOG_LEVEL_TRACE
 )
 
 # Disable platform-specific "lib" prefix for shared library
