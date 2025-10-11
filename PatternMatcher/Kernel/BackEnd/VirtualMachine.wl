@@ -36,6 +36,15 @@ CreatePatternMatcherVirtualMachine[] :=
 		vm
 	];
 
+CreatePatternMatcherVirtualMachine[pattExpr_] :=
+	Module[{vm, patt},
+		vm = CreatePatternMatcherVirtualMachine[];
+		patt = CompilePatternToBytecode[pattExpr, vm];
+		vm["initialize", patt];
+		vm
+	];
+
+
 CreatePatternMatcherVirtualMachine[__] :=
 	$Failed;
 
