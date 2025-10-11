@@ -1,0 +1,36 @@
+if(RE_BUILD)
+	if(SYSTEMID STREQUAL "iOS")
+		if(BUILD_PLATFORM MATCHES "iossimulator.*")
+			set(WOLFRAM_WSTP_PATH "$ENV{IOSSIMULATOR_WSTP_DIR}" CACHE STRING "")
+		else()
+			set(WOLFRAM_WSTP_PATH "$ENV{IOS_WSTP_DIR}" CACHE STRING "")
+		endif()
+	elseif(SYSTEMID STREQUAL "visionOS")
+		if(BUILD_PLATFORM MATCHES "visionossimulator.*")
+			set(WOLFRAM_WSTP_PATH "$ENV{VISIONOSSIMULATOR_WSTP_DIR}" CACHE STRING "")
+		else()
+			set(WOLFRAM_WSTP_PATH "$ENV{VISIONOS_WSTP_DIR}" CACHE STRING "")
+		endif()
+	endif()
+elseif(NOT WOLFRAM_WSTP_PATH)
+	if(NOT EXISTS "${CMAKE_BINARY_DIR}/WSTP/CompilerAdditions/WSTP.cmake")
+		#TEAMCITY_SYSTEMID
+		include(${CMAKE_CURRENT_LIST_DIR}/../Downloads.cmake)
+		download_WSTP("${CMAKE_BINARY_DIR}/WSTP" "master")
+	endif()
+
+	set(WOLFRAM_WSTP_PATH "${CMAKE_BINARY_DIR}/WSTP/CompilerAdditions" CACHE PATH "")
+	message("set WOLFRAM_WSTP_PATH : ${WOLFRAM_WSTP_PATH}")
+
+endif()
+
+if(NOT IS_DIRECTORY ${WOLFRAM_WSTP_PATH})
+	message(FATAL_ERROR "WOLFRAM_WSTP_PATH : ${WOLFRAM_WSTP_PATH} is not a directory")
+endif()
+
+# set default values for WSTP_LIBRARIES
+include(${WOLFRAM_WSTP_PATH}/WSTP.cmake)
+set(WSTP_LIBRARIES WSTP::DYNAMIC_LIBRARY CACHE STRING "")
+
+
+

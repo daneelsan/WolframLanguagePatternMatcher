@@ -1,0 +1,36 @@
+if(RE_BUILD)
+	if(SYSTEMID STREQUAL "iOS")
+		if(BUILD_PLATFORM MATCHES "iossimulator.*")
+			set(WOLFRAM_MATHLINK_PATH "$ENV{IOSSIMULATOR_MATHLINK_DIR}" CACHE STRING "")
+		else()
+			set(WOLFRAM_MATHLINK_PATH "$ENV{IOS_MATHLINK_DIR}" CACHE STRING "")
+		endif()
+	elseif(SYSTEMID STREQUAL "visionOS")
+		if(BUILD_PLATFORM MATCHES "visionossimulator.*")
+			set(WOLFRAM_MATHLINK_PATH "$ENV{VISIONOSSIMULATOR_MATHLINK_DIR}" CACHE STRING "")
+		else()
+			set(WOLFRAM_MATHLINK_PATH "$ENV{VISIONOS_MATHLINK_DIR}" CACHE STRING "")
+		endif()
+	endif()
+elseif(NOT WOLFRAM_MATHLINK_PATH)
+	if(NOT EXISTS "${CMAKE_BINARY_DIR}/MathLink/CompilerAdditions/MathLink.cmake")
+		#TEAMCITY_SYSTEMID
+		include(${CMAKE_CURRENT_LIST_DIR}/../Downloads.cmake)
+		download_MathLink("${CMAKE_BINARY_DIR}/MathLink" "master")
+	endif()
+
+	set(WOLFRAM_MATHLINK_PATH "${CMAKE_BINARY_DIR}/MathLink/CompilerAdditions" CACHE PATH "")
+	message("set WOLFRAM_MATHLINK_PATH : ${WOLFRAM_MATHLINK_PATH}")
+
+endif()
+
+if(NOT IS_DIRECTORY ${WOLFRAM_MATHLINK_PATH})
+	message(FATAL_ERROR "WOLFRAM_MATHLINK_PATH : ${WOLFRAM_MATHLINK_PATH} is not a directory")
+endif()
+
+# set default values for MATHLINK_LIBRARIES
+include(${WOLFRAM_MATHLINK_PATH}/MathLink.cmake)
+set(MATHLINK_LIBRARIES MathLink::DYNAMIC_LIBRARY CACHE STRING "")
+
+
+
