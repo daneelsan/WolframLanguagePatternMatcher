@@ -134,17 +134,8 @@ static void compileBlank(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, 
 	}
 
 	// Otherwise: Blank[f] → check Head[%e0] == f
-	ExprRegIndex rH = st.allocExprReg();
-	st.emit(Opcode::GET_HEAD, { OpExprReg(rH), OpExprReg(0) });
-
 	Expr headExpr = mexpr->part(1)->getExpr();
-	ExprRegIndex rHeadImm = st.allocExprReg();
-	st.emit(Opcode::LOAD_IMM, { OpExprReg(rHeadImm), OpImm(headExpr) });
-
-	BoolRegIndex b = st.allocBoolReg();
-	st.emit(Opcode::SAMEQ, { OpBoolReg(b), OpExprReg(rH), OpExprReg(rHeadImm) });
-
-	st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(b), OpLabel(failLabel) });
+	st.emit(Opcode::MATCH_HEAD, { OpExprReg(0), OpImm(headExpr), OpLabel(failLabel) });
 
 	if (isTopLevel)
 	{
@@ -267,16 +258,8 @@ static void compileNormal(CompilerState& st, std::shared_ptr<MExprNormal> mexpr,
 	st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(bLen), OpLabel(innerFail) });
 
 	// --- 2. Check head equality ---
-	ExprRegIndex rHead = st.allocExprReg();
-	st.emit(Opcode::GET_HEAD, { OpExprReg(rHead), OpExprReg(0) });
-
 	Expr headExpr = mexpr->getHead()->getExpr();
-	ExprRegIndex rHeadImm = st.allocExprReg();
-	st.emit(Opcode::LOAD_IMM, { OpExprReg(rHeadImm), OpImm(headExpr) });
-
-	BoolRegIndex bHeadEq = st.allocBoolReg();
-	st.emit(Opcode::SAMEQ, { OpBoolReg(bHeadEq), OpExprReg(rHead), OpExprReg(rHeadImm) });
-	st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(bHeadEq), OpLabel(innerFail) });
+	st.emit(Opcode::MATCH_HEAD, { OpExprReg(0), OpImm(headExpr), OpLabel(innerFail) });
 
 	// --- 3. Save %e0 before recursive calls ---
 	ExprRegIndex rSaved = st.allocExprReg();

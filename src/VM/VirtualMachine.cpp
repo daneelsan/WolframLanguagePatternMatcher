@@ -237,6 +237,30 @@ bool VirtualMachine::step()
 			}
 			break;
 		}
+		case Opcode::MATCH_HEAD:
+		{
+			auto srcExpr = std::get_if<ExprRegOp>(&instr.ops[0]);
+			auto immExpr = std::get_if<ImmExpr>(&instr.ops[1]);
+			auto labelOp = std::get_if<LabelOp>(&instr.ops[2]);
+			if (srcExpr && immExpr && labelOp)
+			{
+				const auto& expr = exprRegs[srcExpr->v];
+				bool result = expr.head().sameQ(*immExpr);
+				PM_TRACE("MATCH_HEAD %e", srcExpr->v, " head == ", immExpr->toString(), " -> ", (result ? "True" : "False"));
+				if (!result)
+				{
+					pc = bytecode.value()->resolveLabel(labelOp->v).value();
+					PM_TRACE("  -> JUMP to L", labelOp->v, " (pc=", pc, ")");
+				}
+			}
+			else
+			{
+				PM_ERROR("MATCH_HEAD: Invalid operands");
+				halted = true;
+				return false;
+			}
+			break;
+		}
 		case Opcode::JUMP:
 		{
 			if (auto L = std::get_if<LabelOp>(&instr.ops[0]))

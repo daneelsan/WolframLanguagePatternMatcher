@@ -11,6 +11,8 @@ const char* opcodeName(Opcode op)
 	{
 		case Opcode::MOVE:
 			return "MOVE";
+        case Opcode::MATCH_HEAD:
+            return "MATCH_HEAD";
 		case Opcode::LOAD_IMM:
 			return "LOAD_IMM";
 		case Opcode::LOAD_INPUT:

@@ -30,6 +30,8 @@ enum class Opcode {
 	GET_PART,/*          A B i           R[A] := part(R[B], i)               */
 	TEST_LENGTH,/*       A B i           R[A] := (length(R[B]) == i)         */
 
+	MATCH_HEAD,/*        A imm label     if (head(R[A]) != imm) pc = label   */
+
 	// comparisons / booleans
 	SAMEQ,/*             A B C           R[A] := sameQ(R[B], R[C]) (A is bool reg) */
 	NOT,/*               A B             R[A] := not R[B]                    */
@@ -46,8 +48,8 @@ enum class Opcode {
 	HALT,/*              <no operands>   stop execution                      */
 
 	// bookkeeping ops (begin/end block)
-	BEGIN_BLOCK,/*      label.           signals the beginning of a block    */
-	END_BLOCK,/*        label.           signals the end of a block          */
+	BEGIN_BLOCK,/*       label           signals the beginning of a block    */
+	END_BLOCK,/*         label           signals the end of a block          */
 
 	// Debug / helper
 	DEBUG_PRINT,/*       A               print R[A] (for debugging)          */
