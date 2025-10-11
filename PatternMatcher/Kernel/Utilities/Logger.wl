@@ -144,7 +144,12 @@ If[TrueQ @ $Notebooks,
 	FormattedLog := LogToString
 ]
 
-FormattedTrace := LogToShortString;
+
+TraceToShortString[logLevel_, line_, file_, fn_, args___] :=
+	StringJoin @@ ToString /@ {args};
+
+
+FormattedTrace := TraceToShortString;
 
 
 (************* Functions filtering log messages *************)
