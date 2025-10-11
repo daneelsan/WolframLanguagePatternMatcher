@@ -124,15 +124,13 @@ static BoolRegIndex compileLiteralMatch(CompilerState& st, std::shared_ptr<MExpr
 }
 
 /* Helper: compile Blank (with optional head) -> returns Bool reg */
-static BoolRegIndex compileBlank(CompilerState& st, std::shared_ptr<MExprNormal> mexpr)
+static void compileBlank(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, Label successLabel, Label failLabel,
+						 bool isTopLevel)
 {
 	// Blank[] matches any single expression -> always true.
 	if (mexpr->length() == 0)
 	{
-		// Emit a literal boolean True
-		BoolRegIndex b = st.allocBoolReg();
-		st.emit(Opcode::LOAD_IMM, { OpBoolReg(b), OpImm(true) });
-		return b;
+		return;
 	}
 
 	// Otherwise: Blank[f] → check Head[%e0] == f
@@ -146,7 +144,12 @@ static BoolRegIndex compileBlank(CompilerState& st, std::shared_ptr<MExprNormal>
 	BoolRegIndex b = st.allocBoolReg();
 	st.emit(Opcode::SAMEQ, { OpBoolReg(b), OpExprReg(rH), OpExprReg(rHeadImm) });
 
-	return b;
+	st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(b), OpLabel(failLabel) });
+
+	if (isTopLevel)
+	{
+		st.emit(Opcode::JUMP, { OpLabel(successLabel) });
+	}
 }
 
 /* Helper: compile Pattern[sym, patt] */
@@ -360,13 +363,7 @@ static void compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr, L
 			auto mexprNormal = std::static_pointer_cast<MExprNormal>(mexpr);
 			if (MExprIsBlank(mexpr))
 			{
-				BoolRegIndex b = compileBlank(st, mexprNormal);
-				st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(b), OpLabel(failLabel) });
-				if (isTopLevel)
-				{
-					st.emit(Opcode::JUMP, { OpLabel(successLabel) });
-				}
-				// else: fall through (success)
+				compileBlank(st, mexprNormal, successLabel, failLabel, isTopLevel);
 				return;
 			}
 			else if (MExprIsPattern(mexpr))
