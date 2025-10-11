@@ -93,254 +93,151 @@ bool VirtualMachine::step()
 		}
 		case Opcode::LOAD_IMM:
 		{
-			// Handle Expr register
+			// Fast path: Expr register (most common)
 			if (auto dstExprReg = std::get_if<ExprRegOp>(&instr.ops[0]))
 			{
-				if (auto immExpr = std::get_if<ImmExpr>(&instr.ops[1]))
-				{
-					exprRegs[dstExprReg->v] = *immExpr;
-					PM_TRACE("LOAD_IMM %e", dstExprReg->v, " <- ", immExpr->toString());
-				}
-				else
-				{
-					PM_ERROR("LOAD_IMM: Expected ImmExpr for expr register");
-					halted = true;
-					return false;
-				}
+				auto immExpr = std::get<ImmExpr>(instr.ops[1]);
+				exprRegs[dstExprReg->v] = immExpr;
+				PM_TRACE("LOAD_IMM %e", dstExprReg->v, " <- ", immExpr.toString());
 			}
 			else
 			{
-				// Support loading immediate mint into boolean register
-				auto dstBoolReg = std::get_if<BoolRegOp>(&instr.ops[0]);
-				auto immMint = std::get_if<ImmMint>(&instr.ops[1]);
-				if (dstBoolReg && immMint)
-				{
-					// Load immediate mint into the boolean register (nonzero -> true)
-					bool res = (immMint->v != 0);
-					boolRegs[dstBoolReg->v] = res;
-					PM_TRACE("LOAD_IMM %e", dstBoolReg->v, " <- ", (res) ? "True" : "False");
-				}
-				else
-				{
-					// Invalid operands
-					PM_ERROR("LOAD_IMM: Invalid operands");
-					halted = true;
-					return false;
-				}
+				// Bool register path
+				auto dstBoolReg = std::get<BoolRegOp>(instr.ops[0]);
+				auto immMint = std::get<ImmMint>(instr.ops[1]);
+				bool res = immMint.v != 0;
+				boolRegs[dstBoolReg.v] = res;
+				PM_TRACE("LOAD_IMM %b", dstBoolReg.v, " <- ", res ? "True" : "False");
 			}
+			// NOTE: consider splitting into two opcodes for clarity/performance?
 			break;
 		}
 		case Opcode::MOVE:
 		{
-			auto dst = std::get_if<ExprRegOp>(&instr.ops[0]);
-			auto src = std::get_if<ExprRegOp>(&instr.ops[1]);
-			if (dst && src)
-			{
-				exprRegs[dst->v] = exprRegs[src->v];
-				PM_TRACE("MOVE %e", dst->v, " <- %e", src->v, " (", exprRegs[src->v].toString(), ")");
-			}
-			else
-			{
-				PM_ERROR("MOVE: Invalid operands");
-				halted = true;
-				return false;
-			}
+			auto dst = std::get<ExprRegOp>(instr.ops[0]);
+			auto src = std::get<ExprRegOp>(instr.ops[1]);
+			exprRegs[dst.v] = exprRegs[src.v];
+			PM_TRACE("MOVE %e", dst.v, " <- %e", src.v, " (", exprRegs[src.v].toString(), ")");
 			break;
 		}
 		case Opcode::GET_HEAD:
 		{
-			auto dstExpr = std::get_if<ExprRegOp>(&instr.ops[0]);
-			auto srcExpr = std::get_if<ExprRegOp>(&instr.ops[1]);
-
-			if (dstExpr && srcExpr)
-			{
-				const auto& expr = exprRegs[srcExpr->v];
-				exprRegs[dstExpr->v] = expr.head();
-				PM_TRACE("GET_HEAD %e", dstExpr->v, " := head(%e", srcExpr->v, ")");
-			}
-			else
-			{
-				PM_ERROR("GET_HEAD: Invalid operands");
-				halted = true;
-				return false;
-			}
+			auto dst = std::get<ExprRegOp>(instr.ops[0]);
+			auto src = std::get<ExprRegOp>(instr.ops[1]);
+			exprRegs[dst.v] = exprRegs[src.v].head();
+			PM_TRACE("GET_HEAD %e", dst.v, " := head(%e", src.v, ")");
 			break;
 		}
 
 		case Opcode::GET_PART:
 		{
-			auto dstExpr = std::get_if<ExprRegOp>(&instr.ops[0]);
-			auto srcExpr = std::get_if<ExprRegOp>(&instr.ops[1]);
-			auto immIdx = std::get_if<ImmMint>(&instr.ops[2]);
-
-			if (dstExpr && srcExpr && immIdx)
-			{
-				const auto& expr = exprRegs[srcExpr->v];
-				size_t index = static_cast<size_t>(immIdx->v);
-				if (index >= 1 && index <= expr.length()) // TODO: If compilation was correct, this should always be true
-				{
-					exprRegs[dstExpr->v] = expr.part(index);
-					PM_TRACE("GET_PART %e", dstExpr->v, " := part(", index, ", %e", srcExpr->v, ")");
-				}
-				else
-					PM_ERROR("GET_PART: Index out of bounds");
-			}
-			else
-			{
-				PM_ERROR("GET_PART: Invalid operands");
-				halted = true;
-				return false;
-			}
+			auto dst = std::get<ExprRegOp>(instr.ops[0]);
+			auto src = std::get<ExprRegOp>(instr.ops[1]);
+			auto idx = std::get<ImmMint>(instr.ops[2]);
+			exprRegs[dst.v] = exprRegs[src.v].part(static_cast<size_t>(idx.v));
+			PM_TRACE("GET_PART %e", dst.v, " := part(", idx.v, ", %e", src.v, ")");
 			break;
 		}
 		case Opcode::TEST_LENGTH:
 		{
-			auto dstBool = std::get_if<BoolRegOp>(&instr.ops[0]);
-			auto srcExpr = std::get_if<ExprRegOp>(&instr.ops[1]);
-			auto immLen = std::get_if<ImmMint>(&instr.ops[2]);
+			auto dstBool = std::get<BoolRegOp>(instr.ops[0]);
+			auto srcExpr = std::get<ExprRegOp>(instr.ops[1]);
+			auto immLen = std::get<ImmMint>(instr.ops[2]);
 
-			if (dstBool && srcExpr && immLen)
-			{
-				const auto& expr = exprRegs[srcExpr->v];
-				size_t len = expr.length();
-				bool result = (len == static_cast<size_t>(immLen->v));
-				boolRegs[dstBool->v] = result;
-				PM_TRACE("TEST_LENGTH %b", dstBool->v, " := length(%e", srcExpr->v, ") == ", immLen->v, " -> ",
-						 (result ? "True" : "False"));
-			}
-			else
-			{
-				PM_ERROR("TEST_LENGTH: Invalid operands");
-				halted = true;
-				return false;
-			}
+			const auto& expr = exprRegs[srcExpr.v];
+			size_t len = expr.length();
+			bool result = (len == static_cast<size_t>(immLen.v));
+			boolRegs[dstBool.v] = result;
+			PM_TRACE("TEST_LENGTH %b", dstBool.v, " := length(%e", srcExpr.v, ") == ", immLen.v, " -> ",
+					 (result ? "True" : "False"));
 			break;
 		}
 		case Opcode::SAMEQ:
 		{
-			auto dstBool = std::get_if<BoolRegOp>(&instr.ops[0]);
-			auto lhs = std::get_if<ExprRegOp>(&instr.ops[1]);
-			auto rhs = std::get_if<ExprRegOp>(&instr.ops[2]);
-
-			if (dstBool && lhs && rhs)
-			{
-				// TODO: Careful about evaluating the exprs in sameQ?
-				bool result = exprRegs[lhs->v].sameQ(exprRegs[rhs->v]);
-				boolRegs[dstBool->v] = result;
-				PM_TRACE("SAMEQ %b", dstBool->v, " := (%e", lhs->v, " == %e", rhs->v, ") -> ", (result ? "True" : "False"));
-			}
-			else
-			{
-				PM_ERROR("SAMEQ: Invalid operands");
-				halted = true;
-				return false;
-			}
+			auto dstBool = std::get<BoolRegOp>(instr.ops[0]);
+			auto lhs = std::get<ExprRegOp>(instr.ops[1]);
+			auto rhs = std::get<ExprRegOp>(instr.ops[2]);
+			// TODO: Careful about evaluating the exprs in sameQ?
+			bool result = exprRegs[lhs.v].sameQ(exprRegs[rhs.v]);
+			boolRegs[dstBool.v] = result;
+			PM_TRACE("SAMEQ %b", dstBool.v, " := (%e", lhs.v, " == %e", rhs.v, ") -> ", (result ? "True" : "False"));
 			break;
 		}
 		case Opcode::MATCH_HEAD:
+		case Opcode::MATCH_LITERAL:
 		{
-			auto srcExpr = std::get_if<ExprRegOp>(&instr.ops[0]);
-			auto immExpr = std::get_if<ImmExpr>(&instr.ops[1]);
-			auto labelOp = std::get_if<LabelOp>(&instr.ops[2]);
-			if (srcExpr && immExpr && labelOp)
+			auto src = std::get<ExprRegOp>(instr.ops[0]);
+			auto expected = std::get<ImmExpr>(instr.ops[1]);
+			auto label = std::get<LabelOp>(instr.ops[2]);
+
+			auto expr = (instr.opcode == Opcode::MATCH_HEAD) ? exprRegs[src.v].head() : exprRegs[src.v];
+			if (not expr.sameQ(expected))
 			{
-				const auto& expr = exprRegs[srcExpr->v];
-				bool result = expr.head().sameQ(*immExpr);
-				PM_TRACE("MATCH_HEAD %e", srcExpr->v, " head == ", immExpr->toString(), " -> ", (result ? "True" : "False"));
-				if (!result)
-				{
-					pc = bytecode.value()->resolveLabel(labelOp->v).value();
-					PM_TRACE("  -> JUMP to L", labelOp->v, " (pc=", pc, ")");
-				}
+				pc = bytecode.value()->resolveLabel(label.v).value();
+				PM_TRACE("MATCH failed -> JUMP to L", label.v);
 			}
-			else
+			break;
+		}
+		case Opcode::MATCH_LENGTH:
+		{
+			auto src = std::get<ExprRegOp>(instr.ops[0]);
+			auto expectedLen = std::get<ImmMint>(instr.ops[1]);
+			auto label = std::get<LabelOp>(instr.ops[2]);
+
+			if (exprRegs[src.v].length() != static_cast<size_t>(expectedLen.v))
 			{
-				PM_ERROR("MATCH_HEAD: Invalid operands");
-				halted = true;
-				return false;
+				pc = bytecode.value()->resolveLabel(label.v).value();
+				PM_TRACE("MATCH_LENGTH failed -> JUMP to L", label.v);
 			}
 			break;
 		}
 		case Opcode::JUMP:
 		{
-			if (auto L = std::get_if<LabelOp>(&instr.ops[0]))
-			{
-				auto targetOpt = bytecode.value()->resolveLabel(L->v);
-				// BUG FIX: Check if label resolution succeeded
-				if (!targetOpt)
-				{
-					PM_ERROR("JUMP: Label L", L->v, " not found");
-					halted = true;
-					return false;
-				}
-				pc = targetOpt.value();
-				PM_TRACE("JUMP to L", L->v, " (pc=", pc, ")");
-			}
-			else
-			{
-				PM_ERROR("JUMP: Invalid operand");
-				halted = true;
-				return false;
-			}
+			auto label = std::get<LabelOp>(instr.ops[0]);
+			pc = bytecode.value()->resolveLabel(label.v).value(); // Assume valid in release
+			PM_TRACE("JUMP to L", label.v, " (pc=", pc, ")");
 			break;
 		}
 		case Opcode::JUMP_IF_FALSE:
 		{
-			auto breg = std::get_if<BoolRegOp>(&instr.ops[0]);
-			auto L = std::get_if<LabelOp>(&instr.ops[1]);
-			if (breg && L)
+			auto breg = std::get<BoolRegOp>(instr.ops[0]);
+			auto label = std::get<LabelOp>(instr.ops[1]);
+			if (!boolRegs[breg.v])
 			{
-				// BUG FIX: Add bounds checking
-				if (breg->v >= boolRegs.size())
-				{
-					PM_ERROR("JUMP_IF_FALSE: Bool register index out of bounds");
-					halted = true;
-					return false;
-				}
-				if (!boolRegs[breg->v])
-				{
-					auto targetOpt = bytecode.value()->resolveLabel(L->v);
-					// BUG FIX: Check if label resolution succeeded
-					if (!targetOpt)
-					{
-						PM_ERROR("JUMP_IF_FALSE: Label L", L->v, " not found");
-						halted = true;
-						return false;
-					}
-					pc = targetOpt.value();
-					PM_TRACE("JUMP_IF_FALSE %b", breg->v, " to L", L->v, " (pc=", pc, ")");
-				}
-				else
-				{
-					PM_TRACE("JUMP_IF_FALSE %b", breg->v, " not taken (value is true)");
-				}
-			}
-			else
-			{
-				PM_ERROR("JUMP_IF_FALSE: Invalid operands");
-				halted = true;
-				return false;
+				pc = bytecode.value()->resolveLabel(label.v).value();
+				PM_TRACE("JUMP_IF_FALSE %b", breg.v, " to L", label.v, " (pc=", pc, ")");
 			}
 			break;
 		}
 		case Opcode::BIND_VAR:
 		{
-			auto ident = std::get_if<Ident>(&instr.ops[0]);
-			auto ereg = std::get_if<ExprRegOp>(&instr.ops[1]);
-			if (!ident || !ereg)
-			{
-				PM_ERROR("BIND_VAR: invalid operands");
-				halted = true;
-				return false;
-			}
+			auto ident = std::get<Ident>(instr.ops[0]);
+			auto reg = std::get<ExprRegOp>(instr.ops[1]);
 			if (frames.empty())
 			{
 				// If no frame exists, create one — safe fallback.
 				frames.emplace_back();
 			}
 			// store a copy of the expression value in the current frame
-			frames.back().insert_or_assign(*ident, exprRegs[ereg->v]);
-			PM_TRACE("BIND_VAR: ", *ident, " <- %e", ereg->v, "  (", exprRegs[ereg->v].toString(), ")");
+			frames.back().insert_or_assign(ident, exprRegs[reg.v]);
+			PM_TRACE("BIND_VAR: ", ident, " <- %e", reg.v, "  (", exprRegs[reg.v].toString(), ")");
+			break;
+		}
+		case Opcode::GET_VAR:
+		{
+			auto dst = std::get<ExprRegOp>(instr.ops[0]);
+			auto ident = std::get<Ident>(instr.ops[1]);
+			// Search frames from most recent to oldest
+			for (auto it = frames.rbegin(); it != frames.rend(); ++it)
+			{
+				if (auto found = it->find(ident); found != it->end())
+				{
+					exprRegs[dst.v] = found->second;
+					PM_TRACE("GET_VAR %e", dst.v, " <- ", ident);
+					goto next_instruction;
+				}
+			}
+		next_instruction:
 			break;
 		}
 		case Opcode::BEGIN_BLOCK:
