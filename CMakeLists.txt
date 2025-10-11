@@ -94,6 +94,7 @@ add_library(${PROJECT_NAME} SHARED
     src/VM/VirtualMachine.cpp
     src/VM/PatternBytecode.cpp
     src/VM/Opcode.cpp
+    src/VM/CompilePatternToBytecode.cpp
 )
 
 # Include directories

@@ -8,6 +8,8 @@
 #include "AST/MExpr.h"
 
 #include <initializer_list>
+#include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -49,6 +51,8 @@ public:
 	/// @brief Add a label to the bytecode.
 	/// @param L The label to add.
 	void addLabel(Label L) { labelMap[L] = _instrs.size(); }
+
+	std::optional<size_t> resolveLabel(Label L) const;
 
 	void set_metadata(std::shared_ptr<MExpr> pattern, int exprRegs, int boolRegs,
 					  const std::unordered_map<std::string, ExprRegIndex>& lexical)

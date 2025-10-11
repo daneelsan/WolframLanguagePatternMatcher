@@ -54,9 +54,9 @@ enum class Opcode {
 };
 // clang-format on
 
-using ExprRegIndex = int; // register index for Expr registers
-using BoolRegIndex = int; // register index for boolean registers
-using Label = int; // label (instruction index) for jumps
+using ExprRegIndex = size_t; // register index for Expr registers
+using BoolRegIndex = size_t; // register index for boolean registers
+using Label = size_t; // label (instruction index) for jumps
 using Ident = std::string; // identifier (e.g., variable name)
 using ImmExpr = Expr; // immediate expression (for LOAD_IMM, etc.)
 
@@ -64,22 +64,41 @@ using ImmExpr = Expr; // immediate expression (for LOAD_IMM, etc.)
 struct ExprRegOp
 {
 	ExprRegIndex v;
+
+	bool operator==(const ExprRegOp& other) const { return v == other.v; }
+	bool operator!=(const ExprRegOp& other) const { return v != other.v; }
 };
+
 struct BoolRegOp
 {
 	BoolRegIndex v;
+
+	bool operator==(const BoolRegOp& other) const { return v == other.v; }
+	bool operator!=(const BoolRegOp& other) const { return v != other.v; }
 };
+
 struct LabelOp
 {
 	Label v;
+
+	bool operator==(const LabelOp& other) const { return v == other.v; }
+	bool operator!=(const LabelOp& other) const { return v != other.v; }
 };
+
 struct ImmMint
 {
 	mint v;
+
+	bool operator==(const ImmMint& other) const { return v == other.v; }
+	bool operator!=(const ImmMint& other) const { return v != other.v; }
 };
+
 struct ImmBool
 {
 	bool v;
+
+	bool operator==(const ImmBool& other) const { return v == other.v; }
+	bool operator!=(const ImmBool& other) const { return v != other.v; }
 };
 
 // Operand is a variant which can be a register wrapper, bool wrapper, a label wrapper,
@@ -111,14 +130,26 @@ inline Operand OpImm(mint v)
 {
 	return Operand { ImmMint { v } };
 }
-// inline Operand OpImm(bool v)
-// {
-// 	return Operand { ImmBool { v } };
-// }
 
 /// @brief Get the name of an opcode as a string.
 const char* opcodeName(Opcode op);
 
 /// @brief Convert an operand to a string representation.
 std::string operandToString(const Operand& op);
+
+// Optional: Helper to check if an operand is of a specific type
+template <typename T>
+bool isOperandType(const Operand& op)
+{
+	return std::holds_alternative<T>(op);
+}
+
+// Optional: Safe getter with optional return
+template <typename T>
+std::optional<T> getOperandAs(const Operand& op)
+{
+	if (auto* ptr = std::get_if<T>(&op))
+		return *ptr;
+	return std::nullopt;
+}
 }; // namespace PatternMatcher

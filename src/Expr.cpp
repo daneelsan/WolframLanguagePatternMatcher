@@ -139,7 +139,7 @@ std::string Expr::toString() const
 	return toStrExpr.as<std::string>().value_or("");
 }
 
-// Return a string from a String Expr.
+// Return the input form string of a String Expr.
 std::string Expr::toInputFormString() const
 {
 	Expr toStrExpr = Expr::construct("ToString", *this, Expr::ToExpression("InputForm")).eval();
@@ -236,5 +236,8 @@ Expr Expr::throwError(const char* txt, Expr arg1)
 	Expr eThrow = Expr::construct("DanielS`PatternMatcher`ErrorHandling`ThrowLibraryError", message, params);
 	return eThrow;
 }
+
+static Expr ENULL = Expr(LoadENULL());
+static Expr EFAIL = Expr(LoadEFAIL());
 
 }; // namespace PatternMatcher

@@ -36,6 +36,9 @@ extern "C" ExprStruct Part_E_I_E(ExprStruct, mint);
 extern "C" ExprStruct Expression_SetPart_Export(ExprStruct, ExprStruct, ExprStruct, bool*);
 extern "C" void SetElement_EIE_E(ExprStruct base, mint pos, ExprStruct elem);
 
+extern "C" ExprStruct LoadEFAIL();
+extern "C" ExprStruct LoadENULL();
+
 extern "C" mint Expression_Acquire_Export(ExprStruct);
 extern "C" mint Expression_Release_Export(ExprStruct);
 extern "C" mint Print_E_I(ExprStruct);
@@ -92,7 +95,7 @@ public:
 	}
 
 	//  this = other
-	Expr& operator=(Expr& rhs)
+	Expr& operator=(const Expr& rhs)
 	{
 		release();
 		instance = rhs.instance;

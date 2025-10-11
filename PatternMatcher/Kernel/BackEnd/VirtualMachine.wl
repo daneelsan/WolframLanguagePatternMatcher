@@ -56,7 +56,8 @@ PatternMatcherVirtualMachineQ[_] :=
 =============================================================================*)
 
 toBoxes[obj_, fmt_] :=
-	Module[{halted, cycles, pc},
+	Module[{initialized, halted, cycles, pc},
+		initialized = obj["isInitialized"];
 		halted = obj["isHalted"];
 		cycles = obj["getCycles"];
 		pc = obj["getPC"];
@@ -65,14 +66,19 @@ toBoxes[obj_, fmt_] :=
 			obj,
 			None,
 			{
+				BoxForm`SummaryItem[{"Initialized: ", obj["isInitialized"]}],
 				BoxForm`SummaryItem[{"Halted: ", halted}],
-				BoxForm`SummaryItem[{"Program counter: ", pc}]
+				BoxForm`SummaryItem[{"Program counter: ", pc}],
+				BoxForm`SummaryItem[{"Cycles: ", cycles}]
 			},
 			{
+				If[initialized,
+					BoxForm`SummaryItem[{"Current bytecode: ", bytecode = obj["getBytecode"]}],
+					Nothing
+				]
 				(*BoxForm`SummaryItem[{"Stack: ", stack}],
 				BoxForm`SummaryItem[{"Pattern bytecode: ", bytecode}],
 				BoxForm`SummaryItem[{"Bound variables: ", boundVars}],*)
-				BoxForm`SummaryItem[{"Cycles: ", cycles}]
 			}, 
 			fmt
 		]
