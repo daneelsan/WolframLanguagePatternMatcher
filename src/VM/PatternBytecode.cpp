@@ -18,59 +18,71 @@
 
 namespace PatternMatcher
 {
+/// @brief Convert instruction to string
+std::string instructionToString(const PatternBytecode::Instruction& instr)
+{
+	std::stringstream ss;
+
+	// Opcode name
+	ss << std::left << std::setw(16) << opcodeName(instr.opcode);
+
+	// Operands
+	bool first = true;
+	for (const auto& op : instr.ops)
+	{
+		if (!first)
+			ss << ", ";
+		first = false;
+		ss << operandToString(op);
+	}
+	return ss.str();
+}
+
 std::string PatternBytecode::toString() const
 {
-	std::ostringstream out;
+	std::stringstream ss;
 
-	auto formatLabel = [&](Label L) {
-		auto it = labelMap.find(L);
-		if (it != labelMap.end())
-			out << "\nL" << L << ":\n";
-	};
+	// Build reverse label map (pc -> label)
+	std::unordered_map<size_t, Label> pcToLabel;
+	for (const auto& [label, pc] : labelMap)
+		pcToLabel[pc] = label;
 
-	out << std::left;
-	size_t width = 18; // align operands roughly
+	// Find maximum PC width for alignment
+	size_t maxPCWidth = std::to_string(instrs.size() - 1).length();
 
-	for (size_t i = 0; i < instrs.size(); ++i)
+	// Print instructions
+	for (size_t pc = 0; pc < instrs.size(); ++pc)
 	{
-		// Check if this instruction is the start of a label
-		for (auto& kv : labelMap)
+		const auto& instr = instrs[pc];
+
+		// Show label if this PC is a target
+		auto labelIt = pcToLabel.find(pc);
+		if (labelIt != pcToLabel.end())
 		{
-			if (kv.second == i)
-			{
-				out << "\nL" << kv.first << ":\n";
-				break;
-			}
+			ss << "\nL" << labelIt->second << ":\n";
 		}
 
-		// Print opcode and operands
-		out << std::setw(4) << i << "  " << std::setw(width) << opcodeName(instrs[i].opcode);
-
-		if (!instrs[i].ops.empty())
-		{
-			bool first = true;
-			for (auto& op : instrs[i].ops)
-			{
-				if (!first)
-					out << ", ";
-				out << operandToString(op);
-				first = false;
-			}
-		}
-		out << "\n";
+		// PC and instruction
+		ss << std::setw(maxPCWidth) << pc << "    ";
+		ss << instructionToString(instr);
+		ss << "\n";
 	}
 
-	out << "\n----------------------------------------\n";
-	out << "Expr registers: " << exprRegisterCount << ", Bool registers: " << boolRegisterCount << "\n";
+	// Footer with summary
+	ss << "\n";
+	ss << "----------------------------------------\n";
+	ss << "Expr registers: " << exprRegisterCount << ", Bool registers: " << boolRegisterCount << "\n";
 
 	if (!lexicalMap.empty())
 	{
-		out << "Lexical bindings:\n";
-		for (auto& p : lexicalMap)
-			out << "  " << std::setw(12) << p.first << " → %e" << p.second << "\n";
+		ss << "Lexical bindings:\n";
+		for (const auto& [name, reg] : lexicalMap)
+		{
+			ss << "  " << std::setw(12) << std::left << name << " → %e" << reg << "\n";
+		}
 	}
 
-	return out.str();
+	return ss.str();
 }
 
 std::optional<size_t> PatternBytecode::resolveLabel(Label L) const

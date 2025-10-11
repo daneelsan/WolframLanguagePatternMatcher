@@ -20,41 +20,173 @@ enum class Opcode {
 /*-----------------------------------------------------------------------------
         name             args            description
 -----------------------------------------------------------------------------*/
-	// data movement / registers
-	MOVE,/*              A B             R[A] := R[B]                        */
-	LOAD_IMM,/*          A imm           R[A] := imm (Expr or literal)       */
-	LOAD_INPUT,/*        A               R[A] := input_expr                  */
+	// ===== Data Movement / Registers =====
+	MOVE,            /*  A B             R[A] := R[B]                        */
+	LOAD_IMM,        /*  A imm           R[A] := imm (Expr or literal)       */
+	LOAD_INPUT,      /*  A               R[A] := input_expr                  */
 
-	// introspection
-	GET_HEAD,/*          A B             R[A] := head(R[B])                  */
-	GET_PART,/*          A B i           R[A] := part(R[B], i)               */
-	TEST_LENGTH,/*       A B i           R[A] := (length(R[B]) == i)         */
+	// ===== Introspection =====
+	GET_HEAD,        /*  A B             R[A] := head(R[B])                  */
+	GET_PART,        /*  A B i           R[A] := part(R[B], i)               */
+	TEST_LENGTH,     /*  A B i           R[A] := (length(R[B]) == i)         */
 
-	MATCH_HEAD,/*        A imm label     if (head(R[A]) != imm) pc = label   */
+	// ===== Combined Match Operations (Optimized) =====
+	MATCH_HEAD,      /*  A imm label     if (head(R[A]) != imm) pc = label   */
+	MATCH_LENGTH,    /*  A len label     if (length(R[A]) != len) pc = label */
+	MATCH_LITERAL,   /*  A imm label     if (R[A] != imm) pc = label         */
 
-	// comparisons / booleans
-	SAMEQ,/*             A B C           R[A] := sameQ(R[B], R[C]) (A is bool reg) */
-	NOT,/*               A B             R[A] := not R[B]                    */
+	// ===== Comparisons / Booleans =====
+	SAMEQ,           /*  A B C           R[A] := sameQ(R[B], R[C]) (bool)    */
+	NOT,             /*  A B             R[A] := not R[B]                    */
 
-	// pattern primitives
-	BIND_VAR,/*          varName A       Bind lexical var `varName` := R[A]  */
-	GET_VAR,/*           A varName       R[A] := bound(varName)              */
+	// ===== Pattern Primitives =====
+	BIND_VAR,        /*  varName A       Bind lexical var `varName` := R[A]  */
+	GET_VAR,         /*  A varName       R[A] := bound(varName)              */
+	PATTERN_TEST,    /*  A predExpr      R[A] := predExpr(R[expr]) -> bool   */
 
-	PATTERN_TEST,/*      A predExpr      R[A] := predExpr(R[expr]) -> bool   */
+	// ===== Control Flow =====
+	JUMP,            /*  label           pc = label                          */
+	JUMP_IF_FALSE,   /*  A label         if !R[A] pc = label                 */
+	HALT,            /*  <no operands>   stop execution                      */
 
-	// control
-	JUMP,/*              label           pc = label                          */
-	JUMP_IF_FALSE,/*     A label         if !R[A] pc = label                 */
-	HALT,/*              <no operands>   stop execution                      */
+	// ===== Scope Management =====
+	BEGIN_BLOCK,     /*  label           signals the beginning of a block    */
+	END_BLOCK,       /*  label           signals the end of a block          */
 
-	// bookkeeping ops (begin/end block)
-	BEGIN_BLOCK,/*       label           signals the beginning of a block    */
-	END_BLOCK,/*         label           signals the end of a block          */
-
-	// Debug / helper
-	DEBUG_PRINT,/*       A               print R[A] (for debugging)          */
+	// ===== Debug / Helper =====
+	DEBUG_PRINT,     /*  A               print R[A] (for debugging)          */
+	NOP,             /*  <no operands>   no operation (for alignment/debug)  */
 };
 // clang-format on
+
+/// @brief Opcode category for grouping and analysis
+enum class OpcodeCategory
+{
+	DataMovement,
+	Introspection,
+	MatchOp,
+	Comparison,
+	Pattern,
+	ControlFlow,
+	ScopeManagement,
+	Debug
+};
+
+/// @brief Get the category of an opcode
+inline OpcodeCategory getOpcodeCategory(Opcode op)
+{
+	switch (op)
+	{
+		case Opcode::MOVE:
+		case Opcode::LOAD_IMM:
+		case Opcode::LOAD_INPUT:
+			return OpcodeCategory::DataMovement;
+
+		case Opcode::GET_HEAD:
+		case Opcode::GET_PART:
+		case Opcode::TEST_LENGTH:
+			return OpcodeCategory::Introspection;
+
+		case Opcode::MATCH_HEAD:
+		case Opcode::MATCH_LENGTH:
+		case Opcode::MATCH_LITERAL:
+			return OpcodeCategory::MatchOp;
+
+		case Opcode::SAMEQ:
+		case Opcode::NOT:
+			return OpcodeCategory::Comparison;
+
+		case Opcode::BIND_VAR:
+		case Opcode::GET_VAR:
+		case Opcode::PATTERN_TEST:
+			return OpcodeCategory::Pattern;
+
+		case Opcode::JUMP:
+		case Opcode::JUMP_IF_FALSE:
+		case Opcode::HALT:
+			return OpcodeCategory::ControlFlow;
+
+		case Opcode::BEGIN_BLOCK:
+		case Opcode::END_BLOCK:
+			return OpcodeCategory::ScopeManagement;
+
+		case Opcode::DEBUG_PRINT:
+		case Opcode::NOP:
+			return OpcodeCategory::Debug;
+
+		default:
+			return OpcodeCategory::Debug;
+	}
+}
+
+/// @brief Check if opcode is a control flow instruction
+inline bool isControlFlow(Opcode op)
+{
+	return getOpcodeCategory(op) == OpcodeCategory::ControlFlow;
+}
+
+/// @brief Check if opcode is a branch instruction
+inline bool isBranch(Opcode op)
+{
+	return op == Opcode::JUMP || op == Opcode::JUMP_IF_FALSE || op == Opcode::MATCH_HEAD || op == Opcode::MATCH_LENGTH
+		|| op == Opcode::MATCH_LITERAL;
+}
+
+/// @brief Get human-readable description of opcode
+inline const char* getOpcodeDescription(Opcode op)
+{
+	switch (op)
+	{
+		case Opcode::MOVE:
+			return "Copy value between registers";
+		case Opcode::LOAD_IMM:
+			return "Load immediate value";
+		case Opcode::LOAD_INPUT:
+			return "Load input expression";
+		case Opcode::GET_HEAD:
+			return "Extract head of expression";
+		case Opcode::GET_PART:
+			return "Extract part of expression";
+		case Opcode::TEST_LENGTH:
+			return "Test expression length";
+		case Opcode::MATCH_HEAD:
+			return "Match head and branch";
+		case Opcode::MATCH_LENGTH:
+			return "Match length and branch";
+		case Opcode::MATCH_LITERAL:
+			return "Match literal and branch";
+		case Opcode::SAMEQ:
+			return "Test structural equality";
+		case Opcode::NOT:
+			return "Boolean negation";
+		case Opcode::BIND_VAR:
+			return "Bind pattern variable";
+		case Opcode::GET_VAR:
+			return "Retrieve bound variable";
+		case Opcode::PATTERN_TEST:
+			return "Apply pattern test";
+		case Opcode::JUMP:
+			return "Unconditional jump";
+		case Opcode::JUMP_IF_FALSE:
+			return "Conditional jump";
+		case Opcode::HALT:
+			return "Stop execution";
+		case Opcode::BEGIN_BLOCK:
+			return "Begin lexical scope";
+		case Opcode::END_BLOCK:
+			return "End lexical scope";
+		case Opcode::DEBUG_PRINT:
+			return "Print debug information";
+		case Opcode::NOP:
+			return "No operation";
+		default:
+			return "Unknown opcode";
+	}
+}
+
+//=============================================================================
+// Register and operand types
+//=============================================================================
 
 using ExprRegIndex = size_t; // register index for Expr registers
 using BoolRegIndex = size_t; // register index for boolean registers
@@ -124,6 +256,10 @@ inline Operand OpImm(mint v)
 {
 	return Operand { ImmMint { v } };
 }
+
+//=============================================================================
+// Utility functions
+//=============================================================================
 
 /// @brief Get the name of an opcode as a string.
 const char* opcodeName(Opcode op);
