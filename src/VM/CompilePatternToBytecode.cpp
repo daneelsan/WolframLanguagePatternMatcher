@@ -108,15 +108,6 @@ struct CompilerState
 	}
 };
 
-/*
- * NEW: compilePatternRec takes both success and fail labels.
- *
- *   - success: label to jump to when this subpattern matches.
- *   - fail: label to jump to when this subpattern fails (will usually unwind).
- *
- * Convention:
- *   - Input expression to match is in %e0 and must not be permanently modified.
- */
 static void compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr, Label successLabel, Label failLabel,
 							  bool isTopLevel);
 
@@ -171,65 +162,87 @@ static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr
 		return;
 	}
 
-	// Create a block so we can unwind the binding on failure
-	Label blockLabel = st.newLabel();
-	st.beginBlock(blockLabel); // compile-time push + BEGIN_BLOCK marker
-
-	// inner fail handler that will unwind this block and then jump to outerFail
-	Label innerFail = st.newLabel();
-
 	// part(1): symbol name; part(2): subpattern
-	auto symM = std::static_pointer_cast<MExprSymbol>(parts[0]); // validated earlier
+	auto symM = std::static_pointer_cast<MExprSymbol>(parts[0]);
 	std::string lexName = symM->getLexicalName();
+	auto subp = parts[1];
 
 	auto it = st.lexical.find(lexName);
 	if (it != st.lexical.end())
 	{
-		// repeated variable: compare current expr (%e0) with stored one
+		// ============================================================
+		// REPEATED VARIABLE: Compare with previously bound value
+		// ============================================================
+		// No need for a block since we're not creating new bindings
+
 		ExprRegIndex storedReg = it->second;
 		BoolRegIndex b = st.allocBoolReg();
 		st.emit(Opcode::SAMEQ, { OpBoolReg(b), OpExprReg(storedReg), OpExprReg(0) });
-		// jump on false -> innerFail so it will unwind
-		st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(b), OpLabel(innerFail) });
+		// If comparison fails, jump to outer fail
+		st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(b), OpLabel(outerFail) });
 
-		// BUG FIX: After repeated variable check succeeds, we need to:
-		// 1. Check the subpattern (if it's not just Blank[])
-		// 2. Close the block properly
-		// 3. Handle top-level vs non-top-level
+		// If comparison succeeds, compile subpattern
+		compilePatternRec(st, subp, successLabel, outerFail, false);
 
-		auto subp = parts[1];
-		// Compile the subpattern with proper labels
-		compilePatternRec(st, subp, successLabel, innerFail, false);
+		// Success: if top-level, jump to success; otherwise fall through
+		if (isTopLevel)
+		{
+			st.emit(Opcode::JUMP, { OpLabel(successLabel) });
+		}
 	}
 	else
 	{
-		// first occurrence → bind current expr (%e0)
+		// ============================================================
+		// FIRST OCCURRENCE: Bind variable and match subpattern
+		// ============================================================
+
+		// Create a block for this binding
+		Label blockLabel = st.newLabel();
+		st.beginBlock(blockLabel);
+
+		// Allocate register for the binding
 		ExprRegIndex bindReg = st.allocExprReg();
 		st.emit(Opcode::MOVE, { OpExprReg(bindReg), OpExprReg(0) });
 		st.lexical[lexName] = bindReg;
 
-		// runtime binding for inspection: BIND_VAR stores to runtime frame
+		// Runtime binding for inspection
 		st.emit(Opcode::BIND_VAR, { OpIdent(lexName), OpExprReg(bindReg) });
 
-		// compile the subpattern with innerFail as failure handler
-		auto subp = parts[1];
+		// Create inner fail label that will unwind this block
+		Label innerFail = st.newLabel();
+
+		// Compile the subpattern (e.g., Blank[], Integer, etc.)
 		compilePatternRec(st, subp, successLabel, innerFail, false);
+
+		// If we reach here, subpattern succeeded
+		// Close the block normally
+		st.endBlock(blockLabel);
+
+		// **KEY FIX**: Create a label to jump past the failure handler
+		Label afterFailHandler = st.newLabel();
+
+		// If top-level, jump to success; otherwise jump past failure handler
+		if (isTopLevel)
+		{
+			st.emit(Opcode::JUMP, { OpLabel(successLabel) });
+		}
+		else
+		{
+			st.emit(Opcode::JUMP, { OpLabel(afterFailHandler) });
+		}
+
+		// ============================================================
+		// FAILURE HANDLER: Unwind and propagate failure
+		// ============================================================
+		st.bindLabel(innerFail);
+		// Pop the frame that was created by BEGIN_BLOCK
+		st.emit(Opcode::END_BLOCK, { OpLabel(blockLabel) });
+		// Jump to outer failure
+		st.emit(Opcode::JUMP, { OpLabel(outerFail) });
+
+		// Bind the "after failure handler" label so normal execution continues here
+		st.bindLabel(afterFailHandler);
 	}
-
-	// Normal exit from the block: pop the compile-time block and emit END_BLOCK (runtime pop).
-	st.endBlock(blockLabel);
-
-	// If this Pattern[...] node is the top-level pattern, emit jump to successLabel;
-	// otherwise, just fall through to parent code.
-	if (isTopLevel)
-	{
-		st.emit(Opcode::JUMP, { OpLabel(successLabel) });
-	}
-
-	// Unwind handler: on failure inside this block, pop the runtime frame and propagate failure.
-	st.bindLabel(innerFail);
-	st.emit(Opcode::END_BLOCK, { OpLabel(blockLabel) }); // runtime pop during unwind
-	st.emit(Opcode::JUMP, { OpLabel(outerFail) });
 }
 
 /* Helper: compile normal expressions head[arg1, arg2, ...] */
@@ -238,11 +251,11 @@ static void compileNormal(CompilerState& st, std::shared_ptr<MExprNormal> mexpr,
 {
 	size_t argsLen = mexpr->length();
 
-	// --- create a block for temporaries used while matching this normal expression ---
+	// Create a block for temporaries
 	Label blockLabel = st.newLabel();
-	st.beginBlock(blockLabel); // emits BEGIN_BLOCK and pushes blockLabel on compile-time stack
+	st.beginBlock(blockLabel);
 
-	// make an inner fail label that will unwind this block and then jump to outerFail
+	// Inner fail label that will unwind this block
 	Label innerFail = st.newLabel();
 
 	// --- 1. Test argument length ---
@@ -262,42 +275,55 @@ static void compileNormal(CompilerState& st, std::shared_ptr<MExprNormal> mexpr,
 	st.emit(Opcode::SAMEQ, { OpBoolReg(bHeadEq), OpExprReg(rHead), OpExprReg(rHeadImm) });
 	st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(bHeadEq), OpLabel(innerFail) });
 
-	// --- 3. Save r0 before recursive calls ---
+	// --- 3. Save %e0 before recursive calls ---
 	ExprRegIndex rSaved = st.allocExprReg();
 	st.emit(Opcode::MOVE, { OpExprReg(rSaved), OpExprReg(0) });
 
-	// --- 4. Compile each argument subpattern (failures goto innerFail) ---
+	// --- 4. Match each argument subpattern ---
 	for (mint i = 1; i <= static_cast<mint>(argsLen); ++i)
 	{
+		// Extract the i-th part
 		ExprRegIndex rPart = st.allocExprReg();
 		st.emit(Opcode::GET_PART, { OpExprReg(rPart), OpExprReg(0), OpImm(i) });
 
-		// Move part into input register (%e0) for subpattern compilation
+		// Move part into %e0 for matching
 		st.emit(Opcode::MOVE, { OpExprReg(0), OpExprReg(rPart) });
 
 		auto child = mexpr->part(i);
-		// BUG FIX: For non-top-level subpatterns, pass successLabel correctly
-		// but they should NOT jump to success (fall through instead)
+		// Compile child pattern - if it fails, jump to innerFail
+		// On success, it falls through to the next iteration
 		compilePatternRec(st, child, successLabel, innerFail, false);
 
-		// Restore input register
+		// Restore %e0 for next iteration
 		st.emit(Opcode::MOVE, { OpExprReg(0), OpExprReg(rSaved) });
 	}
 
-	// --- Success path: pop the compile-time block and emit END_BLOCK (runtime pop) ---
-	st.endBlock(blockLabel); // will emit END_BLOCK and pop blockLabel from compile-time stack
+	// All arguments matched successfully
+	// Close the block normally
+	st.endBlock(blockLabel);
 
-	// If this Normal node is the top-level pattern, emit jump to successLabel;
-	// otherwise, just fall through to parent code.
+	// **KEY FIX**: Create a label to jump past the failure handler
+	Label afterFailHandler = st.newLabel();
+
+	// If top-level, jump to success; otherwise jump past failure handler
 	if (isTopLevel)
 	{
 		st.emit(Opcode::JUMP, { OpLabel(successLabel) });
 	}
+	else
+	{
+		st.emit(Opcode::JUMP, { OpLabel(afterFailHandler) });
+	}
 
-	// --- Unwind handler for failures inside this block ---
+	// ============================================================
+	// FAILURE HANDLER: Unwind and propagate
+	// ============================================================
 	st.bindLabel(innerFail);
-	st.emit(Opcode::END_BLOCK, { OpLabel(blockLabel) }); // runtime unwind pop
+	st.emit(Opcode::END_BLOCK, { OpLabel(blockLabel) });
 	st.emit(Opcode::JUMP, { OpLabel(outerFail) });
+
+	// Bind the "after failure handler" label
+	st.bindLabel(afterFailHandler);
 }
 
 /* Recursive compiler dispatcher */
@@ -368,33 +394,37 @@ std::shared_ptr<PatternBytecode> CompilePatternToBytecode(const Expr& patternExp
 
 	CompilerState st;
 
-	// Label allocation
-	Label entryLabel = st.newLabel();
-	Label failLabel = st.newLabel();
-	Label successLabel = st.newLabel();
+	// Allocate labels
+	Label entryLabel = st.newLabel(); // L0
+	Label failLabel = st.newLabel(); // L1
+	Label successLabel = st.newLabel(); // L2
 
 	// Entry block
 	st.beginBlock(entryLabel);
 
-	// Compile the pattern; we pass success and fail labels.
+	// Compile the pattern (isTopLevel=true means it will jump to success/fail)
 	compilePatternRec(st, pattern, successLabel, failLabel, true);
 
-	// Close entry block (pop any compile-time block marker)
+	// Close entry block
 	st.endBlock(entryLabel);
 
-	// Failure block
+	// ============================================================
+	// FAILURE BLOCK
+	// ============================================================
 	st.bindLabel(failLabel);
 	st.beginBlock(failLabel);
 	st.emit(Opcode::DEBUG_PRINT, { OpImm(Expr("Pattern failed")) });
-	st.emit(Opcode::LOAD_IMM, { OpBoolReg(0), OpImm(false) }); // load false into %b0
+	st.emit(Opcode::LOAD_IMM, { OpBoolReg(0), OpImm(false) });
 	st.emit(Opcode::HALT, {});
 	st.endBlock(failLabel);
 
-	// Success block
+	// ============================================================
+	// SUCCESS BLOCK
+	// ============================================================
 	st.bindLabel(successLabel);
 	st.beginBlock(successLabel);
 	st.emit(Opcode::DEBUG_PRINT, { OpImm(Expr("Pattern succeeded")) });
-	st.emit(Opcode::LOAD_IMM, { OpBoolReg(0), OpImm(true) }); // load true into %b0
+	st.emit(Opcode::LOAD_IMM, { OpBoolReg(0), OpImm(true) });
 	st.emit(Opcode::HALT, {});
 	st.endBlock(successLabel);
 
