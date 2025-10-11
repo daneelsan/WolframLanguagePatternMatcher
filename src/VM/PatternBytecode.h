@@ -30,11 +30,11 @@ public:
 	~PatternBytecode() = default;
 
 	/// @brief Get the instructions of the bytecode.
-	const std::vector<Instruction>& getInstructions() const { return _instrs; }
+	const std::vector<Instruction>& getInstructions() const { return instrs; }
 
 	/// @brief Get the length of the bytecode.
 	/// @return The length of the bytecode in bytes.
-	size_t length() const { return _instrs.size(); }
+	size_t length() const { return instrs.size(); }
 
 	int getExprRegisterCount() const { return exprRegisterCount; }
 	int getBoolRegisterCount() const { return boolRegisterCount; }
@@ -45,12 +45,12 @@ public:
 	/// @param ops_ The operands of the instruction.
 	void push_instr(Opcode op, std::initializer_list<Operand> ops_)
 	{
-		_instrs.push_back(Instruction { op, std::vector<Operand>(ops_) });
+		instrs.push_back(Instruction { op, std::vector<Operand>(ops_) });
 	}
 
 	/// @brief Add a label to the bytecode.
 	/// @param L The label to add.
-	void addLabel(Label L) { labelMap[L] = _instrs.size(); }
+	void addLabel(Label L) { labelMap[L] = instrs.size(); }
 
 	std::optional<size_t> resolveLabel(Label L) const;
 
@@ -68,10 +68,9 @@ public:
 	/// @return The string representation of the bytecode.
 	std::string toString() const;
 
-	/// @brief Compiles a pattern expression into bytecode.
-	/// @param expr The pattern expression to compile.
-	/// @return A shared pointer to the compiled bytecode.
-	static std::shared_ptr<PatternBytecode> CompilePatternToBytecode(const Expr& expr);
+
+	/// @brief Optimize the bytecode (e.g., remove no-op instructions).
+	void optimize();
 
 	/// @brief Initializes the embedded methods for the Bytecode class.
 	/// @param embedName The name to use for embedding.
@@ -79,7 +78,7 @@ public:
 
 private:
 	std::shared_ptr<MExpr> pattern; // original pattern expression (for reference/debugging)
-	std::vector<Instruction> _instrs;
+	std::vector<Instruction> instrs;
 
 	// metadata
 	int exprRegisterCount = 0; // number of registers used for Expr values

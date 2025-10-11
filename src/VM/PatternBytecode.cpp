@@ -31,7 +31,7 @@ std::string PatternBytecode::toString() const
 	out << std::left;
 	size_t width = 18; // align operands roughly
 
-	for (size_t i = 0; i < _instrs.size(); ++i)
+	for (size_t i = 0; i < instrs.size(); ++i)
 	{
 		// Check if this instruction is the start of a label
 		for (auto& kv : labelMap)
@@ -44,12 +44,12 @@ std::string PatternBytecode::toString() const
 		}
 
 		// Print opcode and operands
-		out << std::setw(4) << i << "  " << std::setw(width) << opcodeName(_instrs[i].opcode);
+		out << std::setw(4) << i << "  " << std::setw(width) << opcodeName(instrs[i].opcode);
 
-		if (!_instrs[i].ops.empty())
+		if (!instrs[i].ops.empty())
 		{
 			bool first = true;
-			for (auto& op : _instrs[i].ops)
+			for (auto& op : instrs[i].ops)
 			{
 				if (!first)
 					out << ", ";
@@ -81,6 +81,34 @@ std::optional<size_t> PatternBytecode::resolveLabel(Label L) const
 	throw std::nullopt;
 }
 
+void PatternBytecode::optimize()
+{
+	// TODO: split in multiple passes for different optimizations
+
+	// Pass 1: Remove JUMP_IF_FALSE with always-true conditions
+	for (size_t i = 0; i + 1 < instrs.size();)
+	{
+		// Pattern: LOAD_IMM %b, 1 followed by JUMP_IF_FALSE %b, L
+		if (instrs[i].opcode == Opcode::LOAD_IMM && instrs[i + 1].opcode == Opcode::JUMP_IF_FALSE)
+		{
+			auto dstBool = std::get_if<BoolRegOp>(&instrs[i].ops[0]);
+			auto immMint = std::get_if<ImmMint>(&instrs[i].ops[1]);
+			auto jumpBool = std::get_if<BoolRegOp>(&instrs[i + 1].ops[0]);
+
+			if (dstBool && immMint && jumpBool && (dstBool == jumpBool) && (immMint->v != 0))
+			{
+				// This is a dead jump - remove both instructions
+				instrs.erase(instrs.begin() + i, instrs.begin() + i + 2);
+				continue; // Don't increment i
+			}
+		}
+		++i;
+	}
+
+	// Pass 2: Remove unreachable code after unconditional jumps
+	// (More complex - would need to track which labels are targets)
+}
+
 namespace PatternBytecodeInterface
 {
 	Expr getBoolRegisterCount(std::shared_ptr<PatternBytecode> bytecode)
@@ -98,6 +126,11 @@ namespace PatternBytecodeInterface
 	Expr length(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(static_cast<mint>(bytecode->length()));
+	}
+	Expr optimize(std::shared_ptr<PatternBytecode> bytecode)
+	{
+		bytecode->optimize();
+		return Expr::ToExpression("Null");
 	}
 	Expr toBoxes(Expr objExpr, Expr fmt)
 	{
@@ -117,6 +150,7 @@ void PatternBytecode::initializeEmbedMethods(const char* embedName)
 		embedName, "getExprRegisterCount");
 	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::getPattern>(embedName, "getPattern");
 	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::length>(embedName, "length");
+	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::optimize>(embedName, "optimize");
 	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::toBoxes>(embedName, "toBoxes");
 	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::toString>(embedName, "toString");
 }

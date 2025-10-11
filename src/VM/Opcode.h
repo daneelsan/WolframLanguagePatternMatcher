@@ -93,14 +93,6 @@ struct ImmMint
 	bool operator!=(const ImmMint& other) const { return v != other.v; }
 };
 
-struct ImmBool
-{
-	bool v;
-
-	bool operator==(const ImmBool& other) const { return v == other.v; }
-	bool operator!=(const ImmBool& other) const { return v != other.v; }
-};
-
 // Operand is a variant which can be a register wrapper, bool wrapper, a label wrapper,
 // an identifier (string), an Expr immediate, a mint literal, or a bool literal.
 using Operand = std::variant<std::monostate, ExprRegOp, BoolRegOp, LabelOp, Ident, ImmExpr, ImmMint>;
