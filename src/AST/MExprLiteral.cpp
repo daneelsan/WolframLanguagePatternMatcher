@@ -17,8 +17,14 @@ std::shared_ptr<MExpr> MExprLiteral::getHead() const
 bool MExprLiteral::sameQ(std::shared_ptr<MExpr> other) const
 {
 	if (other->getKind() != Kind::Literal)
+	{
 		return false;
+	}
 	auto o = std::static_pointer_cast<MExprLiteral>(other);
+	if (getID() == o->getID())
+	{
+		return true;
+	}
 	return _expr.sameQ(o->_expr);
 }
 
