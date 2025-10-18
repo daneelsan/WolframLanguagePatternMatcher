@@ -189,6 +189,29 @@ Test[
 ]
 
 
+(*==============================================================================
+	Prevent symbol leaking
+==============================================================================*)
+
+Test[
+	leaks := (Print["I'm leaking!"]; $Failed);
+	sym = ConstructMExpr[leaks];
+	sym // MExprSymbolQ
+	,
+	True
+	,
+	TestID->"MExprSymbol-20251018-J8W7I3"
+]
+
+Test[
+	sym["getHeldExpr"]
+	,
+	HoldComplete[TestContext`leaks]
+	,
+	TestID->"MExprSymbol-20251018-U0F1E9"
+]
+
+
 TestStatePop[Global`contextState]
 
 

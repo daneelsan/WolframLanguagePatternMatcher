@@ -66,7 +66,7 @@ DeleteObject[MExprEnvironment[...]]
 SetAttributes[ConstructMExpr, HoldAllComplete];
 
 ConstructMExpr[expr_] :=
-	$MExprEnvironment["constructMExpr", expr];
+	$MExprEnvironment["constructMExpr", HoldComplete[expr]];
 
 
 (*=============================================================================

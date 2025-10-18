@@ -43,7 +43,7 @@ namespace MethodInterface
 {
 	Expr constructMExpr(MExprEnvironment* env, Expr e)
 	{
-		return MExpr::toExpr(env->constructMExpr(e));
+		return MExpr::toExpr(env->constructMExpr(e.part(1)));
 	}
 }; // namespace MethodInterface
 
