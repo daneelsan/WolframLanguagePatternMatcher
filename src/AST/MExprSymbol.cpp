@@ -8,29 +8,6 @@
 
 namespace PatternMatcher
 {
-// Get the symbol context, e.g. "System`" or "Global`"
-// Returns empty string on failure (caller should handle)
-static std::string getSymbolContext(const Expr& e)
-{
-	auto contextExpr = Expr::construct("Context", e).eval();
-	auto contextOpt = contextExpr.as<std::string>();
-	if (!contextOpt)
-	{
-		PM_ERROR("getSymbolContext failed for: ", e);
-		return "";
-	}
-	return *contextOpt;
-}
-
-// Return whether the symbol has the Protected attribute.
-// If something goes wrong, default to false.
-static bool isProtectedSymbol(const Expr& e)
-{
-	auto attrExpr = Expr::construct("Attributes", e).eval();
-	auto res = Expr::construct("MemberQ", attrExpr, Expr::ToExpression("Protected")).eval();
-	return res.as<bool>().value_or(false);
-}
-
 std::shared_ptr<MExpr> MExprSymbol::create(const Expr& e)
 {
 	std::string context = e.context().value();
@@ -56,9 +33,18 @@ bool MExprSymbol::sameQ(std::shared_ptr<MExpr> other) const
 
 namespace MExprSymbolInterface
 {
+	Expr getContext(std::shared_ptr<MExprSymbol> obj) {
+		return Expr(obj->getContext());
+	}
 	Expr getLexicalName(std::shared_ptr<MExprSymbol> obj)
 	{
 		return Expr(obj->getLexicalName());
+	}
+	Expr getSourceName(std::shared_ptr<MExprSymbol> obj) {
+		return Expr(obj->getSourceName());
+	}
+	Expr isSystemProtected(std::shared_ptr<MExprSymbol> obj) {
+		return toExpr(obj->isSystemProtected());
 	}
 	Expr toBoxes(Expr objExpr, Expr fmt)
 	{
@@ -69,7 +55,10 @@ namespace MExprSymbolInterface
 void MExprSymbol::initializeEmbedMethods(const char* embedName)
 {
 	initializeEmbedMethodsCommon<MExprSymbol>(embedName);
+	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::getContext>(embedName, "getContext");
 	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::getLexicalName>(embedName, "getLexicalName");
+	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::getSourceName>(embedName, "getSourceName");
+	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::isSystemProtected>(embedName, "isSystemProtected");
 	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::toBoxes>(embedName, "toBoxes");
 }
 }; // namespace PatternMatcher

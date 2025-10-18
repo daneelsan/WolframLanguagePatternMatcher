@@ -118,7 +118,7 @@ public:
 		, context(std::move(context))
 		, sourceName(std::move(sourceName))
 		, name(std::move(name))
-		, protectedQ(prot)
+		, system_protected(prot)
 	{
 	}
 
@@ -137,8 +137,6 @@ public:
 
 	bool sameQ(std::shared_ptr<MExpr> other) const override;
 
-	bool isProtected() const { return protectedQ; }
-
 	const std::string& getContext() const { return context; }
 
 	const std::string& getSourceName() const { return sourceName; }
@@ -147,9 +145,11 @@ public:
 
 	const std::string& getLexicalName() const { return sourceName; } // TODO: change if we add renaming
 
+	bool isSystemProtected() const { return system_protected; }
+
 	void rename(const std::string& newName)
 	{
-		if (!protectedQ)
+		if (!system_protected)
 			name = newName;
 	}
 
@@ -157,7 +157,7 @@ public:
 
 private:
 	Expr _expr;
-	bool protectedQ;
+	bool system_protected;
 	std::string context;
 	std::string sourceName;
 	std::string name;
