@@ -40,6 +40,9 @@ namespace MExprSymbolInterface
 	{
 		return Expr(obj->getLexicalName());
 	}
+	Expr getName(std::shared_ptr<MExprSymbol> obj) {
+		return Expr(obj->getName());
+	}
 	Expr getSourceName(std::shared_ptr<MExprSymbol> obj) {
 		return Expr(obj->getSourceName());
 	}
@@ -57,6 +60,7 @@ void MExprSymbol::initializeEmbedMethods(const char* embedName)
 	initializeEmbedMethodsCommon<MExprSymbol>(embedName);
 	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::getContext>(embedName, "getContext");
 	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::getLexicalName>(embedName, "getLexicalName");
+	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::getName>(embedName, "getName");
 	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::getSourceName>(embedName, "getSourceName");
 	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::isSystemProtected>(embedName, "isSystemProtected");
 	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::toBoxes>(embedName, "toBoxes");

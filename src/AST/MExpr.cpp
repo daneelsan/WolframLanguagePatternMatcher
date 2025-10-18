@@ -41,6 +41,10 @@ std::string MExpr::toString() const
 	return getExpr().toString();
 }
 
+Expr MExpr::getHeldExpr() const {
+	return Expr::construct("HoldComplete", getExpr());
+}
+
 Expr MExpr::toExpr(std::shared_ptr<MExpr> mexpr)
 {
 	if (auto l = std::dynamic_pointer_cast<MExprLiteral>(mexpr))
@@ -90,6 +94,12 @@ bool MExpr::hasHead(const char* headName) const
 
 namespace MethodInterface
 {
+	template <typename T>
+	Expr getHeldExpr(std::shared_ptr<T> mexpr)
+	{
+		return mexpr->getHeldExpr();
+	}
+
 	template <typename T>
 	Expr getHead(T* mexpr)
 	{
@@ -148,6 +158,7 @@ template <typename T>
 void MExpr::initializeEmbedMethodsCommon(const char* embedName)
 {
 	using SharedT = std::shared_ptr<T>;
+	RegisterMethod<SharedT, MethodInterface::getHeldExpr<T>>(embedName, "getHeldExpr");
 	RegisterMethod<SharedT, MethodInterface::getHead<T>>(embedName, "getHead");
 	RegisterMethod<SharedT, MethodInterface::getID<T>>(embedName, "getID");
 	RegisterMethod<SharedT, MethodInterface::hasHead<T>>(embedName, "hasHead");

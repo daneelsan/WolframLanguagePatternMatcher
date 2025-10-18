@@ -35,6 +35,8 @@ public:
 
 	virtual Expr getExpr() const = 0; // force subclasses to expose Expr
 
+	Expr getHeldExpr() const;
+
 	virtual size_t length() const = 0;
 
 	virtual std::shared_ptr<MExpr> getHead() const = 0;
