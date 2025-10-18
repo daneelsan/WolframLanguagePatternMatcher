@@ -108,7 +108,7 @@ toMExprLiteralBoxes[mexpr_, fmt_] :=
 		"",
 		{
 			BoxForm`SummaryItem[{"id: ", mexpr["getID"]}],
-			BoxForm`SummaryItem[{"value: ", ToString[mexpr["toString"], InputForm]}]
+			BoxForm`SummaryItem[{"value: ", ReleaseHold[mexpr["getHeldExpr"]]}]
 		},
 		{},
 		fmt
@@ -151,7 +151,7 @@ toMExprNormalBoxes[mexpr_, fmt_] :=
 		"",
 		{
 			BoxForm`SummaryItem[{"id: ", mexpr["getID"]}],
-			BoxForm`SummaryItem[{"value: ", mexpr["toString"]}]
+			BoxForm`SummaryItem[{"held expr: ", mexpr["getHeldExpr"]}]
 		},
 		{},
 		fmt

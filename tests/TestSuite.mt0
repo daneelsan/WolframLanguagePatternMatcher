@@ -1,0 +1,14 @@
+TestSuite[
+	{
+		"InitializeTests.m"
+		,
+		"AST/MExprEnvironment.mt"
+		,
+		"AST/MExprLiteral.mt"
+		,
+		"AST/MExprSymbol.mt"
+		,
+		"AST/MExprNormal.mt"
+		,
+		"FinalizeTests.m"
+}]

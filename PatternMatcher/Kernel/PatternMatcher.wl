@@ -1,8 +1,3 @@
-Unprotect["DanielS`PatternMatcher`*"];
-ClearAll["DanielS`PatternMatcher`*"];
-ClearAll["DanielS`PatternMatcher`*`*"];
-
-
 BeginPackage["DanielS`PatternMatcher`"];
 
 
@@ -41,21 +36,12 @@ ResetPatternMatcherVirtualMachine::usage =
 Begin["`Private`"];
 
 
-(*
-	TODO: Remove this hack. CreateMExpr should be independent of the compiler.
-*)
-(*FunctionCompile[Function[1]];*)
-
-
-Needs["DanielS`PatternMatcher`AST`"]
-Needs["DanielS`PatternMatcher`FrontEnd`"]
-Needs["DanielS`PatternMatcher`BackEnd`"]
+Get["DanielS`PatternMatcher`AST`"]
+Get["DanielS`PatternMatcher`FrontEnd`"]
+Get["DanielS`PatternMatcher`BackEnd`"]
 
 
 End[];
 
 
 EndPackage[];
-
-
-SetAttributes[#, {Protected, ReadProtected}] & /@ Evaluate @ Names["DanielS`PatternMatcher`*"];
