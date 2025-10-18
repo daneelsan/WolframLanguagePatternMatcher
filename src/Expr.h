@@ -63,6 +63,10 @@ extern "C" bool TestGet_Integer(ExprStruct arg, const uint32_t size, const bool 
 
 extern "C" bool CompiledObjectInstanceQ_Export(ExprStruct arg, const char* className);
 
+extern "C" ExprStruct CompilerSymbolName(ExprStruct sym);
+extern "C" ExprStruct CompilerContext(ExprStruct sym);
+extern "C" bool CompilerProtectedQ(ExprStruct sym);
+
 class Expr
 {
 
@@ -189,6 +193,12 @@ public:
 	bool listQ() const;
 
 	bool symbolQ() const;
+
+	std::optional<std::string> symbolName() const;
+
+	std::optional<std::string> context() const;
+
+	std::optional<bool> protectedQ() const;
 
 	std::string toString() const;
 

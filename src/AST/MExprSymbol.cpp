@@ -33,10 +33,10 @@ static bool isProtectedSymbol(const Expr& e)
 
 std::shared_ptr<MExpr> MExprSymbol::create(const Expr& e)
 {
-	std::string context = getSymbolContext(e);
-	std::string sourceName = e.toString(); // TODO: Get the name of the symbol without the context
+	std::string context = e.context().value();
+	std::string sourceName = e.symbolName().value();
 	bool isSystem = context == "System`";
-	bool isProtected = isProtectedSymbol(e);
+	bool isProtected = e.protectedQ().value();
 	MExprEnvironment* env = &MExprEnvironment::instance();
 	return env->getOrCreateSymbol(e, context, sourceName, isSystem && isProtected);
 }
