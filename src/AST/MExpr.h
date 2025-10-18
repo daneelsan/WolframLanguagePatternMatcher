@@ -145,7 +145,7 @@ public:
 
 	const std::string& getName() const { return name; }
 
-	const std::string& getLexicalName() const { return sourceName; } // TODO: change if we add renaming
+	std::string getLexicalName() const;
 
 	bool isSystemProtected() const { return system_protected; }
 

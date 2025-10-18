@@ -23,6 +23,10 @@ std::shared_ptr<MExpr> MExprSymbol::getHead() const
 	return MExprSymbol::create(Expr::ToExpression("Symbol"));
 }
 
+std::string MExprSymbol::getLexicalName() const {
+	return getContext() + getName();
+}
+
 bool MExprSymbol::sameQ(std::shared_ptr<MExpr> other) const
 {
 	if (other->getKind() != Kind::Symbol)
