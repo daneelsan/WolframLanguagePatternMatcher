@@ -41,9 +41,12 @@ std::shared_ptr<MExpr> MExprEnvironment::constructMExpr(const Expr& e)
 
 namespace MethodInterface
 {
-	Expr constructMExpr(MExprEnvironment* env, Expr e)
+	// This method assumes the passed expression is HoldComplete[expr].
+	Expr constructMExpr(MExprEnvironment* env, Expr heldExpr)
 	{
-		return MExpr::toExpr(env->constructMExpr(e.part(1)));
+		// Get the unheld expression
+		auto expr = heldExpr.part(1);
+		return MExpr::toExpr(env->constructMExpr(expr));
 	}
 }; // namespace MethodInterface
 
