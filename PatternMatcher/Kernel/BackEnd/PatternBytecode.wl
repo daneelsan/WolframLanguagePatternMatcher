@@ -56,7 +56,7 @@ toBoxes[obj_, fmt_] :=
 			obj,
 			None,
 			{
-				BoxForm`SummaryItem[{"Pattern: ", pattern}],
+				BoxForm`SummaryItem[{"Pattern: ", ClickToCopy[pattern["getHeldFormExpr"], pattern["getHeldExpr"]]}],
 				BoxForm`SummaryItem[{"Number of Expr registers: ", exprRegisterCount}],
 				BoxForm`SummaryItem[{"Number of Bool registers: ", boolRegisterCount}]
 			},
