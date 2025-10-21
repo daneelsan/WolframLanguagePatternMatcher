@@ -41,8 +41,14 @@ std::string MExpr::toString() const
 	return getExpr().toString();
 }
 
-Expr MExpr::getHeldExpr() const {
+Expr MExpr::getHeldExpr() const
+{
 	return Expr::construct("HoldComplete", getExpr());
+}
+
+Expr MExpr::getHeldFormExpr() const
+{
+	return Expr::construct("HoldCompleteForm", getExpr());
 }
 
 Expr MExpr::toExpr(std::shared_ptr<MExpr> mexpr)
@@ -95,9 +101,21 @@ bool MExpr::hasHead(const char* headName) const
 namespace MethodInterface
 {
 	template <typename T>
+	Expr getExpr(std::shared_ptr<T> mexpr)
+	{
+		return mexpr->getExpr();
+	}
+
+	template <typename T>
 	Expr getHeldExpr(std::shared_ptr<T> mexpr)
 	{
 		return mexpr->getHeldExpr();
+	}
+
+	template <typename T>
+	Expr getHeldFormExpr(std::shared_ptr<T> mexpr)
+	{
+		return mexpr->getHeldFormExpr();
 	}
 
 	template <typename T>
@@ -158,7 +176,9 @@ template <typename T>
 void MExpr::initializeEmbedMethodsCommon(const char* embedName)
 {
 	using SharedT = std::shared_ptr<T>;
+	RegisterMethod<SharedT, MethodInterface::getExpr<T>>(embedName, "getExpr");
 	RegisterMethod<SharedT, MethodInterface::getHeldExpr<T>>(embedName, "getHeldExpr");
+	RegisterMethod<SharedT, MethodInterface::getHeldFormExpr<T>>(embedName, "getHeldFormExpr");
 	RegisterMethod<SharedT, MethodInterface::getHead<T>>(embedName, "getHead");
 	RegisterMethod<SharedT, MethodInterface::getID<T>>(embedName, "getID");
 	RegisterMethod<SharedT, MethodInterface::hasHead<T>>(embedName, "hasHead");

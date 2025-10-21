@@ -29,33 +29,68 @@ public:
 	}
 	virtual ~MExpr() = default;
 
+	/// @brief Get the unique ID of this MExpr.
+	/// @return The unique ID.
 	mint getID() const { return _id; }
 
+	/// @brief Get the kind of this MExpr.
+	/// @return The kind.
 	Kind getKind() const { return _kind; }
 
-	virtual Expr getExpr() const = 0; // force subclasses to expose Expr
-
-	Expr getHeldExpr() const;
-
+	/// @brief Get the number of children of the expression.
+	/// @return The number of children.
 	virtual size_t length() const = 0;
 
+	/// @brief Get the head of the expression.
+	/// @return The head MExpr.
 	virtual std::shared_ptr<MExpr> getHead() const = 0;
 
-	bool hasHead(std::shared_ptr<MExpr> headMExpr) const;
+	/// @brief Get the expression represented by this MExpr.
+	/// @return The expression represented by this MExpr.
+	virtual Expr getExpr() const = 0; // force subclasses to expose Expr
 
-	bool hasHead(const Expr& headExpr) const;
+	/// @brief Get the held expression (i.e., HoldComplete[expr]).
+	/// @return The held expression.
+	Expr getHeldExpr() const;
 
-	bool hasHead(const char* headName) const;
+	///	@brief Get the held form expression (i.e., HoldCompleteForm[expr]). 
+	/// @return The held form expression.
+	Expr getHeldFormExpr() const;
 
+	/// @brief Compare this MExpr with another for structural equality.
+	/// @param other The other MExpr to compare with.
+	/// @return true if they are structurally equal, false otherwise.
 	virtual bool sameQ(std::shared_ptr<MExpr> other) const = 0;
 
+	/// @brief Check if this MExpr has a specific head.
+	/// @param headMExpr The head MExpr to check for.
+	/// @return true if this MExpr has the specified head, false otherwise.
+	bool hasHead(std::shared_ptr<MExpr> headMExpr) const;
+
+	/// @brief Check if this MExpr has a specific head.
+	/// @param headExpr The head Expr to check for.
+	/// @return true if this MExpr has the specified head, false otherwise.
+	bool hasHead(const Expr& headExpr) const;
+
+	/// @brief Check if this MExpr has a specific head.
+	/// @param headName The name of the head to check for.
+	/// @return true if this MExpr has the specified head, false otherwise.
+	bool hasHead(const char* headName) const;
+
+	/// @brief Convert this MExpr to its string representation.
+	/// @return The string representation of this MExpr.
 	std::string toString() const;
 
 	static Expr toExpr(std::shared_ptr<MExpr> expr);
 
+	/// @brief Construct an MExpr from an Expr.
+	/// @param e The Expr to construct the MExpr from.
+	/// @return The constructed MExpr.
 	static std::shared_ptr<MExpr> construct(const Expr& e);
 
-	virtual void initializeEmbedMethods(const char*) = 0;
+	/// @brief Initialize embedding methods for the MExpr instance.
+	/// @param embedName The name to use for embedding.
+	virtual void initializeEmbedMethods(const char* embedName) = 0;
 
 	template <typename T>
 	void initializeEmbedMethodsCommon(const char* embedName);
