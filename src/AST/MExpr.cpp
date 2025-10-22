@@ -119,20 +119,20 @@ namespace MethodInterface
 	}
 
 	template <typename T>
-	Expr getHead(T* mexpr)
+	Expr getHead(std::shared_ptr<T> mexpr)
 	{
 		auto headMExpr = mexpr->getHead();
 		return MExpr::toExpr(headMExpr);
 	}
 
 	template <typename T>
-	Expr getID(T* mexpr)
+	Expr getID(std::shared_ptr<T> mexpr)
 	{
 		return Expr(mexpr->getID());
 	}
 
 	template <typename T>
-	Expr hasHead(T* mexpr, Expr headExpr)
+	Expr hasHead(std::shared_ptr<T> mexpr, Expr headExpr)
 	{
 		bool res = false;
 		auto headMExprOpt = headExpr.as<std::shared_ptr<MExpr>>();
@@ -148,13 +148,13 @@ namespace MethodInterface
 	}
 
 	template <typename T>
-	Expr length(T* mexpr)
+	Expr length(std::shared_ptr<T> mexpr)
 	{
 		return Expr(mexpr->length());
 	}
 
 	template <typename T>
-	Expr sameQ(T* mexpr, Expr other)
+	Expr sameQ(std::shared_ptr<T> mexpr, Expr other)
 	{
 		bool res = false;
 		auto otherOpt = other.as<std::shared_ptr<MExpr>>();
@@ -166,7 +166,13 @@ namespace MethodInterface
 	}
 
 	template <typename T>
-	Expr toString(T* mexpr)
+	Expr symbolQ(std::shared_ptr<T> mexpr)
+	{
+		return toExpr(mexpr->getKind() == MExpr::Kind::Symbol);
+	}
+
+	template <typename T>
+	Expr toString(std::shared_ptr<T> mexpr)
 	{
 		return Expr(mexpr->toString());
 	}
@@ -185,6 +191,7 @@ void MExpr::initializeEmbedMethodsCommon(const char* embedName)
 	RegisterMethod<SharedT, MethodInterface::length<T>>(embedName, "length");
 	RegisterMethod<SharedT, MethodInterface::toString<T>>(embedName, "toString");
 	RegisterMethod<SharedT, MethodInterface::sameQ<T>>(embedName, "sameQ");
+	RegisterMethod<SharedT, MethodInterface::symbolQ<T>>(embedName, "symbolQ");
 }
 
 // Explicit instantiations:
