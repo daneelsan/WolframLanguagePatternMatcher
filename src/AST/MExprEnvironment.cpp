@@ -25,13 +25,13 @@ std::shared_ptr<MExprSymbol> MExprEnvironment::getOrCreateSymbol(const Expr& e, 
 			}
 		}
 
-		auto mexpr = std::make_shared<MExprSymbol>(e, context, sourceName, sourceName, true);
+		auto mexpr = std::make_shared<MExprSymbol>(e, context, sourceName, true);
 		symbol_cache[sourceName] = mexpr;
 		return mexpr;
 	}
 
 	// Non-protected symbols are not cached
-	return std::make_shared<MExprSymbol>(e, context, sourceName, sourceName, false);
+	return std::make_shared<MExprSymbol>(e, context, sourceName, false);
 }
 
 std::shared_ptr<MExpr> MExprEnvironment::constructMExpr(const Expr& e)

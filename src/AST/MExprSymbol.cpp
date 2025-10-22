@@ -18,13 +18,27 @@ std::shared_ptr<MExpr> MExprSymbol::create(const Expr& e)
 	return env->getOrCreateSymbol(e, context, sourceName, isSystem && isProtected);
 }
 
+Expr MExprSymbol::getExpr() const
+{
+	const auto& lex_name = getLexicalName();
+	return Expr::ToExpression(lex_name.c_str());
+}
+
 std::shared_ptr<MExpr> MExprSymbol::getHead() const
 {
 	return MExprSymbol::create(Expr::ToExpression("Symbol"));
 }
 
-std::string MExprSymbol::getLexicalName() const {
+std::string MExprSymbol::getLexicalName() const
+{
 	return getContext() + getName();
+}
+
+bool MExprSymbol::updateName(const std::string& newName)
+{
+	if (!system_protected)
+		name = newName;
+	return !system_protected;
 }
 
 bool MExprSymbol::sameQ(std::shared_ptr<MExpr> other) const
@@ -32,33 +46,47 @@ bool MExprSymbol::sameQ(std::shared_ptr<MExpr> other) const
 	if (other->getKind() != Kind::Symbol)
 		return false;
 	auto o = std::static_pointer_cast<MExprSymbol>(other);
-	if (getID() == o->getID()) {
+	if (getID() == o->getID())
+	{
 		return true;
 	}
-	return _expr.sameQ(o->_expr);
+	return _expr.sameQ(o->_expr) && name == o->name;
 }
 
 namespace MExprSymbolInterface
 {
-	Expr getContext(std::shared_ptr<MExprSymbol> obj) {
+	Expr getContext(std::shared_ptr<MExprSymbol> obj)
+	{
 		return Expr(obj->getContext());
 	}
 	Expr getLexicalName(std::shared_ptr<MExprSymbol> obj)
 	{
 		return Expr(obj->getLexicalName());
 	}
-	Expr getName(std::shared_ptr<MExprSymbol> obj) {
+	Expr getName(std::shared_ptr<MExprSymbol> obj)
+	{
 		return Expr(obj->getName());
 	}
-	Expr getSourceName(std::shared_ptr<MExprSymbol> obj) {
+	Expr getSourceName(std::shared_ptr<MExprSymbol> obj)
+	{
 		return Expr(obj->getSourceName());
 	}
-	Expr isSystemProtected(std::shared_ptr<MExprSymbol> obj) {
+	Expr isSystemProtected(std::shared_ptr<MExprSymbol> obj)
+	{
 		return toExpr(obj->isSystemProtected());
 	}
 	Expr toBoxes(Expr objExpr, Expr fmt)
 	{
 		return Expr::construct("DanielS`PatternMatcher`AST`Private`toMExprSymbolBoxes", objExpr, fmt).eval();
+	}
+	Expr updateName(std::shared_ptr<MExprSymbol> obj, Expr newName)
+	{
+		auto nameOpt = newName.as<std::string>();
+		if (!nameOpt.has_value())
+		{
+			return Expr::throwError("updateName: newName must be a string");
+		}
+		return toExpr(obj->updateName(nameOpt.value()));
 	}
 }; // namespace MExprSymbolInterface
 
@@ -71,5 +99,6 @@ void MExprSymbol::initializeEmbedMethods(const char* embedName)
 	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::getSourceName>(embedName, "getSourceName");
 	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::isSystemProtected>(embedName, "isSystemProtected");
 	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::toBoxes>(embedName, "toBoxes");
+	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::updateName>(embedName, "updateName");
 }
 }; // namespace PatternMatcher

@@ -39,7 +39,16 @@ Test[
 
 
 Test[
-	lit["getHeldExpr"]
+	{lit["literalQ"], lit["normalQ"], lit["symbolQ"]}
+	,
+	{True, False, False}
+	,
+	TestID->"MExprLiteral-20251022-Z0V5S9"
+]
+
+
+Test[
+	lit["toHeldExpr"]
 	,
 	HoldComplete[1]
 	,

@@ -89,7 +89,7 @@ MExprIsPatternSequence[patt_] :=
 
 
 MExprIsLiteral[patt_] :=
-	Internal`PatternFreeQ[patt["getHeldExpr"]];
+	Internal`PatternFreeQ[patt["toHeldExpr"]];
 
 
 End[];

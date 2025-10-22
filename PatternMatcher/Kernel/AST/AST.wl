@@ -108,10 +108,10 @@ toMExprLiteralBoxes[mexpr_, fmt_] :=
 		"",
 		{
 			BoxForm`SummaryItem[{"id: ", mexpr["getID"]}],
-			BoxForm`SummaryItem[{"expr: ", mexpr["getExpr"]}]
+			BoxForm`SummaryItem[{"expr: ", mexpr["toExpr"]}]
 		},
 		{
-			BoxForm`SummaryItem[{"head: ", mexpr["head"]["getHeldFormExpr"]}]
+			BoxForm`SummaryItem[{"head: ", mexpr["head"]["toHeldFormExpr"]}]
 		},
 		fmt
 	];
@@ -153,11 +153,11 @@ toMExprNormalBoxes[mexpr_, fmt_] :=
 		"",
 		{
 			BoxForm`SummaryItem[{"id: ", mexpr["getID"]}],
-			BoxForm`SummaryItem[{"expr: ", ClickToCopy[mexpr["getHeldFormExpr"], mexpr["getHeldExpr"]]}]
+			BoxForm`SummaryItem[{"expr: ", ClickToCopy[mexpr["toHeldFormExpr"], mexpr["toHeldExpr"]]}]
 		},
 		{
-			BoxForm`SummaryItem[{"head: ", mexpr["head"]["getHeldFormExpr"]}],
-			BoxForm`SummaryItem[{"arguments: ", #["getHeldFormExpr"] & /@ mexpr["arguments"]}]
+			BoxForm`SummaryItem[{"head: ", mexpr["head"]["toHeldFormExpr"]}],
+			BoxForm`SummaryItem[{"arguments: ", #["toHeldFormExpr"] & /@ mexpr["arguments"]}]
 		},
 		fmt
 	];

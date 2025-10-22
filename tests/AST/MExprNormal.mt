@@ -27,11 +27,29 @@ Test[
 
 
 Test[
+	{normMExpr["literalQ"], normMExpr["normalQ"], normMExpr["symbolQ"]}
+	,
+	{False, True, False}
+	,
+	TestID->"MExprNormal-20251022-B9K1K7"
+]
+
+
+Test[
 	normMExpr["toBoxes", StandardForm] // Head
 	,
 	InterpretationBox
 	,
 	TestID->"MExprNormal-20251018-H6U0O0"
+]
+
+
+Test[
+	normMExpr["toHeldExpr"]
+	,
+	HoldComplete[f[g][x, 1, "3"]]
+	,
+	TestID->"MExprNormal-20251022-O7L2M1"
 ]
 
 
@@ -46,11 +64,20 @@ Test[
 
 Test[
 	headMExpr = normMExpr["head"];
-	{MExprNormalQ[headMExpr], headMExpr["getHeldExpr"]}
+	{MExprNormalQ[headMExpr], headMExpr["toHeldExpr"]}
 	,
 	{True, HoldComplete[f[g]]}
 	,
 	TestID->"MExprNormal-20251018-E7M8T3"
+]
+
+
+TestMatch[
+	normMExpr["arguments"]
+	,
+	{_?MExprSymbolQ, _?MExprLiteralQ, _?MExprLiteralQ}
+	,
+	TestID->"MExprNormal-20251022-J7L1R7"
 ]
 
 
@@ -66,7 +93,7 @@ Test[
 
 Test[
 	part2MExpr = normMExpr["part", 2];
-	{MExprLiteralQ[part2MExpr], part2MExpr["getHeldExpr"]}
+	{MExprLiteralQ[part2MExpr], part2MExpr["toHeldExpr"]}
 	,
 	{True, HoldComplete[1]}
 	,
@@ -76,11 +103,30 @@ Test[
 
 Test[
 	part3MExpr = normMExpr["part", 3];
-	{MExprLiteralQ[part3MExpr], part3MExpr["getHeldExpr"]}
+	{MExprLiteralQ[part3MExpr], part3MExpr["toHeldExpr"]}
 	,
 	{True, HoldComplete["3"]}
 	,
 	TestID->"MExprNormal-20251018-W2F6R1"
+]
+
+
+Test[
+	normMExpr2 = With[{e = normMExpr["toExpr"]}, ConstructMExpr[e]];
+	normMExpr["sameQ", normMExpr2]
+	,
+	True
+	,
+	TestID->"MExprNormal-20251022-B7B4Q0"
+]
+
+Test[
+	normMExpr2["part", 1]["updateName", "h"];
+	normMExpr["sameQ", normMExpr2]
+	,
+	False
+	,
+	TestID->"MExprNormal-20251022-T4D1N4"
 ]
 
 

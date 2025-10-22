@@ -31,6 +31,15 @@ Test[
 
 
 Test[
+	{sym["literalQ"], sym["normalQ"], sym["symbolQ"]}
+	,
+	{False, False, True}
+	,
+	TestID->"MExprSymbol-20251022-L5T5Y4"
+]
+
+
+Test[
 	sym["toBoxes", StandardForm] // Head
 	,
 	InterpretationBox
@@ -40,7 +49,7 @@ Test[
 
 
 Test[
-	sym["getHeldExpr"]
+	sym["toHeldExpr"]
 	,
 	HoldComplete[List]
 	,
@@ -112,6 +121,15 @@ Test[
 ]
 
 
+Test[
+	sym["updateName", "otherName"]
+	,
+	False
+	,
+	TestID->"MExprSymbol-20251022-V9V8W7"
+]
+
+
 (*==============================================================================
 	Non-System` symbol
 ==============================================================================*)
@@ -127,7 +145,7 @@ Test[
 
 
 Test[
-	symPriv["getHeldExpr"]
+	symPriv["toHeldExpr"]
 	,
 	HoldComplete[TestContext`x]
 	,
@@ -189,6 +207,39 @@ Test[
 ]
 
 
+Test[
+	symPriv["updateName", "x$1"]
+	,
+	True
+	,
+	TestID->"MExprSymbol-20251022-J7P3U6"
+]
+
+Test[
+	{symPriv["getName"], symPriv["getSourceName"]}
+	,
+	{"x$1", "x"}
+	,
+	TestID->"MExprSymbol-20251022-O6E1C0"
+]
+
+Test[
+	symPriv["getLexicalName"]
+	,
+	"TestContext`x$1"
+	,
+	TestID->"MExprSymbol-20251022-V4R8Q7"
+]
+
+Test[
+	symPriv["toHeldExpr"]
+	,
+	HoldComplete[TestContext`x$1]
+	,
+	TestID->"MExprSymbol-20251022-X4S2T3"
+]
+
+
 (*==============================================================================
 	Prevent symbol leaking
 ==============================================================================*)
@@ -204,7 +255,7 @@ Test[
 ]
 
 Test[
-	sym["getHeldExpr"]
+	sym["toHeldExpr"]
 	,
 	HoldComplete[TestContext`leaks]
 	,

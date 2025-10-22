@@ -9,6 +9,10 @@ PatternBytecode::usage =
 	"PatternBytecode[\[Ellipsis]] represents bytecode for a virtual machine of a given pattern expression.";
 
 
+PatternBytecodeQ::usage =
+	"PatternBytecodeQ[x] returns True if x is a valid PatternBytecode[...] object, and False otherwise.";
+
+
 CompilePatternToBytecode::usage =
 	"CompilePatternToBytecode[patt] converts a pattern expression into bytecode to be run in a virtual machine.";
 
@@ -37,8 +41,8 @@ Begin["`Private`"];
 
 
 Get["DanielS`PatternMatcher`AST`"]
-Get["DanielS`PatternMatcher`FrontEnd`"]
 Get["DanielS`PatternMatcher`BackEnd`"]
+Get["DanielS`PatternMatcher`FrontEnd`"]
 
 
 End[];

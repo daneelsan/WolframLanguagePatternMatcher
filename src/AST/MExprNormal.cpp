@@ -2,6 +2,7 @@
 
 #include "Logger.h"
 
+#include <algorithm>
 #include <memory>
 #include <optional>
 #include <string>
@@ -22,7 +23,7 @@ std::shared_ptr<MExpr> MExprNormal::create(const Expr& e)
 		Expr child = e.part(i);
 		children.push_back(MExpr::construct(child));
 	}
-	return std::make_shared<MExprNormal>(e, headMExpr, std::move(children));
+	return std::make_shared<MExprNormal>(std::move(headMExpr), std::move(children));
 }
 
 size_t MExprNormal::length() const
@@ -35,13 +36,37 @@ std::shared_ptr<MExpr> MExprNormal::getHead() const
 	return _head;
 }
 
+Expr MExprNormal::getExpr() const
+{
+	std::vector<Expr> argExprs;
+	mint len = length();
+	argExprs.reserve(len);
+	for (const auto& child : _children)
+	{
+		argExprs.push_back(child->getExpr());
+	}
+	Expr headExpr = _head->getExpr();
+	Expr normalExpr = Expr::createNormal(len, headExpr);
+	for (mint i = 1; i <= len; ++i)
+	{
+		normalExpr.setPart(i, argExprs[i - 1]);
+	}
+	return normalExpr;
+}
+
 bool MExprNormal::sameQ(std::shared_ptr<MExpr> other) const
 {
 	if (other->getKind() != Kind::Normal)
 		return false;
 	auto o = std::static_pointer_cast<MExprNormal>(other);
-	// TODO: deep compare children
-	return _expr.sameQ(o->_expr);
+	if (this->getID() == o->getID())
+		return true;
+	if (this->length() != o->length())
+		return false;
+	if (!_head->sameQ(o->_head))
+		return false;
+	return std::equal(_children.begin(), _children.end(), o->_children.begin(),
+					  [](const auto& a, const auto& b) { return a->sameQ(b); });
 }
 
 std::shared_ptr<MExpr> MExprNormal::part(mint i) const
@@ -65,12 +90,12 @@ namespace MExprNormalInterface
 {
 	Expr arguments(std::shared_ptr<MExprNormal> obj)
 	{
-		std::vector<std::shared_ptr<MExpr>> children = obj->arguments();
+		const auto& children = obj->getChildren();
 		// TODO: Implement Expr::createList
 		auto list = Expr::createNormal(children.size(), "List");
-		for (size_t i = 1; i <= children.size(); ++i)
+		for (size_t i = 0; i < children.size(); ++i)
 		{
-			list.setPart(i, MExpr::toExpr(children[i - 1]));
+			list.setPart(i + 1, MExpr::toExpr(children[i]));
 		}
 		return list;
 	}
@@ -80,6 +105,7 @@ namespace MExprNormalInterface
 		auto childMExpr = mexpr->part(i);
 		return MExpr::toExpr(childMExpr);
 	}
+
 	Expr toBoxes(Expr objExpr, Expr fmt)
 	{
 		return Expr::construct("DanielS`PatternMatcher`AST`Private`toMExprNormalBoxes", objExpr, fmt).eval();
@@ -89,7 +115,7 @@ namespace MExprNormalInterface
 void MExprNormal::initializeEmbedMethods(const char* embedName)
 {
 	initializeEmbedMethodsCommon<MExprNormal>(embedName);
-    RegisterMethod<std::shared_ptr<MExprNormal>, MExprNormalInterface::arguments>(embedName, "arguments");
+	RegisterMethod<std::shared_ptr<MExprNormal>, MExprNormalInterface::arguments>(embedName, "arguments");
 	RegisterMethod<std::shared_ptr<MExprNormal>, MExprNormalInterface::part>(embedName, "part");
 	RegisterMethod<std::shared_ptr<MExprNormal>, MExprNormalInterface::toBoxes>(embedName, "toBoxes");
 }
