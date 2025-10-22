@@ -63,6 +63,18 @@ std::shared_ptr<MExpr> MExprNormal::part(mint i) const
 
 namespace MExprNormalInterface
 {
+	Expr arguments(std::shared_ptr<MExprNormal> obj)
+	{
+		std::vector<std::shared_ptr<MExpr>> children = obj->arguments();
+		// TODO: Implement Expr::createList
+		auto list = Expr::createNormal(children.size(), "List");
+		for (size_t i = 1; i <= children.size(); ++i)
+		{
+			list.setPart(i, MExpr::toExpr(children[i - 1]));
+		}
+		return list;
+	}
+
 	Expr part(std::shared_ptr<MExprNormal> mexpr, mint i)
 	{
 		auto childMExpr = mexpr->part(i);
@@ -77,6 +89,7 @@ namespace MExprNormalInterface
 void MExprNormal::initializeEmbedMethods(const char* embedName)
 {
 	initializeEmbedMethodsCommon<MExprNormal>(embedName);
+    RegisterMethod<std::shared_ptr<MExprNormal>, MExprNormalInterface::arguments>(embedName, "arguments");
 	RegisterMethod<std::shared_ptr<MExprNormal>, MExprNormalInterface::part>(embedName, "part");
 	RegisterMethod<std::shared_ptr<MExprNormal>, MExprNormalInterface::toBoxes>(embedName, "toBoxes");
 }

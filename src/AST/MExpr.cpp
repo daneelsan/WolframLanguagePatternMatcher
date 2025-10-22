@@ -154,6 +154,12 @@ namespace MethodInterface
 	}
 
 	template <typename T>
+	Expr normalQ(std::shared_ptr<T> mexpr)
+	{
+		return toExpr(mexpr->getKind() == MExpr::Kind::Normal);
+	}
+
+	template <typename T>
 	Expr sameQ(std::shared_ptr<T> mexpr, Expr other)
 	{
 		bool res = false;
@@ -189,6 +195,7 @@ void MExpr::initializeEmbedMethodsCommon(const char* embedName)
 	RegisterMethod<SharedT, MethodInterface::getID<T>>(embedName, "getID");
 	RegisterMethod<SharedT, MethodInterface::hasHead<T>>(embedName, "hasHead");
 	RegisterMethod<SharedT, MethodInterface::length<T>>(embedName, "length");
+	RegisterMethod<SharedT, MethodInterface::normalQ<T>>(embedName, "normalQ");
 	RegisterMethod<SharedT, MethodInterface::toString<T>>(embedName, "toString");
 	RegisterMethod<SharedT, MethodInterface::sameQ<T>>(embedName, "sameQ");
 	RegisterMethod<SharedT, MethodInterface::symbolQ<T>>(embedName, "symbolQ");

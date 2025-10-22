@@ -125,6 +125,8 @@ public:
 	/// @brief Get the head of the normal expression.
 	std::shared_ptr<MExpr> getHead() const override;
 
+	std::vector<std::shared_ptr<MExpr>> arguments() const { return _children; }
+
 	/// @brief Get the number of children of the normal expression.
 	size_t length() const override;
 
