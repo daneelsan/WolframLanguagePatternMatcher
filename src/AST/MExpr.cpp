@@ -191,9 +191,9 @@ void MExpr::initializeEmbedMethodsCommon(const char* embedName)
 	RegisterMethod<SharedT, MethodInterface::getExpr<T>>(embedName, "getExpr");
 	RegisterMethod<SharedT, MethodInterface::getHeldExpr<T>>(embedName, "getHeldExpr");
 	RegisterMethod<SharedT, MethodInterface::getHeldFormExpr<T>>(embedName, "getHeldFormExpr");
-	RegisterMethod<SharedT, MethodInterface::getHead<T>>(embedName, "getHead");
 	RegisterMethod<SharedT, MethodInterface::getID<T>>(embedName, "getID");
 	RegisterMethod<SharedT, MethodInterface::hasHead<T>>(embedName, "hasHead");
+	RegisterMethod<SharedT, MethodInterface::getHead<T>>(embedName, "head");
 	RegisterMethod<SharedT, MethodInterface::length<T>>(embedName, "length");
 	RegisterMethod<SharedT, MethodInterface::normalQ<T>>(embedName, "normalQ");
 	RegisterMethod<SharedT, MethodInterface::toString<T>>(embedName, "toString");

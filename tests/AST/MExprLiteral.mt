@@ -48,7 +48,7 @@ Test[
 
 
 Test[
-	litHead = lit["getHead"];
+	litHead = lit["head"];
 	{MExprSymbolQ[litHead], litHead["getSourceName"]}
 	,
 	{True, "Integer"}

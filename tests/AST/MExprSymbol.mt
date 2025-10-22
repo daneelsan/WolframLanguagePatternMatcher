@@ -103,7 +103,7 @@ Test[
 
 
 Test[
-	symHead = sym["getHead"];
+	symHead = sym["head"];
 	{MExprSymbolQ[symHead], symHead["getSourceName"]}
 	,
 	{True, "Symbol"}

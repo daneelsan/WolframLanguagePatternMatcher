@@ -45,7 +45,7 @@ Test[
 
 
 Test[
-	headMExpr = normMExpr["getHead"];
+	headMExpr = normMExpr["head"];
 	{MExprNormalQ[headMExpr], headMExpr["getHeldExpr"]}
 	,
 	{True, HoldComplete[f[g]]}
