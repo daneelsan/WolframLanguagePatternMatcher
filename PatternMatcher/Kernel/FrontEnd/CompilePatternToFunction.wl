@@ -4,7 +4,7 @@ BeginPackage["DanielS`PatternMatcher`FrontEnd`CompilePatternToFunction`"];
 Begin["`Private`"];
 
 
-Needs["DanielS`PatternMatcher`"] (* for PatternToFunction *)
+Needs["DanielS`PatternMatcher`"]
 Needs["DanielS`PatternMatcher`ErrorHandling`"]
 Needs["DanielS`PatternMatcher`AST`"]
 Needs["DanielS`PatternMatcher`AST`MExprUtilities`"]
@@ -41,7 +41,7 @@ CompilePatternToFunction[patt_, opts:OptionsPattern[]] :=
 		visitPattern[state, ConstructMExpr[patt]];
 		With[{
 				moduleVars = getAssignmentVariables[state],
-				moduleBody = Echo[getFullCondition[state]]
+				moduleBody = getFullCondition[state]
 			},
 			If[state["ApplyOptimizations"] && moduleVars["length"] === 0,
 				ConstructMExpr @ Function[vm`expr$, moduleBody]

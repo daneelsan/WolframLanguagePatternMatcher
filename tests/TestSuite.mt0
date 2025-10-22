@@ -12,5 +12,7 @@ TestSuite[
 		,
 		"AST/MExprUtilities.mt"
 		,
+		"PatternMatcher/CompilePatternToFunction.mt"
+		,
 		"FinalizeTests.m"
 }]
