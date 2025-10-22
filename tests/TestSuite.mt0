@@ -10,5 +10,7 @@ TestSuite[
 		,
 		"AST/MExprNormal.mt"
 		,
+		"AST/MExprUtilities.mt"
+		,
 		"FinalizeTests.m"
 }]
