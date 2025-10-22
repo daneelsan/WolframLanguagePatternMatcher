@@ -63,8 +63,16 @@ Expr MExpr::toExpr(std::shared_ptr<MExpr> mexpr)
 	return Expr::throwError("Unexpected MExpr subclass in toExpr.");
 }
 
+static bool booleanQ(const Expr& e) {
+	return e.sameQ("True") || e.sameQ("False");
+}
+
 std::shared_ptr<MExpr> MExpr::construct(const Expr& e)
 {
+	if (booleanQ(e)) {
+		// Booleans are literals
+		return MExprLiteral::create(e);
+	}
 	if (e.symbolQ())
 	{
 		// Improve test above
