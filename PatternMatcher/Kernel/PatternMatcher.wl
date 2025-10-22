@@ -1,8 +1,8 @@
 BeginPackage["DanielS`PatternMatcher`"];
 
 
-CompilePatternToFunction::usage =
-	"CompilePatternToFunction[patt] converts a pattern patt into a Function[\[Ellipsis]].";
+PatternToMatchFunction::usage =
+	"PatternToMatchFunction[patt] converts a pattern patt into a Function[\[Ellipsis]].";
 
 
 PatternBytecode::usage =

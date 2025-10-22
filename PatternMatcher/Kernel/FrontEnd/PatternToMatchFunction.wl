@@ -1,4 +1,4 @@
-BeginPackage["DanielS`PatternMatcher`FrontEnd`CompilePatternToFunction`"];
+BeginPackage["DanielS`PatternMatcher`FrontEnd`PatternToMatchFunction`"];
 
 
 Begin["`Private`"];
@@ -11,20 +11,16 @@ Needs["DanielS`PatternMatcher`AST`MExprUtilities`"]
 
 
 (*=============================================================================
-	PatternToFunction
+	PatternToMatchFunction
 =============================================================================*)
-(*
-	TODO: Consider renaming to PatternToMatchQFunction.
-*)
-
-Options[CompilePatternToFunction] = {
+Options[PatternToMatchFunction] = {
 	"ApplyOptimizations" -> True
 }
 
-CompilePatternToFunction::unsup =
+PatternToMatchFunction::unsup =
 	"The pattern expression `1` is currently not supported.";
 
-CompilePatternToFunction[patt_, opts:OptionsPattern[]] :=
+PatternToMatchFunction[patt_, opts:OptionsPattern[]] :=
 	CatchFailure @ Module[{state},
 		state = <|
 			"VariableCounter" -> CreateDataStructure["Counter", 1],
@@ -102,7 +98,7 @@ visitPattern[state_, mexpr_] :=
 		,
 		True,
 			ThrowFailure[
-				"CompilePatternToFunction",
+				"PatternToMatchFunction",
 				"Cannot compile the expression `1`.",
 				{mexpr["toHeldFormExpr"]},
 				<|"Input" -> mexpr["toHeldExpr"]|>
@@ -111,10 +107,10 @@ visitPattern[state_, mexpr_] :=
 
 
 throwUnsupportedPattern[mexpr_] := (
-	Message[CompilePatternToFunction::unsup, mexpr["toHeldFormExpr"]];
+	Message[PatternToMatchFunction::unsup, mexpr["toHeldFormExpr"]];
 	ThrowFailure[
-		"CompilePatternToFunction",
-		CompilePatternToFunction::unsup,
+		"PatternToMatchFunction",
+		PatternToMatchFunction::unsup,
 		{mexpr["toHeldFormExpr"]},
 		<|"Input" -> mexpr["toHeldExpr"]|>
 	]

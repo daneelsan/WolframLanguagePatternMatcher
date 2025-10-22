@@ -18,11 +18,11 @@ Global`contextState = TestStatePush[]
 	Blank
 ==============================================================================*)
 Test[
-	fun = CompilePatternToFunction[_]
+	fun = PatternToMatchFunction[_]
 	,
 	Function[vm`expr$, True]
 	,
-	TestID->"CompilePatternToFunction-20251022-B6H7J8"
+	TestID->"PatternToMatchFunction-20251022-B6H7J8"
 ]
 
 Test[
@@ -30,16 +30,16 @@ Test[
 	,
 	True
 	,
-	TestID->"CompilePatternToFunction-20251022-N2H5B9"
+	TestID->"PatternToMatchFunction-20251022-N2H5B9"
 ]
 
 
 Test[
-	fun = CompilePatternToFunction[_String]
+	fun = PatternToMatchFunction[_String]
 	,
 	Function[vm`expr$, Head[vm`expr$] === String]
 	,
-	TestID->"CompilePatternToFunction-20251022-G5X5P2"
+	TestID->"PatternToMatchFunction-20251022-G5X5P2"
 ]
 
 Test[
@@ -47,7 +47,7 @@ Test[
 	,
 	{True, False}
 	,
-	TestID->"CompilePatternToFunction-20251022-R1H9U2"
+	TestID->"PatternToMatchFunction-20251022-R1H9U2"
 ]
 
 
@@ -55,11 +55,11 @@ Test[
 	Pattern
 ==============================================================================*)
 Test[
-	fun = CompilePatternToFunction[x_]
+	fun = PatternToMatchFunction[x_]
 	,
 	Function[vm`expr$, True]
 	,
-	TestID->"CompilePatternToFunction-20251022-B7N0D8"
+	TestID->"PatternToMatchFunction-20251022-B7N0D8"
 ]
 
 Test[
@@ -67,16 +67,16 @@ Test[
 	,
 	True
 	,
-	TestID->"CompilePatternToFunction-20251022-Y1B2I9"
+	TestID->"PatternToMatchFunction-20251022-Y1B2I9"
 ]
 
 
 Test[
-	fun = CompilePatternToFunction[x_Integer]
+	fun = PatternToMatchFunction[x_Integer]
 	,
 	Function[vm`expr$, Head[vm`expr$] === Integer]
 	,
-	TestID->"CompilePatternToFunction-20251022-M1F2W6"
+	TestID->"PatternToMatchFunction-20251022-M1F2W6"
 ]
 
 Test[
@@ -84,7 +84,7 @@ Test[
 	,
 	{True, False, True}
 	,
-	TestID->"CompilePatternToFunction-20251022-G0L0J4"
+	TestID->"PatternToMatchFunction-20251022-G0L0J4"
 ]
 
 
@@ -92,11 +92,11 @@ Test[
 	PatternTest
 ==============================================================================*)
 Test[
-	fun = CompilePatternToFunction[_?StringQ]
+	fun = PatternToMatchFunction[_?StringQ]
 	,
 	Function[vm`expr$, True && TrueQ[StringQ[vm`expr$]]]
 	,
-	TestID->"CompilePatternToFunction-20251022-C2J4N2"
+	TestID->"PatternToMatchFunction-20251022-C2J4N2"
 ]
 
 Test[
@@ -104,16 +104,16 @@ Test[
 	,
 	{False, True}
 	,
-	TestID->"CompilePatternToFunction-20251022-T9T7W3"
+	TestID->"PatternToMatchFunction-20251022-T9T7W3"
 ]
 
 
 Test[
-	fun = CompilePatternToFunction[x_?StringQ]
+	fun = PatternToMatchFunction[x_?StringQ]
 	,
 	Function[vm`expr$, True && TrueQ[StringQ[vm`expr$]]]
 	,
-	TestID->"CompilePatternToFunction-20251022-N9R0J8"
+	TestID->"PatternToMatchFunction-20251022-N9R0J8"
 ]
 
 Test[
@@ -121,16 +121,16 @@ Test[
 	,
 	{False, True}
 	,
-	TestID->"CompilePatternToFunction-20251022-V3F4T8"
+	TestID->"PatternToMatchFunction-20251022-V3F4T8"
 ]
 
 
 Test[
-	fun = CompilePatternToFunction[x_String?StringQ]
+	fun = PatternToMatchFunction[x_String?StringQ]
 	,
 	Function[vm`expr$, Head[vm`expr$] === String && TrueQ[StringQ[vm`expr$]]]
 	,
-	TestID->"CompilePatternToFunction-20251022-N3P3O0"
+	TestID->"PatternToMatchFunction-20251022-N3P3O0"
 ]
 
 Test[
@@ -138,7 +138,7 @@ Test[
 	,
 	{False, True}
 	,
-	TestID->"CompilePatternToFunction-20251022-D2B9I6"
+	TestID->"PatternToMatchFunction-20251022-D2B9I6"
 ]
 
 
@@ -146,11 +146,11 @@ Test[
 	Except
 ==============================================================================*)
 Test[
-	fun = CompilePatternToFunction[Except[_]]
+	fun = PatternToMatchFunction[Except[_]]
 	,
 	Function[vm`expr$, ! True]
 	,
-	TestID->"CompilePatternToFunction-20251022-A6Q9K7"
+	TestID->"PatternToMatchFunction-20251022-A6Q9K7"
 ]
 
 Test[
@@ -158,16 +158,16 @@ Test[
 	,
 	{False, False, False}
 	,
-	TestID->"CompilePatternToFunction-20251022-M3F2P0"
+	TestID->"PatternToMatchFunction-20251022-M3F2P0"
 ]
 
 
 Test[
-	fun = CompilePatternToFunction[Except[_String]]
+	fun = PatternToMatchFunction[Except[_String]]
 	,
 	Function[vm`expr$, ! Head[vm`expr$] === String]
 	,
-	TestID->"CompilePatternToFunction-20251022-R3Q3A5"
+	TestID->"PatternToMatchFunction-20251022-R3Q3A5"
 ]
 
 Test[
@@ -175,16 +175,16 @@ Test[
 	,
 	{True, False}
 	,
-	TestID->"CompilePatternToFunction-20251022-T2C8O8"
+	TestID->"PatternToMatchFunction-20251022-T2C8O8"
 ]
 
 
 Test[
-	fun = CompilePatternToFunction[Except[_String?StringQ]]
+	fun = PatternToMatchFunction[Except[_String?StringQ]]
 	,
 	Function[vm`expr$, ! (Head[vm`expr$] === String && TrueQ[StringQ[vm`expr$]])]
 	,
-	TestID->"CompilePatternToFunction-20251022-O1F5K8"
+	TestID->"PatternToMatchFunction-20251022-O1F5K8"
 ]
 
 Test[
@@ -192,16 +192,16 @@ Test[
 	,
 	{True, False}
 	,
-	TestID->"CompilePatternToFunction-20251022-R4R7V3"
+	TestID->"PatternToMatchFunction-20251022-R4R7V3"
 ]
 
 
 Test[
-	fun = CompilePatternToFunction[Except[_String, _Integer]]
+	fun = PatternToMatchFunction[Except[_String, _Integer]]
 	,
 	Function[vm`expr$, ! Head[vm`expr$] === String && Head[vm`expr$] === Integer]
 	,
-	TestID->"CompilePatternToFunction-20251022-M8D1Y3"
+	TestID->"PatternToMatchFunction-20251022-M8D1Y3"
 ]
 
 Test[
@@ -209,7 +209,7 @@ Test[
 	,
 	{False, True, False}
 	,
-	TestID->"CompilePatternToFunction-20251022-B6U5X3"
+	TestID->"PatternToMatchFunction-20251022-B6U5X3"
 ]
 
 
@@ -217,11 +217,11 @@ Test[
 	Alternatives
 ==============================================================================*)
 Test[
-	fun = CompilePatternToFunction[_Integer | _String]
+	fun = PatternToMatchFunction[_Integer | _String]
 	,
 	Function[vm`expr$, Head[vm`expr$] === Integer || Head[vm`expr$] === String]
 	,
-	TestID->"CompilePatternToFunction-20251022-O9F6D8"
+	TestID->"PatternToMatchFunction-20251022-O9F6D8"
 ]
 
 Test[
@@ -229,16 +229,16 @@ Test[
 	,
 	{True, True, False}
 	,
-	TestID->"CompilePatternToFunction-20251022-W7T6V4"
+	TestID->"PatternToMatchFunction-20251022-W7T6V4"
 ]
 
 
 Test[
-	fun = CompilePatternToFunction[_Integer | _String?StringQ]
+	fun = PatternToMatchFunction[_Integer | _String?StringQ]
 	,
 	Function[vm`expr$, Head[vm`expr$] === Integer || (Head[vm`expr$] === String && TrueQ[StringQ[vm`expr$]])]
 	,
-	TestID->"CompilePatternToFunction-20251022-Z1E9M8"
+	TestID->"PatternToMatchFunction-20251022-Z1E9M8"
 ]
 
 Test[
@@ -246,7 +246,7 @@ Test[
 	,
 	{True, True, False}
 	,
-	TestID->"CompilePatternToFunction-20251022-V7W3W1"
+	TestID->"PatternToMatchFunction-20251022-V7W3W1"
 ]
 
 
@@ -259,11 +259,11 @@ Test[
 	Literal
 ==============================================================================*)
 Test[
-	fun = CompilePatternToFunction[5]
+	fun = PatternToMatchFunction[5]
 	,
 	Function[vm`expr$, vm`expr$ === 5]
 	,
-	TestID->"CompilePatternToFunction-20251022-R8F6R5"
+	TestID->"PatternToMatchFunction-20251022-R8F6R5"
 ]
 
 Test[
@@ -271,16 +271,16 @@ Test[
 	,
 	{True, False}
 	,
-	TestID->"CompilePatternToFunction-20251022-E9K6Q7"
+	TestID->"PatternToMatchFunction-20251022-E9K6Q7"
 ]
 
 
 Test[
-	fun = CompilePatternToFunction[f[x, y]]
+	fun = PatternToMatchFunction[f[x, y]]
 	,
 	Function[vm`expr$, vm`expr$ === f[x, y]]
 	,
-	TestID->"CompilePatternToFunction-20251022-G8Z5C7"
+	TestID->"PatternToMatchFunction-20251022-G8Z5C7"
 ]
 
 Test[
@@ -288,7 +288,7 @@ Test[
 	,
 	{True, False}
 	,
-	TestID->"CompilePatternToFunction-20251022-D2J4C0"
+	TestID->"PatternToMatchFunction-20251022-D2J4C0"
 ]
 
 
@@ -296,7 +296,7 @@ Test[
 	Normal
 ==============================================================================*)
 Test[
-	fun = CompilePatternToFunction[f[x_]]
+	fun = PatternToMatchFunction[f[x_]]
 	,
 	Function[vm`expr$,
 		Module[{var1, var2},
@@ -312,7 +312,7 @@ Test[
 		]
 	]
 	,
-	TestID->"CompilePatternToFunction-20251022-C8V4K7"
+	TestID->"PatternToMatchFunction-20251022-C8V4K7"
 ]
 
 Test[
@@ -320,12 +320,12 @@ Test[
 	,
 	{True, False}
 	,
-	TestID->"CompilePatternToFunction-20251022-X5Q3G3"
+	TestID->"PatternToMatchFunction-20251022-X5Q3G3"
 ]
 
 
 Test[
-	fun = CompilePatternToFunction[f[x_, x_]]
+	fun = PatternToMatchFunction[f[x_, x_]]
 	,
 	Function[vm`expr$,
 		Module[{var1, var2, var3},
@@ -346,7 +346,7 @@ Test[
 		]
 	]
 	,
-	TestID->"CompilePatternToFunction-20251022-N2X9J5"
+	TestID->"PatternToMatchFunction-20251022-N2X9J5"
 ]
 
 Test[
@@ -354,12 +354,12 @@ Test[
 	,
 	{True, False}
 	,
-	TestID->"CompilePatternToFunction-20251022-B3C1C0"
+	TestID->"PatternToMatchFunction-20251022-B3C1C0"
 ]
 
 
 Test[
-	fun = CompilePatternToFunction[f[x : (_Integer | _String)]]
+	fun = PatternToMatchFunction[f[x : (_Integer | _String)]]
 	,
 	Function[vm`expr$,
 		Module[{var1, var2},
@@ -379,7 +379,7 @@ Test[
 		]
 	]
 	,
-	TestID->"CompilePatternToFunction-20251022-T7L6Y5"
+	TestID->"PatternToMatchFunction-20251022-T7L6Y5"
 ]
 
 Test[
@@ -387,12 +387,12 @@ Test[
 	,
 	{True, False}
 	,
-	TestID->"CompilePatternToFunction-20251022-P6F0F0"
+	TestID->"PatternToMatchFunction-20251022-P6F0F0"
 ]
 
 
 Test[
-	fun = CompilePatternToFunction[f[x : (_Integer | _String), x_]]
+	fun = PatternToMatchFunction[f[x : (_Integer | _String), x_]]
 	,
 	Function[vm`expr$,
 		Module[{var1, var2, var3},
@@ -417,7 +417,7 @@ Test[
 		]
 	]
 	,
-	TestID->"CompilePatternToFunction-20251022-W6R2R4"
+	TestID->"PatternToMatchFunction-20251022-W6R2R4"
 ]
 
 Test[
@@ -425,7 +425,7 @@ Test[
 	,
 	{True, True, False}
 	,
-	TestID->"CompilePatternToFunction-20251022-W2K6F0"
+	TestID->"PatternToMatchFunction-20251022-W2K6F0"
 ]
 
 
@@ -436,19 +436,19 @@ Test[
 	"ApplyOptimizations" -> False
 *)
 Test[
-	CompilePatternToFunction[_, "ApplyOptimizations" -> False]
+	PatternToMatchFunction[_, "ApplyOptimizations" -> False]
 	,
 	Function[vm`expr$, Module[{}, And[True]]]
 	,
-	TestID->"CompilePatternToFunction-20251022-E6L5U5"
+	TestID->"PatternToMatchFunction-20251022-E6L5U5"
 ]
 
 Test[
-	CompilePatternToFunction[_String, "ApplyOptimizations" -> False]
+	PatternToMatchFunction[_String, "ApplyOptimizations" -> False]
 	,
 	Function[vm`expr$, Module[{}, And[Head[vm`expr$] === String]]]
 	,
-	TestID->"CompilePatternToFunction-20251022-C7V6N3"
+	TestID->"PatternToMatchFunction-20251022-C7V6N3"
 ]
 
 
