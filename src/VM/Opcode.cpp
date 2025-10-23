@@ -45,6 +45,24 @@ const char* opcodeName(Opcode op)
 			return "END_BLOCK";
 		case Opcode::DEBUG_PRINT:
 			return "DEBUG_PRINT";
+		case Opcode::TRY:
+			return "TRY";
+		case Opcode::RETRY:
+			return "RETRY";
+		case Opcode::TRUST:
+			return "TRUST";
+		case Opcode::CHOICE_POINT:	
+			return "CHOICE_POINT";
+		case Opcode::CUT:
+			return "CUT";
+		case Opcode::FAIL:
+			return "FAIL";
+		case Opcode::TRAIL_BIND:
+			return "TRAIL_BIND";
+		case Opcode::SAVE_STATE:
+			return "SAVE_STATE";
+		case Opcode::RESTORE_STATE:
+			return "RESTORE_STATE";
 		default:
 			return "OP_UNKNOWN";
 	}

@@ -39,6 +39,10 @@ void VirtualMachine::shutdown()
 	bytecode.reset();
 	exprRegs.clear();
 	boolRegs.clear();
+
+	choiceStack.clear();
+	trail.clear();
+
 	initialized = false;
 }
 
@@ -47,6 +51,7 @@ void VirtualMachine::reset()
 	pc = 0;
 	cycles = 0;
 	halted = false;
+	backtracking = false;
 
 	if (!bytecode)
 	{
@@ -55,6 +60,105 @@ void VirtualMachine::reset()
 	exprRegs.assign(bytecode.value()->getExprRegisterCount(), Expr::ToExpression("Null")); // TODO: better initial value?
 	boolRegs.assign(bytecode.value()->getBoolRegisterCount(), false);
 	frames.clear();
+
+	choiceStack.clear();
+	trail.clear();
+}
+
+/*===============================================================
+	Backtracking Support
+================================================================*/
+void VirtualMachine::createChoicePoint(size_t nextAlternative)
+{
+	choiceStack.emplace_back(pc, // Current PC
+							 nextAlternative, // Where to jump on backtrack
+							 exprRegs, // Copy current registers
+							 boolRegs,
+							 trail.size(), // Current trail position
+							 frames.size() // Current frame depth
+	);
+	PM_TRACE("CHOICE_POINT created: alternatives at L", nextAlternative, " (stack depth=", choiceStack.size(), ")");
+}
+
+bool VirtualMachine::backtrack()
+{
+	if (choiceStack.empty())
+	{
+		PM_TRACE("BACKTRACK: No choice points left - FAIL");
+		return false; // No more alternatives - pattern fails
+	}
+
+	// Pop most recent choice point
+	ChoicePoint cp = std::move(choiceStack.back());
+	choiceStack.pop_back();
+
+	// Restore VM state
+	PM_TRACE("BACKTRACK: Restoring choice point, jumping to L", cp.nextAlternative);
+	pc = cp.nextAlternative; // Jump to next alternative
+	exprRegs = std::move(cp.savedExprRegs);
+	boolRegs = std::move(cp.savedBoolRegs);
+
+	// Unwind trail - undo variable bindings
+	unwindTrail(cp.trailMark);
+
+	// Restore frame depth
+	while (frames.size() > cp.frameMark)
+	{
+		frames.pop_back();
+	}
+
+	backtracking = true;
+	return true;
+}
+
+void VirtualMachine::commit()
+{
+	if (!choiceStack.empty())
+	{
+		PM_TRACE("COMMIT: Removing ", choiceStack.size(), " choice points");
+		choiceStack.clear();
+	}
+}
+
+void VirtualMachine::trailBind(const std::string& varName, const Expr& value)
+{
+	if (frames.empty())
+	{
+		frames.emplace_back();
+	}
+
+	auto& currentFrame = frames.back();
+
+	// If variable already bound, record it for undoing
+	if (currentFrame.find(varName) != currentFrame.end())
+	{
+		trail.emplace_back(varName, frames.size() - 1);
+	}
+
+	// Bind the variable
+	currentFrame.insert_or_assign(varName, value);
+
+	PM_TRACE("TRAIL_BIND: ", varName, " <- ", value.toString(), " (trail size=", trail.size(), ")");
+}
+
+void VirtualMachine::unwindTrail(size_t mark)
+{
+	PM_TRACE("UNWIND_TRAIL: from ", trail.size(), " to ", mark);
+
+	// Undo bindings in reverse order
+	while (trail.size() > mark)
+	{
+		const auto& entry = trail.back();
+
+		if (entry.frameIndex < frames.size())
+		{
+			auto& frame = frames[entry.frameIndex];
+			frame.erase(entry.varName);
+			PM_TRACE("  Unbinding: ", entry.varName);
+		}
+
+		trail.pop_back();
+	}
 }
 
 /*===============================================================
@@ -75,6 +179,7 @@ bool VirtualMachine::step()
 	const auto& instr = instrs[pc];
 	pc += 1;
 	cycles += 1;
+	backtracking = false;
 
 	switch (instr.opcode)
 	{
@@ -213,14 +318,20 @@ bool VirtualMachine::step()
 		{
 			auto ident = std::get<Ident>(instr.ops[0]);
 			auto reg = std::get<ExprRegOp>(instr.ops[1]);
-			if (frames.empty())
+
+			// Use trailBind instead of direct binding for backtracking support
+			if (hasChoicePoints())
 			{
-				// If no frame exists, create one — safe fallback.
-				frames.emplace_back();
+				trailBind(ident, exprRegs[reg.v]);
 			}
-			// store a copy of the expression value in the current frame
-			frames.back().insert_or_assign(ident, exprRegs[reg.v]);
-			PM_TRACE("BIND_VAR: ", ident, " <- %e", reg.v, "  (", exprRegs[reg.v].toString(), ")");
+			else
+			{
+				// No choice points - can bind directly (optimization)
+				if (frames.empty())
+					frames.emplace_back();
+				frames.back().insert_or_assign(ident, exprRegs[reg.v]);
+				PM_TRACE("BIND_VAR (no trail): ", ident, " <- %e", reg.v);
+			}
 			break;
 		}
 		case Opcode::GET_VAR:
@@ -285,6 +396,91 @@ bool VirtualMachine::step()
 						PM_ERROR("  at label L", L->v);
 				}
 				// Continue execution but log the error
+			}
+			break;
+		}
+			/* Backtracking support */
+
+		case Opcode::TRY:
+		{
+			auto nextAlt = std::get<LabelOp>(instr.ops[0]);
+			createChoicePoint(nextAlt.v);
+			PM_TRACE("TRY: Choice point created for L", nextAlt.v);
+			break;
+		}
+
+		case Opcode::RETRY:
+		{
+			auto nextAlt = std::get<LabelOp>(instr.ops[0]);
+			// Update the top choice point to try next alternative
+			if (!choiceStack.empty())
+			{
+				choiceStack.back().nextAlternative = nextAlt.v;
+				PM_TRACE("RETRY: Updated choice point to L", nextAlt.v);
+			}
+			break;
+		}
+
+		case Opcode::TRUST:
+		{
+			// Last alternative - remove choice point and continue
+			if (!choiceStack.empty())
+			{
+				choiceStack.pop_back();
+				PM_TRACE("TRUST: Removed choice point (last alternative)");
+			}
+			break;
+		}
+
+		case Opcode::FAIL:
+		{
+			PM_TRACE("FAIL: Forcing backtrack");
+			if (!backtrack())
+			{
+				halted = true;
+				boolRegs[0] = false; // Pattern failed
+				return false;
+			}
+			break;
+		}
+
+		case Opcode::CUT:
+		{
+			commit();
+			PM_TRACE("CUT: All choice points removed");
+			break;
+		}
+
+		case Opcode::TRAIL_BIND:
+		{
+			auto ident = std::get<Ident>(instr.ops[0]);
+			auto reg = std::get<ExprRegOp>(instr.ops[1]);
+			trailBind(ident, exprRegs[reg.v]);
+			break;
+		}
+
+		case Opcode::SAVE_STATE:
+		{
+			// Explicit state save (for complex patterns)
+			if (!choiceStack.empty())
+			{
+				auto& cp = choiceStack.back();
+				cp.savedExprRegs = exprRegs;
+				cp.savedBoolRegs = boolRegs;
+				PM_TRACE("SAVE_STATE: Registers saved to choice point");
+			}
+			break;
+		}
+
+		case Opcode::RESTORE_STATE:
+		{
+			// Explicit state restore
+			if (!choiceStack.empty())
+			{
+				const auto& cp = choiceStack.back();
+				exprRegs = cp.savedExprRegs;
+				boolRegs = cp.savedBoolRegs;
+				PM_TRACE("RESTORE_STATE: Registers restored from choice point");
 			}
 			break;
 		}

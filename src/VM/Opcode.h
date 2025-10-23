@@ -50,12 +50,25 @@ enum class Opcode {
 	HALT,            /*  <no operands>   stop execution                      */
 
 	// ===== Scope Management =====
-	BEGIN_BLOCK,     /*  label           signals the beginning of a block    */
-	END_BLOCK,       /*  label           signals the end of a block          */
+	BEGIN_BLOCK,     /*  label           signals the beginning of a block              */
+	END_BLOCK,       /*  label           signals the end of a block                    */
+
+	// ===== Backtracking Support =====
+	TRY,             /*  label           Create choice point, try first alternative    */
+	RETRY,           /*  label           Backtrack to choice point, try next alt       */
+	TRUST,           /*  label           Last alternative, remove choice point         */
+	CHOICE_POINT,    /*  label           Explicit choice point creation                */
+	CUT,             /*  <no operands>   Remove choice points up to current frame      */
+	FAIL,            /*  <no operands>   Force backtracking                            */
+
+	// ===== Trail Management =====
+	TRAIL_BIND,      /*  varName A       Bind var with trail entry for backtracking   */
+	SAVE_STATE,      /*  <no operands>   Explicitly save registers to choice point    */
+	RESTORE_STATE,   /*  <no operands>   Restore registers from choice point          */
 
 	// ===== Debug / Helper =====
-	DEBUG_PRINT,     /*  A               print R[A] (for debugging)          */
-	NOP,             /*  <no operands>   no operation (for alignment/debug)  */
+	DEBUG_PRINT,     /*  A               print R[A] (for debugging)                    */
+	NOP,             /*  <no operands>   no operation (for alignment/debug)            */
 };
 // clang-format on
 
@@ -69,6 +82,7 @@ enum class OpcodeCategory
 	Pattern,
 	ControlFlow,
 	ScopeManagement,
+	Backtracking,
 	Debug
 };
 
@@ -109,6 +123,17 @@ inline OpcodeCategory getOpcodeCategory(Opcode op)
 		case Opcode::BEGIN_BLOCK:
 		case Opcode::END_BLOCK:
 			return OpcodeCategory::ScopeManagement;
+
+		case Opcode::TRY:
+		case Opcode::RETRY:
+		case Opcode::TRUST:
+		case Opcode::CHOICE_POINT:
+		case Opcode::CUT:
+		case Opcode::FAIL:
+		case Opcode::TRAIL_BIND:
+		case Opcode::SAVE_STATE:
+		case Opcode::RESTORE_STATE:
+			return OpcodeCategory::Backtracking;
 
 		case Opcode::DEBUG_PRINT:
 		case Opcode::NOP:

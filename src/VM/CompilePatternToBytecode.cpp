@@ -239,6 +239,58 @@ static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr
 	}
 }
 
+/* Helper: compile Alternatives[patt1, patt2, ...] */
+static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, Label successLabel,
+								Label failLabel, bool isTopLevel)
+{
+	size_t numAlts = mexpr->length();
+
+	if (numAlts == 0)
+	{
+		// Empty alternatives always fails
+		st.emit(Opcode::JUMP, { OpLabel(failLabel) });
+		return;
+	}
+
+	if (numAlts == 1)
+	{
+		// Single alternative - no choice point needed
+		auto alt = mexpr->part(1);
+		compilePatternRec(st, alt, successLabel, failLabel, false);
+		return;
+	}
+
+	// Multiple alternatives - use TRY/RETRY/TRUST structure
+	std::vector<Label> altLabels;
+
+	// Create labels for each alternative
+	for (size_t i = 0; i < numAlts; ++i)
+	{
+		altLabels.push_back(st.newLabel());
+	}
+
+	// First alternative: TRY
+	st.emit(Opcode::TRY, { OpLabel(altLabels[1]) }); // Next alternative is at altLabels[1]
+	st.bindLabel(altLabels[0]);
+	auto firstAlt = mexpr->part(1);
+	compilePatternRec(st, firstAlt, successLabel, failLabel, false);
+
+	// Middle alternatives: RETRY
+	for (size_t i = 1; i < numAlts - 1; ++i)
+	{
+		st.bindLabel(altLabels[i]);
+		st.emit(Opcode::RETRY, { OpLabel(altLabels[i + 1]) });
+		auto alt = mexpr->part(static_cast<mint>(i + 1));
+		compilePatternRec(st, alt, successLabel, failLabel, false);
+	}
+
+	// Last alternative: TRUST
+	st.bindLabel(altLabels[numAlts - 1]);
+	st.emit(Opcode::TRUST, {}); // No more alternatives
+	auto lastAlt = mexpr->part(static_cast<mint>(numAlts));
+	compilePatternRec(st, lastAlt, successLabel, failLabel, false);
+}
+
 /* Helper: compile normal expressions head[arg1, arg2, ...] */
 static void compileNormal(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, Label successLabel, Label outerFail,
 						  bool isTopLevel)
@@ -352,6 +404,11 @@ static void compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr, L
 			else if (MExprIsPattern(mexpr))
 			{
 				compilePattern(st, mexprNormal, successLabel, failLabel, isTopLevel);
+				return;
+			}
+			else if (MExprIsAlternatives(mexpr))
+			{
+				compileAlternatives(st, mexprNormal, successLabel, failLabel, isTopLevel);
 				return;
 			}
 			else
