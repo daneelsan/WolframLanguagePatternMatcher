@@ -195,14 +195,6 @@ static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr
 		Label blockLabel = st.newLabel();
 		st.beginBlock(blockLabel);
 
-		// Allocate register for the binding
-		ExprRegIndex bindReg = st.allocExprReg();
-		st.emit(Opcode::MOVE, { OpExprReg(bindReg), OpExprReg(0) });
-		st.lexical[lexName] = bindReg;
-
-		// Runtime binding for inspection
-		st.emit(Opcode::BIND_VAR, { OpIdent(lexName), OpExprReg(bindReg) });
-
 		// Create inner fail label that will unwind this block
 		Label innerFail = st.newLabel();
 
@@ -210,12 +202,17 @@ static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr
 		compilePatternRec(st, subp, successLabel, innerFail, false);
 
 		// If we reach here, subpattern succeeded
-		// Close the block normally
+		// Allocate register for the binding
+		ExprRegIndex bindReg = st.allocExprReg();
+		st.emit(Opcode::MOVE, { OpExprReg(bindReg), OpExprReg(0) });
+		st.lexical[lexName] = bindReg;
+
+		// Runtime binding
+		st.emit(Opcode::BIND_VAR, { OpIdent(lexName), OpExprReg(bindReg) });
 		st.endBlock(blockLabel);
 
-		// **KEY FIX**: Create a label to jump past the failure handler
+		// Create a label to jump past the failure handler
 		Label afterFailHandler = st.newLabel();
-
 		// If top-level, jump to success; otherwise jump past failure handler
 		if (isTopLevel)
 		{
