@@ -112,7 +112,8 @@ static void compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr, L
 							  bool isTopLevel);
 
 /* Helper: compile literal match: produce a Bool register (caller will handle jump on failure) */
-static void compileLiteralMatch(CompilerState& st, std::shared_ptr<MExpr> mexpr, Label successLabel, Label failLabel, bool isTopLevel)
+static void compileLiteralMatch(CompilerState& st, std::shared_ptr<MExpr> mexpr, Label successLabel, Label failLabel,
+								bool isTopLevel)
 {
 	// Compare input expression (%e0) with literal rLit
 	// TODO: Consider having MATCH_STRING, MATCH_INTEGER, etc. for runtime efficiency.
