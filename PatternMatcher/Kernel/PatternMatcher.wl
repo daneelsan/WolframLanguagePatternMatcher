@@ -25,8 +25,8 @@ CreatePatternMatcherVirtualMachine::usage =
 	"CreatePatternMatcherVirtualMachine[pattObj] creates a virtual machine for the pattern matcher object pattObj$.";
 
 
-PatternMatcherMatch::usage =
-	"PatternMatcherMatch[vm, expr] does pattern matching on the expr using the pattern matcher virtual machine.";
+PatternMatcherExecute::usage =
+	"RunPatternMatcher[vm, expr] does pattern matching on the expr using the pattern matcher virtual machine.";
 
 
 PatternMatcherStep::usage =
