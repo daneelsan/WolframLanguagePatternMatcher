@@ -349,6 +349,7 @@ bool VirtualMachine::step()
 			}
 			break;
 		}
+
 		/*
 			Binding Operations
 		*/
@@ -586,6 +587,17 @@ namespace MethodInterface
 	{
 		return Expr(static_cast<mint>(vm->getPC()));
 	}
+	Expr getResultBindings(VirtualMachine* vm)
+	{
+		const auto& bindings = vm->getResultBindings();
+		Expr bindingsExpr = Expr::createNormal(static_cast<mint>(bindings.size()), "Association");
+		mint i = 1;
+		for (const auto& [varName, value] : bindings)
+		{
+			bindingsExpr.setPart(i++, Expr::construct("Rule", Expr(varName.c_str()), value));
+		}
+		return bindingsExpr;
+	}
 	Expr initialize(VirtualMachine* vm, Expr bytecodeExpr)
 	{
 		auto bytecodeOpt = UnembedObject<std::shared_ptr<PatternBytecode>>(bytecodeExpr);
@@ -641,6 +653,7 @@ void VirtualMachine::initializeEmbedMethods(const char* embedName)
 	RegisterMethod<VirtualMachine*, MethodInterface::getCycles>(embedName, "getCycles");
 	RegisterMethod<VirtualMachine*, MethodInterface::getBytecode>(embedName, "getBytecode");
 	RegisterMethod<VirtualMachine*, MethodInterface::getPC>(embedName, "getPC");
+	RegisterMethod<VirtualMachine*, MethodInterface::getResultBindings>(embedName, "getResultBindings");
 	RegisterMethod<VirtualMachine*, MethodInterface::initialize>(embedName, "initialize");
 	RegisterMethod<VirtualMachine*, MethodInterface::isHalted>(embedName, "isHalted");
 	RegisterMethod<VirtualMachine*, MethodInterface::isInitialized>(embedName, "isInitialized");

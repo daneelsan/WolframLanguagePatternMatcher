@@ -61,6 +61,7 @@ public:
 	std::optional<std::shared_ptr<PatternBytecode>> getBytecode() const { return bytecode; };
 	bool isHalted() const { return halted; };
 	bool isInitialized() const { return initialized; };
+	const std::unordered_map<std::string, Expr>& getResultBindings() const { return resultBindings; }
 
 	// --- Lifecycle ---
 	void initialize(const std::shared_ptr<PatternBytecode>& bytecode_);
@@ -102,6 +103,8 @@ private:
 	std::vector<std::unordered_map<std::string, Expr>> frames;
 	std::vector<Expr> exprRegs;
 	std::vector<bool> boolRegs;
+
+	std::unordered_map<std::string, Expr> resultBindings;
 
 	// Backtracking support
 	std::vector<ChoicePoint> choiceStack; // Stack of choice points
