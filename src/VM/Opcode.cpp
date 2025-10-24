@@ -10,6 +10,10 @@ const char* opcodeName(Opcode op)
 	switch (op)
 	{
 		// Register operations
+		case Opcode::LOAD_IMM:
+			return "LOAD_IMM";
+		case Opcode::LOAD_INPUT:
+			return "LOAD_INPUT";
 		case Opcode::MOVE:
 			return "MOVE";
 
@@ -22,39 +26,44 @@ const char* opcodeName(Opcode op)
 		case Opcode::MATCH_LENGTH:
 			return "MATCH_LENGTH";
 
-		case Opcode::LOAD_IMM:
-			return "LOAD_IMM";
-		case Opcode::LOAD_INPUT:
-			return "LOAD_INPUT";
-
+		// Introspection
 		case Opcode::GET_HEAD:
 			return "GET_HEAD";
 		case Opcode::GET_PART:
 			return "GET_PART";
+
+		// Tests
 		case Opcode::TEST_LENGTH:
 			return "TEST_LENGTH";
 		case Opcode::SAMEQ:
 			return "SAMEQ";
+
 		case Opcode::NOT:
 			return "NOT";
+
+		// Pattern Primitives
 		case Opcode::BIND_VAR:
 			return "BIND_VAR";
 		case Opcode::GET_VAR:
 			return "GET_VAR";
 		case Opcode::PATTERN_TEST:
 			return "PATTERN_TEST";
+
+		// Control Flow
 		case Opcode::JUMP:
 			return "JUMP";
 		case Opcode::JUMP_IF_FALSE:
 			return "JUMP_IF_FALSE";
 		case Opcode::HALT:
 			return "HALT";
+
+		// Scope Management
 		case Opcode::BEGIN_BLOCK:
 			return "BEGIN_BLOCK";
 		case Opcode::END_BLOCK:
 			return "END_BLOCK";
-		case Opcode::DEBUG_PRINT:
-			return "DEBUG_PRINT";
+
+		// Backtracking operations
 		case Opcode::TRY:
 			return "TRY";
 		case Opcode::RETRY:
@@ -73,6 +82,13 @@ const char* opcodeName(Opcode op)
 			return "SAVE_STATE";
 		case Opcode::RESTORE_STATE:
 			return "RESTORE_STATE";
+
+		// Debug / Helper
+		case Opcode::NOP:
+			return "NOP";
+		case Opcode::DEBUG_PRINT:
+			return "DEBUG_PRINT";
+
 		default:
 			return "OP_UNKNOWN";
 	}
