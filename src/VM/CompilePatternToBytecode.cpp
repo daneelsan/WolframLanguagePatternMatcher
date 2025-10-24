@@ -112,15 +112,15 @@ static void compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr, L
 							  bool isTopLevel);
 
 /* Helper: compile literal match: produce a Bool register (caller will handle jump on failure) */
-static BoolRegIndex compileLiteralMatch(CompilerState& st, std::shared_ptr<MExpr> mexpr)
+static void compileLiteralMatch(CompilerState& st, std::shared_ptr<MExpr> mexpr, Label successLabel, Label failLabel, bool isTopLevel)
 {
-	// Allocate an expression register for the literal
-	ExprRegIndex rLit = st.allocExprReg();
-	st.emit(Opcode::LOAD_IMM, { OpExprReg(rLit), OpImm(mexpr->getExpr()) });
 	// Compare input expression (%e0) with literal rLit
-	BoolRegIndex b = st.allocBoolReg();
-	st.emit(Opcode::SAMEQ, { OpBoolReg(b), OpExprReg(0), OpExprReg(rLit) });
-	return b;
+	// TODO: Consider having MATCH_STRING, MATCH_INTEGER, etc. for runtime efficiency.
+	st.emit(Opcode::MATCH_LITERAL, { OpExprReg(0), OpImm(mexpr->getExpr()), OpLabel(failLabel) });
+	if (isTopLevel)
+	{
+		st.emit(Opcode::JUMP, { OpLabel(successLabel) });
+	}
 }
 
 /* Helper: compile Blank (with optional head) -> returns Bool reg */
@@ -372,25 +372,14 @@ static void compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr, L
 	{
 		case MExpr::Kind::Literal:
 		{
-			BoolRegIndex b = compileLiteralMatch(st, mexpr);
-			st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(b), OpLabel(failLabel) });
-			if (isTopLevel)
-			{
-				st.emit(Opcode::JUMP, { OpLabel(successLabel) });
-			}
-			// else: fall through (success)
+			compileLiteralMatch(st, mexpr, successLabel, failLabel, isTopLevel);
 			return;
 		}
 		case MExpr::Kind::Symbol:
 		{
-			// Treat as literal match for now
-			BoolRegIndex b = compileLiteralMatch(st, mexpr);
-			st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(b), OpLabel(failLabel) });
-			if (isTopLevel)
-			{
-				st.emit(Opcode::JUMP, { OpLabel(successLabel) });
-			}
-			// else: fall through (success)
+			// Treat as literal match for now.
+			// TODO: MATCH_SYMBOL?
+			compileLiteralMatch(st, mexpr, successLabel, failLabel, isTopLevel);
 			return;
 		}
 		case MExpr::Kind::Normal:
@@ -399,23 +388,20 @@ static void compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr, L
 			if (MExprIsBlank(mexpr))
 			{
 				compileBlank(st, mexprNormal, successLabel, failLabel, isTopLevel);
-				return;
 			}
 			else if (MExprIsPattern(mexpr))
 			{
 				compilePattern(st, mexprNormal, successLabel, failLabel, isTopLevel);
-				return;
 			}
 			else if (MExprIsAlternatives(mexpr))
 			{
 				compileAlternatives(st, mexprNormal, successLabel, failLabel, isTopLevel);
-				return;
 			}
 			else
 			{
 				compileNormal(st, mexprNormal, successLabel, failLabel, isTopLevel);
-				return;
 			}
+			return;
 		}
 		default:
 			// Unknown kind: immediate failure

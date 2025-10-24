@@ -9,14 +9,24 @@ const char* opcodeName(Opcode op)
 {
 	switch (op)
 	{
+		// Register operations
 		case Opcode::MOVE:
 			return "MOVE";
-        case Opcode::MATCH_HEAD:
-            return "MATCH_HEAD";
+
+		// MatchOp
+		// MATCH_XXXX EXPR_REG EXPR_IMM LBL
+		case Opcode::MATCH_HEAD:
+			return "MATCH_HEAD";
+		case Opcode::MATCH_LITERAL:
+			return "MATCH_LITERAL";
+		case Opcode::MATCH_LENGTH:
+			return "MATCH_LENGTH";
+
 		case Opcode::LOAD_IMM:
 			return "LOAD_IMM";
 		case Opcode::LOAD_INPUT:
 			return "LOAD_INPUT";
+
 		case Opcode::GET_HEAD:
 			return "GET_HEAD";
 		case Opcode::GET_PART:
@@ -51,7 +61,7 @@ const char* opcodeName(Opcode op)
 			return "RETRY";
 		case Opcode::TRUST:
 			return "TRUST";
-		case Opcode::CHOICE_POINT:	
+		case Opcode::CHOICE_POINT:
 			return "CHOICE_POINT";
 		case Opcode::CUT:
 			return "CUT";
