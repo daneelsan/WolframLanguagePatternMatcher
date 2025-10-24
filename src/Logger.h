@@ -66,6 +66,23 @@
 	PatternMatcher::Logger::log<PatternMatcher::Logger::Level::Error>(__LINE__, __FILE__, __func__, __VA_ARGS__)
 #else
 #define PM_ERROR(...) ((void) 0)
+
+/// @def PM_ASSERT
+/// Assert that a condition is true, otherwise log an error message and abort the program.
+/// @param cond The condition to check.
+/// @param ... Additional arguments to log if the assertion fails.
+/// @note This macro is only active with PM_LOG_DEBUG, PM_LOG_WARNING or PM_LOG_ERROR compilation flag.
+#define PM_ASSERT(cond, ...)                                           \
+	do                                                                 \
+	{                                                                  \
+		if (!(cond))                                                   \
+		{                                                              \
+			PM_ERROR("Assertion failed: ", #cond, " | ", __VA_ARGS__); \
+			abort();                                                   \
+		}                                                              \
+	} while (0)
+#else
+#define PM_ASSERT(cond, ...) ((void) 0)
 #endif
 
 #ifdef PM_LOG_LEVEL_TRACE
