@@ -280,7 +280,6 @@ Test[
 ]
 
 Test[
-	(* FIXME *)
 	PatternMatcherExecute[f[x_, h[x_, x_]], f[5, h[5, 5]]]["Result"]
 	,
 	True

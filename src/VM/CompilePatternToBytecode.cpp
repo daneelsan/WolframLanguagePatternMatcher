@@ -305,9 +305,7 @@ static void compileNormal(CompilerState& st, std::shared_ptr<MExprNormal> mexpr,
 	Label innerFail = st.newLabel();
 
 	// --- 1. Test argument length ---
-	BoolRegIndex bLen = st.allocBoolReg();
-	st.emit(Opcode::TEST_LENGTH, { OpBoolReg(bLen), OpExprReg(0), OpImm(argsLen) });
-	st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(bLen), OpLabel(innerFail) });
+	st.emit(Opcode::MATCH_LENGTH, { OpExprReg(0), OpImm(argsLen), OpLabel(innerFail) });
 
 	// --- 2. Check head equality ---
 	Expr headExpr = mexpr->getHead()->getExpr();
