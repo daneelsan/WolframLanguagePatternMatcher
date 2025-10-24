@@ -183,11 +183,6 @@ bool VirtualMachine::step()
 
 	switch (instr.opcode)
 	{
-		case Opcode::HALT:
-		{
-			halted = true;
-			break;
-		}
 		case Opcode::DEBUG_PRINT:
 		{
 			if (!instr.ops.empty())
@@ -196,6 +191,10 @@ bool VirtualMachine::step()
 			}
 			break;
 		}
+
+		/*
+			Register Operations
+		*/
 		case Opcode::LOAD_IMM:
 		{
 			// Fast path: Expr register (most common)
@@ -225,6 +224,10 @@ bool VirtualMachine::step()
 			PM_TRACE("MOVE %e", dst.v, " <- %e", src.v, " (", exprRegs[src.v].toString(), ")");
 			break;
 		}
+
+		/*
+			Introspection Operations
+		*/
 		case Opcode::GET_HEAD:
 		{
 			auto dst = std::get<ExprRegOp>(instr.ops[0]);
@@ -233,14 +236,13 @@ bool VirtualMachine::step()
 			PM_TRACE("GET_HEAD %e", dst.v, " := head(%e", src.v, ")");
 			break;
 		}
-
 		case Opcode::GET_PART:
 		{
 			auto dst = std::get<ExprRegOp>(instr.ops[0]);
 			auto src = std::get<ExprRegOp>(instr.ops[1]);
 			auto idx = std::get<ImmMint>(instr.ops[2]);
 			exprRegs[dst.v] = exprRegs[src.v].part(static_cast<size_t>(idx.v));
-			PM_TRACE("GET_PART %e", dst.v, " := part(", idx.v, ", %e", src.v, ")");
+			PM_TRACE("GET_PART %e", dst.v, " := part(", "%e", src.v, ", ", idx.v, ")");
 			break;
 		}
 		case Opcode::TEST_LENGTH:
@@ -264,36 +266,69 @@ bool VirtualMachine::step()
 			auto rhs = std::get<ExprRegOp>(instr.ops[2]);
 			// TODO: Careful about evaluating the exprs in sameQ?
 			bool result = exprRegs[lhs.v].sameQ(exprRegs[rhs.v]);
-			boolRegs[dstBool.v] = result;
 			PM_TRACE("SAMEQ %b", dstBool.v, " := (%e", lhs.v, " == %e", rhs.v, ") -> ", (result ? "True" : "False"));
+			boolRegs[dstBool.v] = result;
 			break;
 		}
-		case Opcode::MATCH_HEAD:
-		case Opcode::MATCH_LITERAL:
-		{
-			auto src = std::get<ExprRegOp>(instr.ops[0]);
-			auto expected = std::get<ImmExpr>(instr.ops[1]);
-			auto label = std::get<LabelOp>(instr.ops[2]);
 
-			auto expr = (instr.opcode == Opcode::MATCH_HEAD) ? exprRegs[src.v].head() : exprRegs[src.v];
-			if (not expr.sameQ(expected))
-			{
-				pc = bytecode.value()->resolveLabel(label.v).value();
-				PM_TRACE("MATCH failed -> JUMP to L", label.v);
-			}
-			break;
-		}
+		/*
+			Match Operations
+		*/
 		case Opcode::MATCH_LENGTH:
 		{
 			auto src = std::get<ExprRegOp>(instr.ops[0]);
 			auto expectedLen = std::get<ImmMint>(instr.ops[1]);
 			auto label = std::get<LabelOp>(instr.ops[2]);
 
-			if (exprRegs[src.v].length() != static_cast<size_t>(expectedLen.v))
+			bool res = exprRegs[src.v].length() == static_cast<size_t>(expectedLen.v);
+			PM_TRACE("MATCH_LENGTH", " %e", src.v, " == ", expectedLen.v, " -> ", (res ? "SUCCESS" : "FAILURE"));
+			if (not res)
 			{
 				pc = bytecode.value()->resolveLabel(label.v).value();
 				PM_TRACE("MATCH_LENGTH failed -> JUMP to L", label.v);
 			}
+			break;
+		}
+		case Opcode::MATCH_HEAD:
+		{
+			auto src = std::get<ExprRegOp>(instr.ops[0]);
+			auto expected = std::get<ImmExpr>(instr.ops[1]);
+			auto label = std::get<LabelOp>(instr.ops[2]);
+
+			auto expr = exprRegs[src.v];
+			bool res = expr.head().sameQ(expected);
+			PM_TRACE("MATCH_HEAD", " %e", src.v, " == ", expected.toString(), " -> ", (res ? "SUCCESS" : "FAILURE"));
+			if (not res)
+			{
+				pc = bytecode.value()->resolveLabel(label.v).value();
+				PM_TRACE("	MATCH failed -> JUMP to L", label.v);
+			}
+			break;
+		}
+		case Opcode::MATCH_LITERAL:
+		{
+			auto src = std::get<ExprRegOp>(instr.ops[0]);
+			auto expected = std::get<ImmExpr>(instr.ops[1]);
+			auto label = std::get<LabelOp>(instr.ops[2]);
+
+			auto expr = exprRegs[src.v];
+			bool res = expr.sameQ(expected);
+			PM_TRACE("MATCH_LITERAL", " %e", src.v, " == ", expected.toString(), " -> ", (res ? "SUCCESS" : "FAILURE"));
+			if (not res)
+			{
+				pc = bytecode.value()->resolveLabel(label.v).value();
+				PM_TRACE("	MATCH failed -> JUMP to L", label.v);
+			}
+			break;
+		}
+
+		/*
+			Halt Operations
+		*/
+		case Opcode::HALT:
+		{
+			halted = true;
+			PM_TRACE("HALT: Stopping execution");
 			break;
 		}
 		case Opcode::JUMP:
@@ -314,6 +349,9 @@ bool VirtualMachine::step()
 			}
 			break;
 		}
+		/*
+			Binding Operations
+		*/
 		case Opcode::BIND_VAR:
 		{
 			auto ident = std::get<Ident>(instr.ops[0]);
@@ -327,6 +365,7 @@ bool VirtualMachine::step()
 			else
 			{
 				// No choice points - can bind directly (optimization)
+				// NOTE: There should always be at least one frame. Is this an error?
 				if (frames.empty())
 					frames.emplace_back();
 				frames.back().insert_or_assign(ident, exprRegs[reg.v]);
@@ -351,6 +390,10 @@ bool VirtualMachine::step()
 		next_instruction:
 			break;
 		}
+
+		/*
+			Scope Management
+		*/
 		case Opcode::BEGIN_BLOCK:
 		{
 			// push a new frame for bindings
@@ -399,8 +442,10 @@ bool VirtualMachine::step()
 			}
 			break;
 		}
-			/* Backtracking support */
 
+		/*
+			Backtracking support
+		*/
 		case Opcode::TRY:
 		{
 			auto nextAlt = std::get<LabelOp>(instr.ops[0]);
@@ -408,7 +453,6 @@ bool VirtualMachine::step()
 			PM_TRACE("TRY: Choice point created for L", nextAlt.v);
 			break;
 		}
-
 		case Opcode::RETRY:
 		{
 			auto nextAlt = std::get<LabelOp>(instr.ops[0]);
@@ -420,7 +464,6 @@ bool VirtualMachine::step()
 			}
 			break;
 		}
-
 		case Opcode::TRUST:
 		{
 			// Last alternative - remove choice point and continue
@@ -431,7 +474,6 @@ bool VirtualMachine::step()
 			}
 			break;
 		}
-
 		case Opcode::FAIL:
 		{
 			PM_TRACE("FAIL: Forcing backtrack");
@@ -443,14 +485,12 @@ bool VirtualMachine::step()
 			}
 			break;
 		}
-
 		case Opcode::CUT:
 		{
 			commit();
 			PM_TRACE("CUT: All choice points removed");
 			break;
 		}
-
 		case Opcode::TRAIL_BIND:
 		{
 			auto ident = std::get<Ident>(instr.ops[0]);
@@ -458,7 +498,6 @@ bool VirtualMachine::step()
 			trailBind(ident, exprRegs[reg.v]);
 			break;
 		}
-
 		case Opcode::SAVE_STATE:
 		{
 			// Explicit state save (for complex patterns)
@@ -471,7 +510,6 @@ bool VirtualMachine::step()
 			}
 			break;
 		}
-
 		case Opcode::RESTORE_STATE:
 		{
 			// Explicit state restore
@@ -484,6 +522,7 @@ bool VirtualMachine::step()
 			}
 			break;
 		}
+
 		default:
 		{
 			PM_DEBUG("Opcode not implemented yet: ", static_cast<int>(instr.opcode));
