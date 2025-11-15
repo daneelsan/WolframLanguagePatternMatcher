@@ -1018,6 +1018,258 @@ Lexical bindings:
 ]
 
 
+(*==============================================================================
+	_ | _
+==============================================================================*)
+Test[
+	bc18 = CompilePatternToBytecode[_ | _];
+	PatternBytecodeQ[bc18]
+	,
+	True
+	,
+	TestID->"FrontEnd-20251114-W7Q5B1"
+]
+
+Test[
+	ToString[bc18]
+	,
+	"
+L0:
+ 0    BEGIN_BLOCK     Label[0]
+ 1    TRY             Label[4]
+
+L3:
+ 2    JUMP            Label[2]
+
+L5:
+ 3    FAIL            
+
+L4:
+ 4    TRUST           
+ 5    JUMP            Label[2]
+ 6    END_BLOCK       Label[0]
+
+L1:
+ 7    DEBUG_PRINT     Expr[\"Pattern failed\"]
+ 8    LOAD_IMM        %b0, 0
+ 9    HALT            
+
+L2:
+10    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
+11    SAVE_BINDINGS   
+12    LOAD_IMM        %b0, 1
+13    HALT            
+
+----------------------------------------
+Expr registers: 1, Bool registers: 1
+"
+	,
+	TestID->"FrontEnd-20251114-J1X2E6"
+]
+
+
+(*==============================================================================
+	_Real | _Integer
+==============================================================================*)
+Test[
+	bc19 = CompilePatternToBytecode[_Real | _Integer];
+	PatternBytecodeQ[bc18]
+	,
+	True
+	,
+	TestID->"FrontEnd-20251114-I5H0J4"
+]
+
+Test[
+	ToString[bc19]
+	,
+	"
+L0:
+ 0    BEGIN_BLOCK     Label[0]
+ 1    TRY             Label[4]
+
+L3:
+ 2    MATCH_HEAD      %e0, Expr[Real], Label[5]
+ 3    JUMP            Label[2]
+
+L5:
+ 4    FAIL            
+
+L4:
+ 5    TRUST           
+ 6    MATCH_HEAD      %e0, Expr[Integer], Label[1]
+ 7    JUMP            Label[2]
+ 8    END_BLOCK       Label[0]
+
+L1:
+ 9    DEBUG_PRINT     Expr[\"Pattern failed\"]
+10    LOAD_IMM        %b0, 0
+11    HALT            
+
+L2:
+12    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
+13    SAVE_BINDINGS   
+14    LOAD_IMM        %b0, 1
+15    HALT            
+
+----------------------------------------
+Expr registers: 1, Bool registers: 1
+"
+	,
+	TestID->"FrontEnd-20251114-V7B0C0"
+]
+
+
+(*==============================================================================
+	f[_Integer | _Real]
+==============================================================================*)
+Test[
+	bc20 = CompilePatternToBytecode[f[_Integer | _Real]];
+	PatternBytecodeQ[bc20]
+	,
+	True
+	,
+	TestID->"FrontEnd-20251114-L0B3W9"
+]
+
+Test[
+	ToString[bc20]
+	,
+	"
+L0:
+ 0    BEGIN_BLOCK     Label[0]
+
+L3:
+ 1    BEGIN_BLOCK     Label[3]
+ 2    MATCH_LENGTH    %e0, 1, Label[4]
+ 3    MATCH_HEAD      %e0, Expr[f], Label[4]
+ 4    MOVE            %e1, %e0
+ 5    GET_PART        %e2, %e0, 1
+ 6    MOVE            %e0, %e2
+ 7    TRY             Label[6]
+
+L5:
+ 8    MATCH_HEAD      %e0, Expr[Integer], Label[7]
+ 9    JUMP            Label[2]
+
+L7:
+10    FAIL            
+
+L6:
+11    TRUST           
+12    MATCH_HEAD      %e0, Expr[Real], Label[4]
+13    JUMP            Label[2]
+14    MOVE            %e0, %e1
+15    END_BLOCK       Label[3]
+16    JUMP            Label[2]
+
+L4:
+17    JUMP            Label[1]
+
+L8:
+18    END_BLOCK       Label[0]
+
+L1:
+19    DEBUG_PRINT     Expr[\"Pattern failed\"]
+20    LOAD_IMM        %b0, 0
+21    HALT            
+
+L2:
+22    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
+23    SAVE_BINDINGS   
+24    LOAD_IMM        %b0, 1
+25    HALT            
+
+----------------------------------------
+Expr registers: 3, Bool registers: 1
+"
+	,
+	TestID->"FrontEnd-20251114-L9M4V3"
+]
+
+
+(*==============================================================================
+	f[x_Integer | x_Real]
+==============================================================================*)
+Test[
+	bc21 = CompilePatternToBytecode[f[x_Integer | x_Real]];
+	PatternBytecodeQ[bc21]
+	,
+	True
+	,
+	TestID->"FrontEnd-20251114-U1L9Q2"
+]
+
+Test[
+	ToString[bc21]
+	,
+	"
+L0:
+ 0    BEGIN_BLOCK     Label[0]
+
+L3:
+ 1    BEGIN_BLOCK     Label[3]
+ 2    MATCH_LENGTH    %e0, 1, Label[4]
+ 3    MATCH_HEAD      %e0, Expr[f], Label[4]
+ 4    MOVE            %e1, %e0
+ 5    GET_PART        %e2, %e0, 1
+ 6    MOVE            %e0, %e2
+ 7    TRY             Label[6]
+
+L5:
+ 8    MATCH_HEAD      %e0, Expr[Integer], Label[8]
+ 9    MOVE            %e3, %e0
+10    BIND_VAR        Symbol[\"TestContext`x\"], %e3
+11    JUMP            Label[2]
+
+L8:
+12    JUMP            Label[7]
+
+L9:
+13    FAIL            
+
+L6:
+14    TRUST           
+15    MATCH_HEAD      %e0, Expr[Real], Label[10]
+16    MOVE            %e4, %e0
+17    BIND_VAR        Symbol[\"TestContext`x\"], %e4
+18    JUMP            Label[2]
+
+L10:
+19    JUMP            Label[4]
+
+L11:
+20    MOVE            %e0, %e1
+21    END_BLOCK       Label[3]
+22    JUMP            Label[2]
+
+L4:
+23    JUMP            Label[1]
+
+L12:
+24    END_BLOCK       Label[0]
+
+L1:
+25    DEBUG_PRINT     Expr[\"Pattern failed\"]
+26    LOAD_IMM        %b0, 0
+27    HALT            
+
+L2:
+28    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
+29    SAVE_BINDINGS   
+30    LOAD_IMM        %b0, 1
+31    HALT            
+
+----------------------------------------
+Expr registers: 5, Bool registers: 1
+Lexical bindings:
+  TestContext`x \[RightArrow] %e4
+"
+	,
+	TestID->"FrontEnd-20251114-F6L5P1"
+]
+
+
 TestStatePop[Global`contextState]
 
 

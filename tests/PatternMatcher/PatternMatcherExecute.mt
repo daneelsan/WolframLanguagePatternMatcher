@@ -357,7 +357,7 @@ Test[
 Test[
 	PatternMatcherExecute[_Real | _Integer, 5]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 10, "Bindings" -> <||>|>
+	<|"Result" -> True, "CyclesExecuted" -> 11, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-B0M0W6"
 ]
@@ -381,7 +381,7 @@ Test[
 Test[
 	PatternMatcherExecute[f[_Integer | _Real], f["string"]]
 	,
-	<|"Result" -> False, "CyclesExecuted" -> 15, "Bindings" -> <||>|>
+	<|"Result" -> False, "CyclesExecuted" -> 16, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-P1Q7O6"
 ]
@@ -389,7 +389,7 @@ Test[
 Test[
 	PatternMatcherExecute[f[_Integer | x], f[x]]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 16, "Bindings" -> <||>|>
+	<|"Result" -> True, "CyclesExecuted" -> 17, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251114-P9I8K4"
 ]
@@ -405,7 +405,7 @@ Test[
 Test[
 	PatternMatcherExecute[f[x_Integer | x_Real], f[5.5]]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 19, "Bindings" -> <|"TestContext`x" -> 5.5|>|>
+	<|"Result" -> True, "CyclesExecuted" -> 20, "Bindings" -> <|"TestContext`x" -> 5.5|>|>
 	,
 	TestID->"PatternMatcherExecute-20251114-X8J5D4"
 ]
