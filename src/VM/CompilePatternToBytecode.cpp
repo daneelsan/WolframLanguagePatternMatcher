@@ -285,16 +285,26 @@ static void compileNormal(CompilerState& st, std::shared_ptr<MExprNormal> mexpr,
 	// --- 1. Test argument length ---
 	st.emit(Opcode::MATCH_LENGTH, { OpExprReg(0), OpImm(argsLen), OpLabel(innerFail) });
 
+	// Starting index for argument matching
+	mint partStart = 0;
+
 	// --- 2. Check head equality ---
-	Expr headExpr = mexpr->getHead()->getExpr();
-	st.emit(Opcode::MATCH_HEAD, { OpExprReg(0), OpImm(headExpr), OpLabel(innerFail) });
+	auto headMExpr = mexpr->getHead();
+	if (headMExpr->symbolQ())
+	{
+		// For symbols, we can optimize by using the symbol name directly
+		Expr headExpr = headMExpr->getExpr();
+		st.emit(Opcode::MATCH_HEAD, { OpExprReg(0), OpImm(headExpr), OpLabel(innerFail) });
+		// Skip the matching of part(0), the head
+		partStart = 1;
+	}
 
 	// --- 3. Save %e0 before recursive calls ---
 	ExprRegIndex rSaved = st.allocExprReg();
 	st.emit(Opcode::MOVE, { OpExprReg(rSaved), OpExprReg(0) });
 
 	// --- 4. Match each argument subpattern ---
-	for (mint i = 1; i <= static_cast<mint>(argsLen); ++i)
+	for (mint i = partStart; i <= static_cast<mint>(argsLen); ++i)
 	{
 		// Extract the i-th part
 		ExprRegIndex rPart = st.allocExprReg();
