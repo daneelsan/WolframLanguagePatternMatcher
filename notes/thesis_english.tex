@@ -194,8 +194,865 @@ I would like to express my sincere gratitude to my advisor, Dr. Héctor Andrés 
 % ============================================================================
 \mainmatter
 
-% NOTE: Chapters 1-3 are as before (Introduction, Fundamentals, Design)
-% I'll now add the expanded Chapter 4: Implementation
+% ============================================================================
+% CHAPTER 1: INTRODUCTION
+% ============================================================================
+\chapter{Introduction}
+\label{chap:introduction}
+
+Pattern matching is a fundamental operation in symbolic computation systems, enabling programs to identify, extract, and transform structured data based on declarative specifications. In Wolfram Language, pattern matching serves as the foundation for rule-based programming, function definitions, and symbolic manipulation~\cite{wolfram2015}.
+
+% ----------------------------------------------------------------------------
+\section{Motivation}
+\label{sec:motivation}
+
+Consider a simple pattern matching operation in Wolfram Language:
+
+\begin{lstlisting}[style=wolfram]
+MatchQ[f[5, 5], f[x_, x_]]
+(* Output: True, with x bound to 5 *)
+\end{lstlisting}
+
+This single line encodes several computational tasks:
+\begin{itemize}
+    \item Structural decomposition: Check that the expression has head \texttt{f} with exactly 2 arguments
+    \item Variable binding: Bind \texttt{x} to the first argument
+    \item Constraint checking: Verify that the second argument equals the first
+\end{itemize}
+
+While simple patterns execute efficiently, complex patterns involving alternatives, nested structures, and pattern tests can become computationally expensive when evaluated interpretively. Each match operation requires:
+\begin{itemize}
+    \item Recursive traversal of the expression tree
+    \item Dynamic type checking and constraint evaluation
+    \item Backtracking when alternatives fail
+    \item Variable binding management across scope boundaries
+\end{itemize}
+
+When patterns are used repeatedly---as in rule-based transformations or pattern-based function definitions---these costs accumulate.
+
+\subsection{The Compilation Opportunity}
+
+The key observation motivating this thesis is that \textbf{patterns are programs}: they describe a computation that tests whether an input expression matches a specification. Like other programs, patterns can benefit from compilation:
+
+\begin{enumerate}
+    \item \textbf{Amortized cost}: Compile pattern once, execute many times
+    \item \textbf{Explicit control flow}: Replace recursive interpretation with explicit jumps
+    \item \textbf{Optimized execution}: Enable instruction-level optimizations
+    \item \textbf{Observable behavior}: Expose execution metrics for analysis
+\end{enumerate}
+
+% ----------------------------------------------------------------------------
+\section{Research Questions}
+\label{sec:research_questions}
+
+This thesis investigates the following questions:
+
+\begin{enumerate}
+    \item \textbf{Instruction Set Design}: What is a minimal instruction set sufficient for pattern matching operations in Wolfram Language?
+    
+    \item \textbf{Backtracking Mechanism}: How can structured backtracking (as in alternatives \texttt{p1 | p2 | p3}) be implemented efficiently without stack unwinding?
+    
+    \item \textbf{Register Architecture}: What are the trade-offs between stack-based and register-based execution models for pattern matching?
+    
+    \item \textbf{Semantic Equivalence}: How can we ensure that compiled patterns behave identically to native \texttt{MatchQ}?
+    
+    \item \textbf{Performance Characteristics}: What are the intrinsic costs (instruction count, memory usage, execution cycles) of the compiled approach?
+\end{enumerate}
+
+% ----------------------------------------------------------------------------
+\section{Contributions}
+\label{sec:contributions}
+
+This thesis makes the following contributions:
+
+\subsection{Technical Contributions}
+
+\begin{enumerate}
+    \item \textbf{Minimal Instruction Set}: A carefully designed ISA with 20 opcodes specifically for pattern matching, including:
+    \begin{itemize}
+        \item Fused match operations (\texttt{MATCH\_HEAD}, \texttt{MATCH\_LENGTH}) that combine testing and conditional branching
+        \item Explicit backtracking protocol (\texttt{TRY}/\texttt{RETRY}/\texttt{TRUST}/\texttt{FAIL})
+        \item Register-based data movement avoiding stack manipulation overhead
+    \end{itemize}
+    
+    \item \textbf{Structured Backtracking Mechanism}: A WAM-inspired implementation using choice points and trail, enabling independent exploration of alternatives with automatic state restoration.
+    
+    \item \textbf{Compilation Strategy}: A single-pass compiler that handles:
+    \begin{itemize}
+        \item Repeated variables through lexical environment tracking
+        \item Nested patterns with proper scoping
+        \item Alternatives with state restoration between attempts
+        \item Pattern tests with fallback on failure
+    \end{itemize}
+    
+    \item \textbf{Working Implementation}: A complete system consisting of:
+    \begin{itemize}
+        \item 3,250 lines of C++ implementing compiler and runtime
+        \item 650 lines of Wolfram Language providing high-level interface
+        \item Integration through LibraryLink with managed object lifetime
+        \item Comprehensive test suite with over 40 test cases
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Methodological Contributions}
+
+\begin{enumerate}
+    \item \textbf{Equivalence Testing}: A systematic approach to verifying correctness through comparison with native \texttt{MatchQ} on a comprehensive test suite.
+    
+    \item \textbf{Intrinsic Evaluation}: Metrics focused on bytecode characteristics, execution behavior, and memory usage rather than comparative benchmarks.
+    
+    \item \textbf{Design Documentation}: Detailed rationale for architectural decisions, including failed approaches and lessons learned.
+\end{enumerate}
+
+% ----------------------------------------------------------------------------
+\section{Scope and Limitations}
+\label{sec:scope}
+
+\subsection{Supported Features}
+
+This implementation supports the following pattern types:
+\begin{itemize}
+    \item Literal patterns: \texttt{5}, \texttt{"hello"}, \texttt{Pi}
+    \item Blanks with optional head constraints: \texttt{\_}, \texttt{\_Integer}
+    \item Named patterns: \texttt{x\_}, \texttt{x\_Integer}
+    \item Repeated variables: \texttt{f[x\_, x\_]}
+    \item Alternatives: \texttt{p1 | p2 | p3}
+    \item Structured patterns: \texttt{f[x\_, y\_]}, \texttt{\{a\_, b\_\}}
+    \item Pattern tests: \texttt{\_?test}
+\end{itemize}
+
+\subsection{Excluded Features}
+
+The following features are beyond the scope of this thesis:
+\begin{itemize}
+    \item Sequence patterns (\texttt{\_\_}, \texttt{\_\_\_})
+    \item Conditional patterns (\texttt{/;})
+    \item Optional patterns (\texttt{x\_.})
+    \item Orderless matching
+    \item Verbatim and HoldPattern constructs
+    \item Optimization passes (constant folding, dead code elimination)
+\end{itemize}
+
+\subsection{Performance Goals}
+
+This thesis focuses on \textbf{demonstrating feasibility} rather than outperforming native \texttt{MatchQ}. The evaluation emphasizes:
+\begin{itemize}
+    \item Bytecode characteristics (instruction count, register usage)
+    \item Execution metrics (cycles, backtracking events)
+    \item Memory footprint (frames, choice points, trail)
+    \item Compilation overhead
+\end{itemize}
+
+Comparative performance benchmarks against native \texttt{MatchQ} are explicitly \textbf{not} a goal, as the native implementation is highly optimized over decades of development.
+
+% ----------------------------------------------------------------------------
+\section{Thesis Organization}
+\label{sec:organization}
+
+The remainder of this thesis is organized as follows:
+
+\begin{description}
+    \item[Chapter~\ref{chap:fundamentals}: Fundamentals] Reviews pattern matching in functional languages, virtual machine architectures, and the Warren Abstract Machine.
+    
+    \item[Chapter~\ref{chap:design}: Design] Presents the instruction set architecture, compilation strategy, and backtracking mechanism.
+    
+    \item[Chapter~\ref{chap:implementation}: Implementation] Describes the C++ runtime, compiler implementation, and Wolfram Language integration.
+    
+    \item[Chapter~\ref{chap:evaluation}: Evaluation] Analyzes bytecode characteristics, execution metrics, and correctness validation.
+    
+    \item[Chapter~\ref{chap:conclusions}: Conclusions] Summarizes contributions, discusses limitations, and outlines future work.
+\end{description}
+
+% ============================================================================
+% CHAPTER 2: FUNDAMENTALS
+% ============================================================================
+\chapter{Fundamentals}
+\label{chap:fundamentals}
+
+This chapter reviews the foundational concepts underlying the pattern matching virtual machine: pattern matching semantics in functional languages, virtual machine architectures, and backtracking mechanisms.
+
+% ----------------------------------------------------------------------------
+\section{Pattern Matching in Functional Languages}
+\label{sec:pattern_matching_background}
+
+\subsection{Pattern Matching Semantics}
+
+Pattern matching extends simple equality testing by allowing \textit{structural decomposition} and \textit{variable binding}. A pattern describes a class of expressions, and matching determines whether a given expression belongs to that class.
+
+\begin{definition}[Pattern Match]
+A pattern \(p\) matches an expression \(e\) if there exists a substitution \(\sigma\) (mapping variables to values) such that applying \(\sigma\) to \(p\) yields an expression structurally equal to \(e\).
+\end{definition}
+
+\begin{example}[Simple Pattern Match]
+The pattern \texttt{f[x\_, y\_]} matches \texttt{f[1, 2]} with substitution \(\sigma = \{x \mapsto 1, y \mapsto 2\}\).
+\end{example}
+
+\subsection{Pattern Features}
+
+Common pattern matching systems support:
+
+\begin{enumerate}
+    \item \textbf{Wildcards}: Match any expression (e.g., \texttt{\_} in Wolfram Language, \texttt{\_} in Haskell)
+    
+    \item \textbf{Type constraints}: Match expressions of specific types (e.g., \texttt{\_Integer}, \texttt{\_::Int} in Haskell)
+    
+    \item \textbf{Variable binding}: Capture matched values (e.g., \texttt{x\_}, \texttt{x} in ML)
+    
+    \item \textbf{Nested patterns}: Recursive decomposition (e.g., \texttt{f[g[x\_], y\_]})
+    
+    \item \textbf{Alternatives}: Multiple patterns tried sequentially (e.g., \texttt{p1 | p2})
+    
+    \item \textbf{Guards/conditions}: Predicates on matched values (e.g., \texttt{x\_ /; x > 0})
+\end{enumerate}
+
+\subsection{Pattern Matching in Wolfram Language}
+
+Wolfram Language provides one of the most expressive pattern matching systems, with patterns used for:
+\begin{itemize}
+    \item Function definitions: \texttt{f[x\_Integer] := x\^{}2}
+    \item Rule-based transformations: \texttt{expr /. f[x\_] :> g[x]}
+    \item Conditional expressions: \texttt{Switch[expr, pattern1, val1, ...]}
+    \item Structural testing: \texttt{MatchQ[expr, pattern]}
+\end{itemize}
+
+Key characteristics:
+\begin{itemize}
+    \item \textbf{Everything is an expression}: \texttt{f[a, b]} is an expression with head \texttt{f} and parts \texttt{a}, \texttt{b}
+    \item \textbf{Head-based matching}: Patterns can constrain the head (\texttt{\_f} matches expressions with head \texttt{f})
+    \item \textbf{Rich pattern language}: Supports sequences (\texttt{\_\_}), optional (\texttt{\_.}), alternatives (\texttt{|}), tests (\texttt{?}), conditions (\texttt{/;})
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\section{Virtual Machine Architectures}
+\label{sec:vm_architectures}
+
+\subsection{Stack-Based vs. Register-Based}
+
+Virtual machines typically fall into two categories:
+
+\subsubsection{Stack-Based Machines}
+
+\textbf{Examples}: JVM (pre-optimization), CPython bytecode
+
+\textbf{Characteristics}:
+\begin{itemize}
+    \item Operands implicitly on stack top
+    \item Compact bytecode (no register operands)
+    \item Simple instruction semantics
+\end{itemize}
+
+\textbf{Example bytecode}:
+\begin{lstlisting}[style=bytecode]
+PUSH 5
+PUSH 10
+ADD          ; Pop two values, push sum
+\end{lstlisting}
+
+\textbf{Advantages}:
+\begin{itemize}
+    \item Small instruction encoding
+    \item Straightforward code generation
+    \item Natural for expression evaluation
+\end{itemize}
+
+\textbf{Disadvantages}:
+\begin{itemize}
+    \item Excessive stack manipulation (push/pop overhead)
+    \item Difficult to optimize (hidden data flow)
+    \item Poor register allocation in native compilation
+\end{itemize}
+
+\subsubsection{Register-Based Machines}
+
+\textbf{Examples}: Lua VM~\cite{ierusalimschy2005}, Dalvik (Android)
+
+\textbf{Characteristics}:
+\begin{itemize}
+    \item Operands in explicit registers
+    \item Larger bytecode (register operands encoded)
+    \item Explicit data flow
+\end{itemize}
+
+\textbf{Example bytecode}:
+\begin{lstlisting}[style=bytecode]
+MOVE r1, 5
+MOVE r2, 10
+ADD r3, r1, r2   ; r3 = r1 + r2
+\end{lstlisting}
+
+\textbf{Advantages}:
+\begin{itemize}
+    \item Fewer instructions (no stack manipulation)
+    \item Clear data dependencies
+    \item Better native code generation
+\end{itemize}
+
+\textbf{Disadvantages}:
+\begin{itemize}
+    \item Larger instruction encoding
+    \item Requires register allocation
+    \item More complex code generation
+\end{itemize}
+
+\subsection{Register Allocation Strategies}
+
+\begin{enumerate}
+    \item \textbf{Unlimited registers}: Allocate fresh register for each value (used in this thesis)
+    \begin{itemize}
+        \item Simple to implement
+        \item No allocation conflicts
+        \item May waste registers
+    \end{itemize}
+    
+    \item \textbf{Fixed register set}: Reuse registers through liveness analysis
+    \begin{itemize}
+        \item Compact state
+        \item Requires dataflow analysis
+        \item Complex to implement correctly
+    \end{itemize}
+\end{enumerate}
+
+% ----------------------------------------------------------------------------
+\section{Backtracking Mechanisms}
+\label{sec:backtracking_background}
+
+\subsection{Backtracking in Logic Programming}
+
+Backtracking is essential for exploring alternative solutions in non-deterministic computations. In pattern matching with alternatives (\texttt{p1 | p2 | p3}), backtracking enables trying each pattern sequentially.
+
+\subsubsection{The Warren Abstract Machine (WAM)}
+
+The WAM~\cite{ait-kaci1999} is the canonical execution model for Prolog, providing structured backtracking through:
+
+\begin{enumerate}
+    \item \textbf{Choice Points}: Save execution state when entering non-deterministic choice
+    \item \textbf{Trail}: Record variable bindings for reversal on backtrack
+    \item \textbf{Failure}: Restore most recent choice point and continue
+\end{enumerate}
+
+\textbf{WAM Backtracking Protocol}:
+\begin{itemize}
+    \item \texttt{try\_me\_else L}: Create choice point, record alternative L
+    \item \texttt{retry\_me\_else L}: Update choice point alternative to L
+    \item \texttt{trust\_me}: Remove choice point (last alternative)
+\end{itemize}
+
+This protocol ensures that:
+\begin{itemize}
+    \item Each alternative starts with clean state
+    \item Failures propagate to nearest choice point
+    \item Last alternative commits (no backtracking beyond it)
+\end{itemize}
+
+\subsection{Alternative Backtracking Strategies}
+
+\subsubsection{Exception-Based Unwinding}
+
+\textbf{Approach}: Throw exception on failure, catch at alternative boundary
+
+\textbf{Advantages}:
+\begin{itemize}
+    \item Leverages language exception mechanism
+    \item No explicit choice point management
+\end{itemize}
+
+\textbf{Disadvantages}:
+\begin{itemize}
+    \item Performance overhead (stack unwinding)
+    \item Implicit control flow (harder to debug)
+    \item Difficult to restore partial state
+\end{itemize}
+
+\subsubsection{Continuation-Based}
+
+\textbf{Approach}: Pass success and failure continuations
+
+\textbf{Advantages}:
+\begin{itemize}
+    \item Functional style
+    \item Explicit in types
+\end{itemize}
+
+\textbf{Disadvantages}:
+\begin{itemize}
+    \item Closure allocation overhead
+    \item Complex control flow
+    \item Stack growth in deep nesting
+\end{itemize}
+
+\subsection{Choice Point Design}
+
+A choice point must capture enough state to restore execution after backtracking:
+
+\begin{lstlisting}[style=cpp]
+struct ChoicePoint {
+    size_t nextAlternative;          // Label to jump to
+    std::vector<Expr> savedRegisters; // Register state
+    size_t trailMark;                // Trail position to unwind to
+    size_t frameMark;                // Frame depth to restore
+};
+\end{lstlisting}
+
+\textbf{Design considerations}:
+\begin{itemize}
+    \item \textbf{What to save}: Registers, frames, program counter
+    \item \textbf{When to save}: At choice point creation (\texttt{TRY})
+    \item \textbf{When to restore}: On \texttt{FAIL} instruction
+    \item \textbf{When to discard}: At \texttt{TRUST} (last alternative)
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\section{Compilation Techniques for Pattern Matching}
+\label{sec:compilation_techniques}
+
+\subsection{Decision Trees}
+
+Maranget~\cite{maranget2008} introduced compilation of pattern matching to decision trees, optimizing the order of tests to minimize worst-case comparisons.
+
+\textbf{Key ideas}:
+\begin{itemize}
+    \item Compile overlapping patterns to DAG avoiding redundant tests
+    \item Use heuristics to choose test order (e.g., test discriminating patterns first)
+    \item Generate compact code with shared subexpressions
+\end{itemize}
+
+\subsection{Backtracking Automata}
+
+Alternative approach: Compile patterns to finite automaton with backtracking transitions.
+
+\textbf{Characteristics}:
+\begin{itemize}
+    \item States represent partial matches
+    \item Transitions labeled with pattern constraints
+    \item $\epsilon$-transitions for alternatives
+    \item Backtrack edges for failure
+\end{itemize}
+
+\subsection{This Thesis: Direct Bytecode Compilation}
+
+We adopt a \textbf{direct compilation} approach:
+\begin{itemize}
+    \item Pattern → Bytecode (single pass)
+    \item No intermediate decision tree
+    \item Explicit backtracking instructions
+    \item Straightforward semantics
+\end{itemize}
+
+\textbf{Trade-off}: Simpler implementation at cost of potential optimization opportunities.
+
+% ============================================================================
+% CHAPTER 3: DESIGN
+% ============================================================================
+\chapter{Design}
+\label{chap:design}
+
+This chapter presents the design of the pattern matching virtual machine, including the instruction set architecture, compilation strategy, and runtime mechanisms.
+
+% ----------------------------------------------------------------------------
+\section{Design Goals}
+\label{sec:design_goals}
+
+The VM design is guided by the following principles:
+
+\begin{enumerate}
+    \item \textbf{Minimality}: Smallest instruction set sufficient for pattern matching
+    \item \textbf{Clarity}: Explicit control flow and data movement
+    \item \textbf{Correctness}: Semantic equivalence with native \texttt{MatchQ}
+    \item \textbf{Observability}: Expose execution metrics for analysis
+    \item \textbf{Extensibility}: Support future pattern features
+\end{enumerate}
+
+\subsection{Non-Goals}
+
+\begin{itemize}
+    \item \textbf{Performance parity}: Not attempting to match native \texttt{MatchQ} speed
+    \item \textbf{Complete feature coverage}: Focusing on core pattern types
+    \item \textbf{Optimization}: Prioritizing correctness over performance
+\end{itemize}
+
+% ----------------------------------------------------------------------------
+\section{Instruction Set Architecture}
+\label{sec:isa_design}
+
+\subsection{Design Philosophy}
+
+The ISA follows these principles:
+
+\begin{enumerate}
+    \item \textbf{Orthogonality}: Each instruction does one thing well
+    \item \textbf{Fusion}: Combine common operations (test + branch)
+    \item \textbf{Explicit operands}: All data sources/destinations named
+    \item \textbf{Type safety}: Separate register types (expression vs. boolean)
+\end{enumerate}
+
+\subsection{Register Model}
+
+\textbf{Expression Registers} (\texttt{\%e0}, \texttt{\%e1}, ...):
+\begin{itemize}
+    \item Hold Wolfram \texttt{Expr} values
+    \item Convention: \texttt{\%e0} = current value being matched
+\end{itemize}
+
+\textbf{Boolean Registers} (\texttt{\%b0}, \texttt{\%b1}, ...):
+\begin{itemize}
+    \item Hold boolean comparison results
+    \item Convention: \texttt{\%b0} = final match result
+\end{itemize}
+
+\textbf{Rationale}: Separate types prevent confusion between expressions and booleans, catching errors at compile-time.
+
+\subsection{Instruction Categories}
+
+\subsubsection{Data Movement}
+
+\begin{description}
+    \item[\texttt{MOVE \%dst, \%src}] Copy expression between registers
+    \item[\texttt{LOAD\_IMM \%dst, value}] Load constant into register
+\end{description}
+
+\subsubsection{Expression Introspection}
+
+\begin{description}
+    \item[\texttt{GET\_PART \%dst, \%src, index}] Extract part: \texttt{dst = src[[index]]}
+\end{description}
+
+\subsubsection{Pattern Matching (Fused Test + Branch)}
+
+\begin{description}
+    \item[\texttt{MATCH\_HEAD \%e, head, L\_fail}] If \texttt{Head[\%e] !== head}, jump to \texttt{L\_fail}
+    \item[\texttt{MATCH\_LENGTH \%e, len, L\_fail}] If \texttt{Length[\%e] !== len}, jump
+    \item[\texttt{MATCH\_LITERAL \%e, lit, L\_fail}] If \texttt{\%e !== lit}, jump
+\end{description}
+
+\textbf{Design rationale}: Fusing test and conditional jump reduces instruction count and improves locality. Alternative design (separate \texttt{TEST} + \texttt{BRANCH}) requires extra instructions and register allocation.
+
+\subsubsection{Comparison}
+
+\begin{description}
+    \item[\texttt{SAMEQ \%b, \%e1, \%e2}] \texttt{\%b = SameQ[\%e1, \%e2]}
+\end{description}
+
+Used for repeated variables: check if current value equals previously bound value.
+
+\subsubsection{Variable Binding}
+
+\begin{description}
+    \item[\texttt{BIND\_VAR name, \%e}] Bind variable \texttt{name} to \texttt{\%e} in current frame
+\end{description}
+
+\subsubsection{Control Flow}
+
+\begin{description}
+    \item[\texttt{JUMP L}] Unconditional jump to label
+    \item[\texttt{BRANCH\_FALSE \%b, L}] Jump to \texttt{L} if \texttt{\%b == false}
+    \item[\texttt{HALT}] Stop execution, return \texttt{\%b0}
+\end{description}
+
+\subsubsection{Scope Management}
+
+\begin{description}
+    \item[\texttt{BEGIN\_BLOCK L}] Create new frame (labeled for debugging)
+    \item[\texttt{END\_BLOCK L}] Merge frame bindings to parent, pop frame
+    \item[\texttt{EXPORT\_BINDINGS}] Copy all bindings to result frame
+\end{description}
+
+\subsubsection{Backtracking}
+
+\begin{description}
+    \item[\texttt{TRY L}] Create choice point, record \texttt{L} as next alternative
+    \item[\texttt{RETRY L}] Update choice point's next alternative to \texttt{L}
+    \item[\texttt{TRUST}] Remove choice point (last alternative)
+    \item[\texttt{FAIL}] Backtrack to most recent choice point
+\end{description}
+
+\subsubsection{Testing and Predicates}
+
+\begin{description}
+    \item[\texttt{APPLY\_TEST \%e, test, L\_fail}] Evaluate \texttt{test[\%e]}, jump to \texttt{L\_fail} if not \texttt{True}
+\end{description}
+
+\subsection{Complete Instruction Set}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{llp{6cm}}
+\toprule
+\textbf{Opcode} & \textbf{Operands} & \textbf{Description} \\
+\midrule
+\texttt{MOVE} & \texttt{\%e\_dst, \%e\_src} & Copy expression \\
+\texttt{LOAD\_IMM} & \texttt{\%dst, value} & Load constant \\
+\texttt{GET\_PART} & \texttt{\%e\_dst, \%e\_src, idx} & Extract part \\
+\texttt{MATCH\_HEAD} & \texttt{\%e, head, L} & Test head, jump on mismatch \\
+\texttt{MATCH\_LENGTH} & \texttt{\%e, len, L} & Test length, jump on mismatch \\
+\texttt{MATCH\_LITERAL} & \texttt{\%e, lit, L} & Test equality, jump on mismatch \\
+\texttt{APPLY\_TEST} & \texttt{\%e, test, L} & Apply predicate, jump on false \\
+\texttt{SAMEQ} & \texttt{\%b, \%e1, \%e2} & Structural equality \\
+\texttt{BIND\_VAR} & \texttt{name, \%e} & Bind variable \\
+\texttt{JUMP} & \texttt{L} & Unconditional jump \\
+\texttt{BRANCH\_FALSE} & \texttt{\%b, L} & Conditional jump \\
+\texttt{BEGIN\_BLOCK} & \texttt{L} & Create frame \\
+\texttt{END\_BLOCK} & \texttt{L} & Merge frame \\
+\texttt{EXPORT\_BINDINGS} & & Export to result \\
+\texttt{TRY} & \texttt{L} & Create choice point \\
+\texttt{RETRY} & \texttt{L} & Update choice point \\
+\texttt{TRUST} & & Remove choice point \\
+\texttt{FAIL} & & Backtrack \\
+\texttt{HALT} & & Stop execution \\
+\texttt{DEBUG\_PRINT} & \texttt{msg} & Trace execution \\
+\bottomrule
+\end{tabular}
+\caption{Complete instruction set (20 opcodes)}
+\label{tab:isa}
+\end{table}
+
+% ----------------------------------------------------------------------------
+\section{Compilation Strategy}
+\label{sec:compilation_strategy}
+
+\subsection{Compiler Architecture}
+
+The compiler is structured as a recursive descent translator:
+
+\begin{lstlisting}[style=cpp]
+compilePattern(state, pattern, successLabel, failLabel, isTopLevel)
+\end{lstlisting}
+
+\textbf{Parameters}:
+\begin{itemize}
+    \item \texttt{state}: Compiler state (registers, labels, lexical env, bytecode)
+    \item \texttt{pattern}: Pattern to compile
+    \item \texttt{successLabel}: Jump here if match succeeds
+    \item \texttt{failLabel}: Jump here if match fails
+    \item \texttt{isTopLevel}: If true, emit \texttt{JUMP successLabel} on success
+\end{itemize}
+
+\subsection{Compilation Patterns}
+
+\subsubsection{Literals}
+
+\textbf{Pattern}: \texttt{5}, \texttt{"hello"}, \texttt{Pi}
+
+\textbf{Bytecode}:
+\begin{lstlisting}[style=bytecode]
+MATCH_LITERAL %e0, <value>, L_fail
+JUMP L_success  ; (if isTopLevel)
+\end{lstlisting}
+
+\subsubsection{Blanks}
+
+\textbf{Pattern}: \texttt{\_}, \texttt{\_Integer}
+
+\textbf{Bytecode for} \texttt{\_Integer}:
+\begin{lstlisting}[style=bytecode]
+MATCH_HEAD %e0, Integer, L_fail
+JUMP L_success  ; (if isTopLevel)
+\end{lstlisting}
+
+\textbf{Bytecode for} \texttt{\_} (no head constraint):
+\begin{lstlisting}[style=bytecode]
+; No instructions needed (matches anything)
+JUMP L_success  ; (if isTopLevel)
+\end{lstlisting}
+
+\subsubsection{Named Patterns (First Occurrence)}
+
+\textbf{Pattern}: \texttt{x\_Integer} (first time \texttt{x} appears)
+
+\textbf{Bytecode}:
+\begin{lstlisting}[style=bytecode]
+; Compile subpattern (_Integer)
+MATCH_HEAD %e0, Integer, L_inner_fail
+
+; Bind variable
+MOVE %e1, %e0
+BIND_VAR "Global`x", %e1
+
+JUMP L_success  ; (if isTopLevel)
+
+L_inner_fail:
+JUMP L_fail
+\end{lstlisting}
+
+\subsubsection{Named Patterns (Repeated Occurrence)}
+
+\textbf{Pattern}: Second occurrence of \texttt{x} in \texttt{f[x\_, x\_]}
+
+\textbf{Assumptions}: First \texttt{x} bound to \texttt{\%e3}
+
+\textbf{Bytecode}:
+\begin{lstlisting}[style=bytecode]
+; Compile subpattern first (if any)
+; ...
+
+; Check equality with stored value
+SAMEQ %b1, %e3, %e0        ; %e3 = previously bound x
+BRANCH_FALSE %b1, L_fail
+
+; No BIND_VAR (already bound)
+\end{lstlisting}
+
+\subsubsection{Structured Patterns}
+
+\textbf{Pattern}: \texttt{f[x\_, y\_]}
+
+\textbf{Bytecode structure}:
+\begin{lstlisting}[style=bytecode]
+; Check structure
+MATCH_LENGTH %e0, 2, L_fail
+MATCH_HEAD %e0, f, L_fail
+MOVE %e1, %e0               ; Save f[x, y]
+
+; Match first argument
+GET_PART %e2, %e0, 1
+MOVE %e0, %e2               ; Make part 1 current
+; ... compile pattern for x_ ...
+MOVE %e0, %e1               ; Restore f[x, y]
+
+; Match second argument
+GET_PART %e3, %e0, 2
+MOVE %e0, %e3
+; ... compile pattern for y_ ...
+
+JUMP L_success
+\end{lstlisting}
+
+\subsubsection{Alternatives}
+
+\textbf{Pattern}: \texttt{p1 | p2 | p3}
+
+\textbf{Bytecode structure}:
+\begin{lstlisting}[style=bytecode]
+TRY L_p2
+
+L_p1:
+; ... compile p1 ...
+JUMP L_local_success
+; ... failure handler ...
+FAIL
+
+L_p2:
+RETRY L_p3
+; ... compile p2 ...
+JUMP L_local_success
+; ... failure handler ...
+FAIL
+
+L_p3:
+TRUST
+; ... compile p3 ...
+JUMP L_local_success
+
+L_local_success:
+JUMP L_success  ; (if isTopLevel)
+\end{lstlisting}
+
+\textbf{Key insight}: Each alternative has clean lexical environment (restored at compile-time).
+
+% ----------------------------------------------------------------------------
+\section{Runtime Mechanisms}
+\label{sec:runtime_mechanisms}
+
+\subsection{Frame Stack}
+
+Frames implement lexical scoping:
+
+\begin{lstlisting}[style=cpp]
+struct Frame {
+    std::unordered_map<std::string, Expr> bindings;
+    
+    void bindVariable(const std::string& name, const Expr& value);
+    std::optional<Expr> getVariable(const std::string& name) const;
+};
+
+std::vector<Frame> frames;  // Frame stack
+\end{lstlisting}
+
+\textbf{Operations}:
+\begin{itemize}
+    \item \texttt{BEGIN\_BLOCK}: Push new frame
+    \item \texttt{END\_BLOCK}: Merge bindings to parent, pop frame
+    \item \texttt{BIND\_VAR}: Add binding to top frame
+\end{itemize}
+
+\subsection{Choice Point Stack}
+
+Choice points enable backtracking:
+
+\begin{lstlisting}[style=cpp]
+struct ChoicePoint {
+    size_t nextAlternative;               // Label
+    std::vector<Expr> savedExprRegs;
+    std::vector<bool> savedBoolRegs;
+    size_t trailMark;                     // Trail size
+    size_t frameMark;                     // Frame depth
+};
+
+std::vector<ChoicePoint> choiceStack;
+\end{lstlisting}
+
+\textbf{Lifecycle}:
+\begin{enumerate}
+    \item \texttt{TRY}: Create choice point, save state
+    \item \texttt{RETRY}: Update \texttt{nextAlternative} label
+    \item \texttt{TRUST}: Pop choice point (last alternative)
+    \item \texttt{FAIL}: Restore state from top choice point, jump to \texttt{nextAlternative}
+\end{enumerate}
+
+\subsection{Trail}
+
+Trail records variable bindings for reversal:
+
+\begin{lstlisting}[style=cpp]
+struct TrailEntry {
+    std::string varName;
+    size_t frameIndex;
+};
+
+std::vector<TrailEntry> trail;
+\end{lstlisting}
+
+\textbf{Operations}:
+\begin{itemize}
+    \item On \texttt{BIND\_VAR}: If choice points exist, add to trail
+    \item On backtrack: Unwind trail to saved mark, unbind variables
+\end{itemize}
+
+\textbf{Optimization}: Only trail when \texttt{!choiceStack.empty()} (skip for deterministic patterns).
+
+% ----------------------------------------------------------------------------
+\section{Correctness by Design}
+\label{sec:correctness}
+
+\subsection{Semantic Equivalence}
+
+\textbf{Goal}: For all supported patterns \(p\) and expressions \(e\),
+\[
+\text{VMMatch}(e, p) \equiv \text{MatchQ}(e, p)
+\]
+
+\textbf{Approach}:
+\begin{enumerate}
+    \item Formalize pattern semantics (structural decomposition, binding)
+    \item Map each pattern construct to bytecode preserving semantics
+    \item Test equivalence on comprehensive suite
+\end{enumerate}
+
+\subsection{Invariants}
+
+\textbf{Compiler invariants}:
+\begin{itemize}
+    \item Labels are unique and resolvable
+    \item Register indices are allocated sequentially
+    \item Lexical environment correctly tracks first occurrences
+\end{itemize}
+
+\textbf{Runtime invariants}:
+\begin{itemize}
+    \item \texttt{\%e0} always holds current value being matched
+    \item \texttt{\%b0} holds final result at \texttt{HALT}
+    \item Frame stack depth matches nesting level
+    \item Trail entries correspond to active bindings
+\end{itemize}
 
 % ============================================================================
 % CHAPTER 4: IMPLEMENTATION
