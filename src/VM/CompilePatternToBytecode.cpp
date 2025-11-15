@@ -142,7 +142,7 @@ static void compileBlank(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, 
 	}
 }
 
-/* Helper: compile Pattern[sym, patt] */
+/* Compile Pattern[sym, patt] */
 static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, Label successLabel, Label outerFail,
 						   bool isTopLevel)
 {
@@ -217,7 +217,7 @@ static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr
 	}
 }
 
-/* Helper: compile Alternatives[patt1, patt2, ...] */
+/* Compile Alternatives[patt1, patt2, ...] */
 static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, Label successLabel,
 								Label failLabel, bool isTopLevel)
 {
@@ -225,16 +225,14 @@ static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> 
 
 	if (numAlts == 0)
 	{
-		// Empty alternatives always fails
 		st.emit(Opcode::JUMP, { OpLabel(failLabel) });
 		return;
 	}
 
 	if (numAlts == 1)
 	{
-		// Single alternative - no choice point needed
 		auto alt = mexpr->part(1);
-		compilePatternRec(st, alt, successLabel, failLabel, false);
+		compilePatternRec(st, alt, successLabel, failLabel, isTopLevel);
 		return;
 	}
 
@@ -247,29 +245,57 @@ static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> 
 		altLabels.push_back(st.newLabel());
 	}
 
+	// Save the current lexical environment
+	auto savedLexical = st.lexical;
+
 	// First alternative: TRY
-	st.emit(Opcode::TRY, { OpLabel(altLabels[1]) }); // Next alternative is at altLabels[1]
+	st.emit(Opcode::TRY, { OpLabel(altLabels[1]) });
 	st.bindLabel(altLabels[0]);
 	auto firstAlt = mexpr->part(1);
-	compilePatternRec(st, firstAlt, successLabel, failLabel, false);
+	// If first alternative fails, trigger backtracking (VM will jump to altLabels[1])
+	Label firstFail = st.newLabel();
+	compilePatternRec(st, firstAlt, successLabel, firstFail, true);
+
+	// First alternative failed - trigger backtracking
+	st.bindLabel(firstFail);
+	st.emit(Opcode::FAIL, {}); // This will backtrack to altLabels[1]
 
 	// Middle alternatives: RETRY
 	for (size_t i = 1; i < numAlts - 1; ++i)
 	{
+		// Restore lexical environment for each alternative
+		st.lexical = savedLexical;
+
 		st.bindLabel(altLabels[i]);
 		st.emit(Opcode::RETRY, { OpLabel(altLabels[i + 1]) });
 		auto alt = mexpr->part(static_cast<mint>(i + 1));
-		compilePatternRec(st, alt, successLabel, failLabel, false);
+		Label altFail = st.newLabel();
+		compilePatternRec(st, alt, successLabel, altFail, true);
+
+		st.bindLabel(altFail);
+		st.emit(Opcode::FAIL, {}); // Backtrack to next alternative
 	}
 
-	// Last alternative: TRUST
+	// Last alternative
+	st.lexical = savedLexical;
+
+	// Last alternative: No TRY/RETRY/TRUST needed
+	// Just compile the pattern - if it fails, jump to outer fail (no more alternatives)
 	st.bindLabel(altLabels[numAlts - 1]);
-	st.emit(Opcode::TRUST, {}); // No more alternatives
+	// Don't emit TRUST here - let the pattern execute
 	auto lastAlt = mexpr->part(static_cast<mint>(numAlts));
-	compilePatternRec(st, lastAlt, successLabel, failLabel, false);
+	// Last alternative fails -> jump to outer fail label (no more alternatives)
+	compilePatternRec(st, lastAlt, successLabel, failLabel, true);
+
+	// If the last alternative succeeds and we reach here (shouldn't happen due to JUMP to success),
+	// remove the choice point
+	if (numAlts > 1)
+	{
+		st.emit(Opcode::CUT, {}); // Remove choice points if we somehow get here
+	}
 }
 
-/* Helper: compile normal expressions head[arg1, arg2, ...] */
+/* Compile normal expressions head[arg1, arg2, ...] */
 static void compileNormal(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, Label successLabel, Label outerFail,
 						  bool isTopLevel)
 {
@@ -343,7 +369,7 @@ static void compileNormal(CompilerState& st, std::shared_ptr<MExprNormal> mexpr,
 	// FAILURE HANDLER: Unwind and propagate
 	// ============================================================
 	st.bindLabel(innerFail);
-	//st.emit(Opcode::END_BLOCK, { OpLabel(blockLabel) });
+	// st.emit(Opcode::END_BLOCK, { OpLabel(blockLabel) });
 	st.emit(Opcode::JUMP, { OpLabel(outerFail) });
 
 	// Bind the "after failure handler" label

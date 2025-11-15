@@ -112,27 +112,33 @@ bool VirtualMachine::backtrack()
 	if (choiceStack.empty())
 	{
 		PM_TRACE("BACKTRACK: No choice points left - FAIL");
-		return false; // No more alternatives - pattern fails
+		return false;
 	}
 
-	// Pop most recent choice point
-	ChoicePoint cp = std::move(choiceStack.back());
-	choiceStack.pop_back();
+	auto& cp = choiceStack.back(); // Don't pop - just peek
 
-	// Restore VM state
-	PM_TRACE("BACKTRACK: Restoring choice point, jumping to L", cp.nextAlternative);
-	pc = cp.nextAlternative; // Jump to next alternative
-	exprRegs = std::move(cp.savedExprRegs);
-	boolRegs = std::move(cp.savedBoolRegs);
+	// Restore state from choice point
+	exprRegs = cp.savedExprRegs;
+	boolRegs = cp.savedBoolRegs;
 
-	// Unwind trail - undo variable bindings
-	unwindTrail(cp.trailMark);
-
-	// Restore frame depth
+	// Restore frames to the saved depth
 	while (frames.size() > cp.frameMark)
 	{
 		frames.pop_back();
 	}
+
+	// Unwind trail to choice point
+	unwindTrail(cp.trailMark);
+
+	// Jump to next alternative - RESOLVE THE LABEL!
+	auto nextPC = bytecode.value()->resolveLabel(cp.nextAlternative);
+	PM_ASSERT(nextPC.has_value(), "Failed to resolve label ", cp.nextAlternative);
+	pc = nextPC.value();
+
+	PM_TRACE("BACKTRACK: Restoring choice point, jumping to L", cp.nextAlternative, " (pc=", pc, ")");
+
+	// The choice point remains on the stack!
+	// It will be updated by RETRY or removed by TRUST
 
 	backtracking = true;
 	unwindingFailure = true;
