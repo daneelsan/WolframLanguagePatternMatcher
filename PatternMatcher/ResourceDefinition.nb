@@ -8033,7 +8033,7 @@ Cell["Additional information about limitations, issues, etc.", "Text",
 }, Open  ]]
 },
 WindowSize->{1512, 831},
-WindowMargins->{{0, Automatic}, {Automatic, 0}},
+WindowMargins->{{204, Automatic}, {Automatic, -98}},
 DockedCells->{
   Cell[
    BoxData[

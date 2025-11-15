@@ -52,6 +52,9 @@ void VirtualMachine::reset()
 	cycles = 0;
 	halted = false;
 	backtracking = false;
+	unwindingFailure = false;
+
+	resultFrame.reset();
 
 	if (!bytecode)
 	{
@@ -63,6 +66,30 @@ void VirtualMachine::reset()
 
 	choiceStack.clear();
 	trail.clear();
+}
+
+/*===============================================================
+	Opcode Methods
+================================================================*/
+
+void VirtualMachine::jump(LabelOp label, bool isFailure)
+{
+	if (isFailure)
+	{
+		unwindingFailure = true;
+	}
+	pc = bytecode.value()->resolveLabel(label.v).value();
+	PM_TRACE((isFailure ? "FAIL_JUMP" : "JUMP"), " to L", label.v, " (pc=", pc, ")");
+}
+
+void VirtualMachine::saveBindings(Frame& tgtFrame)
+{
+	PM_ASSERT(!frames.empty(), "No frames available to save bindings from.");
+	auto& child = frames.back();
+	for (const auto& [var, val] : child.bindings)
+	{
+		tgtFrame.bindVariable(var, val);
+	}
 }
 
 /*===============================================================
@@ -108,6 +135,7 @@ bool VirtualMachine::backtrack()
 	}
 
 	backtracking = true;
+	unwindingFailure = true;
 	return true;
 }
 
@@ -130,13 +158,13 @@ void VirtualMachine::trailBind(const std::string& varName, const Expr& value)
 	auto& currentFrame = frames.back();
 
 	// If variable already bound, record it for undoing
-	if (currentFrame.find(varName) != currentFrame.end())
+	if (currentFrame.bindings.find(varName) != currentFrame.bindings.end())
 	{
 		trail.emplace_back(varName, frames.size() - 1);
 	}
 
 	// Bind the variable
-	currentFrame.insert_or_assign(varName, value);
+	currentFrame.bindVariable(varName, value);
 
 	PM_TRACE("TRAIL_BIND: ", varName, " <- ", value.toString(), " (trail size=", trail.size(), ")");
 }
@@ -153,7 +181,7 @@ void VirtualMachine::unwindTrail(size_t mark)
 		if (entry.frameIndex < frames.size())
 		{
 			auto& frame = frames[entry.frameIndex];
-			frame.erase(entry.varName);
+			frame.bindings.erase(entry.varName);
 			PM_TRACE("  Unbinding: ", entry.varName);
 		}
 
@@ -180,6 +208,7 @@ bool VirtualMachine::step()
 	pc += 1;
 	cycles += 1;
 	backtracking = false;
+	unwindingFailure = false;
 
 	switch (instr.opcode)
 	{
@@ -284,8 +313,7 @@ bool VirtualMachine::step()
 			PM_TRACE("MATCH_LENGTH", " %e", src.v, " == ", expectedLen.v, " -> ", (res ? "SUCCESS" : "FAILURE"));
 			if (not res)
 			{
-				pc = bytecode.value()->resolveLabel(label.v).value();
-				PM_TRACE("MATCH_LENGTH failed -> JUMP to L", label.v);
+				jump(label, true);
 			}
 			break;
 		}
@@ -300,8 +328,7 @@ bool VirtualMachine::step()
 			PM_TRACE("MATCH_HEAD", " %e", src.v, " == ", expected.toString(), " -> ", (res ? "SUCCESS" : "FAILURE"));
 			if (not res)
 			{
-				pc = bytecode.value()->resolveLabel(label.v).value();
-				PM_TRACE("	MATCH failed -> JUMP to L", label.v);
+				jump(label, true);
 			}
 			break;
 		}
@@ -334,8 +361,13 @@ bool VirtualMachine::step()
 		case Opcode::JUMP:
 		{
 			auto label = std::get<LabelOp>(instr.ops[0]);
-			pc = bytecode.value()->resolveLabel(label.v).value(); // Assume valid in release
-			PM_TRACE("JUMP to L", label.v, " (pc=", pc, ")");
+			jump(label, false);
+			break;
+		}
+		case Opcode::FAIL_JUMP:
+		{
+			auto label = std::get<LabelOp>(instr.ops[0]);
+			jump(label, true);
 			break;
 		}
 		case Opcode::JUMP_IF_FALSE:
@@ -365,11 +397,8 @@ bool VirtualMachine::step()
 			}
 			else
 			{
-				// No choice points - can bind directly (optimization)
-				// NOTE: There should always be at least one frame. Is this an error?
-				if (frames.empty())
-					frames.emplace_back();
-				frames.back().insert_or_assign(ident, exprRegs[reg.v]);
+				auto& back_frame = frames.back();
+				back_frame.bindVariable(ident, exprRegs[reg.v]);
 				PM_TRACE("BIND_VAR (no trail): ", ident, " <- %e", reg.v);
 			}
 			break;
@@ -381,7 +410,7 @@ bool VirtualMachine::step()
 			// Search frames from most recent to oldest
 			for (auto it = frames.rbegin(); it != frames.rend(); ++it)
 			{
-				if (auto found = it->find(ident); found != it->end())
+				if (auto found = it->bindings.find(ident); found != it->bindings.end())
 				{
 					exprRegs[dst.v] = found->second;
 					PM_TRACE("GET_VAR %e", dst.v, " <- ", ident);
@@ -399,48 +428,31 @@ bool VirtualMachine::step()
 		{
 			// push a new frame for bindings
 			frames.emplace_back();
-			// optional: if the opcode passes a label operand, show it
-			if (!instr.ops.empty())
-			{
-				if (auto L = std::get_if<LabelOp>(&instr.ops[0]))
-					PM_TRACE("BEGIN_BLOCK L", L->v, " (frame depth=", frames.size(), ")");
-				else
-					PM_TRACE("BEGIN_BLOCK (frame depth=", frames.size(), ")");
-			}
-			else
-			{
-				PM_TRACE("BEGIN_BLOCK (frame depth=", frames.size(), ")");
-			}
+
+			auto L = std::get_if<LabelOp>(&instr.ops[0]);
+			PM_TRACE("BEGIN_BLOCK L", L->v, " (frame depth=", frames.size(), ")");
 			break;
 		}
 		case Opcode::END_BLOCK:
 		{
-			if (!frames.empty())
+			PM_ASSERT(!frames.empty(), "END_BLOCK with no matching BEGIN_BLOCK");
+			auto L = std::get_if<LabelOp>(&instr.ops[0]);
+			if (frames.size() > 1 && !unwindingFailure)
 			{
-				frames.pop_back();
-				if (!instr.ops.empty())
-				{
-					if (auto L = std::get_if<LabelOp>(&instr.ops[0]))
-						PM_TRACE("END_BLOCK L", L->v, " (popped, depth=", frames.size(), ")");
-					else
-						PM_TRACE("END_BLOCK (popped, depth=", frames.size(), ")");
-				}
-				else
-				{
-					PM_TRACE("END_BLOCK (popped, depth=", frames.size(), ")");
-				}
+				// Success path: merge bindings upwards
+				auto& parent = frames[frames.size() - 2];
+				saveBindings(parent);
 			}
-			else
-			{
-				// BUG FIX: This is a serious error - stack underflow
-				PM_ERROR("END_BLOCK: no frame to pop (stack underflow)");
-				if (!instr.ops.empty())
-				{
-					if (auto L = std::get_if<LabelOp>(&instr.ops[0]))
-						PM_ERROR("  at label L", L->v);
-				}
-				// Continue execution but log the error
-			}
+			// Failure/backtrack: just pop, do not merge
+			frames.pop_back();
+			PM_TRACE("END_BLOCK L", L->v, " (popped, depth=", frames.size(), ")");
+			break;
+		}
+		case Opcode::SAVE_BINDINGS:
+		{
+			PM_ASSERT(!frames.empty(), "SAVE_BINDINGS with no active frame");
+			saveBindings(resultFrame);
+			PM_TRACE("SAVE_BINDINGS: Current bindings saved in frame (depth=", frames.size(), ")");
 			break;
 		}
 
@@ -526,7 +538,8 @@ bool VirtualMachine::step()
 
 		default:
 		{
-			PM_DEBUG("Opcode not implemented yet: ", static_cast<int>(instr.opcode));
+			PM_ERROR("Opcode not implemented yet: ", static_cast<int>(instr.opcode));
+			PM_ASSERT(false, "Opcode not implemented yet");
 			halted = true;
 			return false;
 		}

@@ -53,14 +53,14 @@ struct CompilerState
 	//=========================//
 	void emit(Opcode op, std::initializer_list<Operand> ops = {}) { out->push_instr(op, ops); }
 
-	/// Debug helper: emit a labeled block marker and push it on the stack
+	/// Emit a labeled block marker and push it on the stack
 	void beginBlock(Label L)
 	{
 		// Record that label L begins at the next instruction index
 		out->addLabel(L);
 		// push onto the stack
 		blockStack.push_back(L);
-		// emit a visible BEGIN_BLOCK marker (useful in debug)
+		// emit a visible BEGIN_BLOCK marker
 		emit(Opcode::BEGIN_BLOCK, { OpLabel(L) });
 	}
 
@@ -111,7 +111,7 @@ struct CompilerState
 static void compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr, Label successLabel, Label failLabel,
 							  bool isTopLevel);
 
-/* Helper: compile literal match: produce a Bool register (caller will handle jump on failure) */
+/* Compile literal match: produce a Bool register (caller will handle jump on failure) */
 static void compileLiteralMatch(CompilerState& st, std::shared_ptr<MExpr> mexpr, Label successLabel, Label failLabel,
 								bool isTopLevel)
 {
@@ -124,19 +124,17 @@ static void compileLiteralMatch(CompilerState& st, std::shared_ptr<MExpr> mexpr,
 	}
 }
 
-/* Helper: compile Blank (with optional head) -> returns Bool reg */
+/* Compile Blank (with optional head) -> returns Bool reg */
 static void compileBlank(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, Label successLabel, Label failLabel,
 						 bool isTopLevel)
 {
-	// Blank[] matches any single expression -> always true.
-	if (mexpr->length() == 0)
+	if (mexpr->length() == 1)
 	{
-		return;
+		// Blank[f] → check Head[%e0] == f
+		Expr headExpr = mexpr->part(1)->getExpr();
+		st.emit(Opcode::MATCH_HEAD, { OpExprReg(0), OpImm(headExpr), OpLabel(failLabel) });
 	}
-
-	// Otherwise: Blank[f] → check Head[%e0] == f
-	Expr headExpr = mexpr->part(1)->getExpr();
-	st.emit(Opcode::MATCH_HEAD, { OpExprReg(0), OpImm(headExpr), OpLabel(failLabel) });
+	// Otherwise, Blank[] matches any single expression.
 
 	if (isTopLevel)
 	{
@@ -190,11 +188,6 @@ static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr
 		// ============================================================
 		// FIRST OCCURRENCE: Bind variable and match subpattern
 		// ============================================================
-
-		// Create a block for this binding
-		Label blockLabel = st.newLabel();
-		st.beginBlock(blockLabel);
-
 		// Create inner fail label that will unwind this block
 		Label innerFail = st.newLabel();
 
@@ -209,7 +202,6 @@ static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr
 
 		// Runtime binding
 		st.emit(Opcode::BIND_VAR, { OpIdent(lexName), OpExprReg(bindReg) });
-		st.endBlock(blockLabel);
 
 		// Create a label to jump past the failure handler
 		Label afterFailHandler = st.newLabel();
@@ -223,12 +215,8 @@ static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr
 			st.emit(Opcode::JUMP, { OpLabel(afterFailHandler) });
 		}
 
-		// ============================================================
-		// FAILURE HANDLER: Unwind and propagate failure
-		// ============================================================
+		// Failure handler
 		st.bindLabel(innerFail);
-		// Pop the frame that was created by BEGIN_BLOCK
-		st.emit(Opcode::END_BLOCK, { OpLabel(blockLabel) });
 		// Jump to outer failure
 		st.emit(Opcode::JUMP, { OpLabel(outerFail) });
 
@@ -336,7 +324,7 @@ static void compileNormal(CompilerState& st, std::shared_ptr<MExprNormal> mexpr,
 	// Close the block normally
 	st.endBlock(blockLabel);
 
-	// **KEY FIX**: Create a label to jump past the failure handler
+	// Create a label to jump past the failure handler
 	Label afterFailHandler = st.newLabel();
 
 	// If top-level, jump to success; otherwise jump past failure handler
@@ -418,12 +406,12 @@ std::shared_ptr<PatternBytecode> CompilePatternToBytecode(const Expr& patternExp
 	Label failLabel = st.newLabel(); // L1
 	Label successLabel = st.newLabel(); // L2
 
-	// Entry block
+	// ============================================================
+	// ENTRY BLOCK
+	// ============================================================
 	st.beginBlock(entryLabel);
-
 	// Compile the pattern (isTopLevel=true means it will jump to success/fail)
 	compilePatternRec(st, pattern, successLabel, failLabel, true);
-
 	// Close entry block
 	st.endBlock(entryLabel);
 
@@ -443,7 +431,9 @@ std::shared_ptr<PatternBytecode> CompilePatternToBytecode(const Expr& patternExp
 	st.bindLabel(successLabel);
 	st.beginBlock(successLabel);
 	st.emit(Opcode::DEBUG_PRINT, { OpImm(Expr("Pattern succeeded")) });
+	st.emit(Opcode::SAVE_BINDINGS, {}); // Save current variable bindings
 	st.emit(Opcode::LOAD_IMM, { OpBoolReg(0), OpImm(true) });
+	// st.emit(Opcode::STORE_BINDINGS, {}); // Store all top-level bindings
 	st.emit(Opcode::HALT, {});
 	st.endBlock(successLabel);
 

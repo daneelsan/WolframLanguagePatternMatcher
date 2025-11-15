@@ -38,9 +38,6 @@ const char* opcodeName(Opcode op)
 		case Opcode::SAMEQ:
 			return "SAMEQ";
 
-		case Opcode::NOT:
-			return "NOT";
-
 		// Pattern Primitives
 		case Opcode::BIND_VAR:
 			return "BIND_VAR";
@@ -52,6 +49,8 @@ const char* opcodeName(Opcode op)
 		// Control Flow
 		case Opcode::JUMP:
 			return "JUMP";
+		case Opcode::FAIL_JUMP:
+			return "FAIL_JUMP";
 		case Opcode::JUMP_IF_FALSE:
 			return "JUMP_IF_FALSE";
 		case Opcode::HALT:
@@ -62,6 +61,8 @@ const char* opcodeName(Opcode op)
 			return "BEGIN_BLOCK";
 		case Opcode::END_BLOCK:
 			return "END_BLOCK";
+		case Opcode::SAVE_BINDINGS:
+			return "SAVE_BINDINGS";
 
 		// Backtracking operations
 		case Opcode::TRY:
@@ -106,16 +107,16 @@ std::string operandToString(const Operand& op)
 	}
 	if (std::holds_alternative<LabelOp>(op))
 	{
-		return "L" + std::to_string(std::get<LabelOp>(op).v);
+		return "Label[" + std::to_string(std::get<LabelOp>(op).v) + "]";
 	}
 	if (std::holds_alternative<Ident>(op))
 	{
-		return "id:`" + std::get<Ident>(op) + "`";
+		return "Symbol[\"" + std::get<Ident>(op) + "\"]";
 	}
 	if (std::holds_alternative<ImmExpr>(op))
 	{
 		auto expr = std::get<ImmExpr>(op);
-		return "Expr(\"" + expr.toInputFormString() + "\")";
+		return "Expr[" + expr.toInputFormString() + "]";
 	}
 	if (std::holds_alternative<ImmMint>(op))
 	{

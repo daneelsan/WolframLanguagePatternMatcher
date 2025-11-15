@@ -33,7 +33,8 @@ iPatternMatcherExecute[vm_?PatternMatcherVirtualMachineQ, expr_] :=
 		(* TODO: Add bound expressions, stats, etc. *)
 		<|
 			"Result" -> res,
-			"CyclesExecuted" -> vm["getCycles"]
+			"CyclesExecuted" -> vm["getCycles"],
+			"Bindings" -> vm["getResultBindings"]
 		|>
 	];
 

@@ -46,12 +46,14 @@ enum class Opcode {
 
 	// ===== Control Flow =====
 	JUMP,            /*  label           pc = label                          */
+	FAIL_JUMP,	     /*  label           pc = label (turns on unwind)        */
 	JUMP_IF_FALSE,   /*  A label         if !R[A] pc = label                 */
 	HALT,            /*  <no operands>   stop execution                      */
 
 	// ===== Scope Management =====
 	BEGIN_BLOCK,     /*  label           signals the beginning of a block              */
 	END_BLOCK,       /*  label           signals the end of a block                    */
+	SAVE_BINDINGS,   /*  <no operands>   save current variable bindings                */
 
 	// ===== Backtracking Support =====
 	TRY,             /*  label           Create choice point, try first alternative    */
@@ -62,9 +64,9 @@ enum class Opcode {
 	FAIL,            /*  <no operands>   Force backtracking                            */
 
 	// ===== Trail Management =====
-	TRAIL_BIND,      /*  varName A       Bind var with trail entry for backtracking   */
-	SAVE_STATE,      /*  <no operands>   Explicitly save registers to choice point    */
-	RESTORE_STATE,   /*  <no operands>   Restore registers from choice point          */
+	TRAIL_BIND,      /*  varName A       Bind var with trail entry for backtracking    */
+	SAVE_STATE,      /*  <no operands>   Explicitly save registers to choice point     */
+	RESTORE_STATE,   /*  <no operands>   Restore registers from choice point           */
 
 	// ===== Debug / Helper =====
 	DEBUG_PRINT,     /*  A               print R[A] (for debugging)                    */
@@ -116,12 +118,14 @@ inline OpcodeCategory getOpcodeCategory(Opcode op)
 			return OpcodeCategory::Pattern;
 
 		case Opcode::JUMP:
+		case Opcode::FAIL_JUMP:
 		case Opcode::JUMP_IF_FALSE:
 		case Opcode::HALT:
 			return OpcodeCategory::ControlFlow;
 
 		case Opcode::BEGIN_BLOCK:
 		case Opcode::END_BLOCK:
+		case Opcode::SAVE_BINDINGS:
 			return OpcodeCategory::ScopeManagement;
 
 		case Opcode::TRY:
@@ -154,7 +158,7 @@ inline bool isControlFlow(Opcode op)
 inline bool isBranch(Opcode op)
 {
 	return op == Opcode::JUMP || op == Opcode::JUMP_IF_FALSE || op == Opcode::MATCH_HEAD || op == Opcode::MATCH_LENGTH
-		|| op == Opcode::MATCH_LITERAL;
+		|| op == Opcode::MATCH_LITERAL || op == Opcode::FAIL_JUMP;
 }
 
 /// @brief Get human-readable description of opcode
@@ -168,38 +172,47 @@ inline const char* getOpcodeDescription(Opcode op)
 			return "Load immediate value";
 		case Opcode::LOAD_INPUT:
 			return "Load input expression";
+
 		case Opcode::GET_HEAD:
 			return "Extract head of expression";
 		case Opcode::GET_PART:
 			return "Extract part of expression";
+
+		case Opcode::SAMEQ:
+			return "Test structural equality";
 		case Opcode::TEST_LENGTH:
 			return "Test expression length";
+
 		case Opcode::MATCH_HEAD:
 			return "Match head and branch";
 		case Opcode::MATCH_LENGTH:
 			return "Match length and branch";
 		case Opcode::MATCH_LITERAL:
 			return "Match literal and branch";
-		case Opcode::SAMEQ:
-			return "Test structural equality";
-		case Opcode::NOT:
-			return "Boolean negation";
+
 		case Opcode::BIND_VAR:
 			return "Bind pattern variable";
 		case Opcode::GET_VAR:
 			return "Retrieve bound variable";
 		case Opcode::PATTERN_TEST:
 			return "Apply pattern test";
+
 		case Opcode::JUMP:
 			return "Unconditional jump";
+		case Opcode::FAIL_JUMP:
+			return "Fail and jump";
 		case Opcode::JUMP_IF_FALSE:
 			return "Conditional jump";
 		case Opcode::HALT:
 			return "Stop execution";
+
 		case Opcode::BEGIN_BLOCK:
 			return "Begin lexical scope";
 		case Opcode::END_BLOCK:
 			return "End lexical scope";
+		case Opcode::SAVE_BINDINGS:
+			return "Save current variable bindings";
+
 		case Opcode::DEBUG_PRINT:
 			return "Print debug information";
 		case Opcode::NOP:

@@ -130,6 +130,14 @@ Test[
 ]
 
 Test[
+	PatternMatcherExecute[_, f[x, y]]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251114-B4J8Y9"
+]
+
+Test[
 	PatternMatcherExecute[_Integer, 5]["Result"]
 	,
 	True
@@ -143,6 +151,14 @@ Test[
 	False
 	,
 	TestID->"PatternMatcherExecute-20251024-Y9Y8R4"
+]
+
+Test[
+	PatternMatcherExecute[_Integer, Integer["not really"]]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251114-S7Y2D7"
 ]
 
 Test[

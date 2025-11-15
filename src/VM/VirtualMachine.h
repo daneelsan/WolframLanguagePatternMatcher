@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 #include <unordered_map>
 
@@ -19,6 +20,18 @@ class VirtualMachine
 public:
 	VirtualMachine();
 	~VirtualMachine();
+
+	/// @brief Represents a call frame for variable bindings
+	struct Frame
+	{
+		using Bindings = std::unordered_map<std::string, Expr>;
+		Bindings bindings;
+		// Add other metadata here if needed (e.g., frame type, debug info, etc.)
+
+		void bindVariable(const std::string& name, const Expr& value) { bindings.insert_or_assign(name, value); }
+
+		void reset() { bindings.clear(); }
+	};
 
 	/// @brief Represents a saved state for backtracking
 	struct ChoicePoint
@@ -61,12 +74,17 @@ public:
 	std::optional<std::shared_ptr<PatternBytecode>> getBytecode() const { return bytecode; };
 	bool isHalted() const { return halted; };
 	bool isInitialized() const { return initialized; };
-	const std::unordered_map<std::string, Expr>& getResultBindings() const { return resultBindings; }
+
+	const Frame::Bindings& getResultBindings() const { return resultFrame.bindings; }
 
 	// --- Lifecycle ---
 	void initialize(const std::shared_ptr<PatternBytecode>& bytecode_);
 	void shutdown();
 	void reset();
+
+	// Opcode methods
+	void jump(LabelOp label, bool isFailure);
+	void saveBindings(Frame& frame);
 
 	// Backtracking methods
 	void createChoicePoint(size_t nextAlternative);
@@ -90,7 +108,9 @@ public:
 private:
 	bool initialized = false;
 	bool halted = false;
+
 	bool backtracking = false;
+	bool unwindingFailure = false;
 
 	size_t pc = 0; // program counter
 	size_t cycles = 0; // number of cycles executed
@@ -100,11 +120,11 @@ private:
 
 	// runtime binding frames for pattern variables
 	// each frame maps var name -> Expr value
-	std::vector<std::unordered_map<std::string, Expr>> frames;
+	std::vector<Frame> frames;
 	std::vector<Expr> exprRegs;
 	std::vector<bool> boolRegs;
 
-	std::unordered_map<std::string, Expr> resultBindings;
+	Frame resultFrame; // frame for result bindings
 
 	// Backtracking support
 	std::vector<ChoicePoint> choiceStack; // Stack of choice points

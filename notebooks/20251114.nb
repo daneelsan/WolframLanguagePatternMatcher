@@ -1,0 +1,1655 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 15.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     72791,       1647]
+NotebookOptionsPosition[     63400,       1487]
+NotebookOutlinePosition[     63795,       1503]
+CellTagsIndexPosition[     63752,       1500]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{"Exit", "[", "]"}]], "Input",
+ CellChangeTimes->{{3.968678129889373*^9, 3.9686781304371023`*^9}},
+ CellLabel->"In[26]:=",ExpressionUUID->"c796eca3-ff98-47eb-a667-ad49dadee252"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+  "PacletDirectoryLoad", 
+   "[", "\"\</Users/daniels/Library/CloudStorage/OneDrive-Personal/projects/\
+thesis/wolfram-vm/PatternMatcher\>\"", "]"}], ";"}]], "Code",
+ CellChangeTimes->{{3.96867775428549*^9, 3.968677780291068*^9}, 
+   3.972152932678596*^9},ExpressionUUID->"5d53859a-9568-4456-b6d5-\
+4de8cbc2675c"],
+
+Cell[BoxData[
+ RowBox[{"Needs", "[", "\"\<DanielS`PatternMatcher`\>\"", "]"}]], "Code",
+ CellChangeTimes->{{3.968677783056419*^9, 3.968677788247069*^9}, {
+  3.968678080572647*^9, 3.9686780821298723`*^9}},
+ CellLabel->"In[2]:=",ExpressionUUID->"d82f9430-8fd8-4253-a35e-45ea2c92753b"],
+
+Cell[CellGroupData[{
+
+Cell["CompilePatternToBytecode", "Subsection",
+ CellChangeTimes->{
+  3.970248468177648*^9},ExpressionUUID->"4c7b57f5-fa05-4ed7-a77d-\
+2e2d76520d31"],
+
+Cell[TextData[{
+ "TODO: Consider using ",
+ StyleBox["SameIntegerQ", "Code"],
+ ", ",
+ StyleBox["SameStringQ", "Code"],
+ ", ",
+ StyleBox["SameSymbolQ", "Code"],
+ " (exported from the kernel) instead of simply using ",
+ StyleBox["SameQ", "Code"],
+ "."
+}], "Item",
+ CellChangeTimes->{{3.972152461949862*^9, 
+  3.9721525120681868`*^9}},ExpressionUUID->"fac1e387-c37c-4ead-97a5-\
+8483e6fa0cb5"],
+
+Cell[CellGroupData[{
+
+Cell["Integer", "Subsubsection",
+ CellChangeTimes->{{3.9721522315655413`*^9, 
+  3.9721522321106853`*^9}},ExpressionUUID->"fbea7fdb-c26c-4b19-bfef-\
+9a5587c29d96"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"bc1", "=", 
+  RowBox[{"CompilePatternToBytecode", "[", "5", "]"}]}]], "Input",
+ CellChangeTimes->{{3.9700989455878143`*^9, 3.970098945587858*^9}, 
+   3.970099088012863*^9, 3.970248461374303*^9},
+ CellLabel->"In[3]:=",ExpressionUUID->"f3f8220e-973a-461d-bf7d-752f3ae08af1"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{
+   TagBox["PatternBytecode",
+    "SummaryHead"], "[", 
+   DynamicModuleBox[{Typeset`open$$ = False, Typeset`embedState$$ = "Ready"}, 
+    
+    TemplateBox[{
+      PaneSelectorBox[{False -> GridBox[{{
+            PaneBox[
+             ButtonBox[
+              DynamicBox[
+               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxOpener"], 
+               ImageSizeCache -> {10.6984921875, {0., 10.6984921875}}], 
+              Appearance -> None, BaseStyle -> {}, 
+              ButtonFunction :> (Typeset`open$$ = True), Evaluator -> 
+              Automatic, Method -> "Preemptive"], 
+             Alignment -> {Center, Center}, ImageSize -> 
+             Dynamic[{
+               Automatic, 
+                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+                 Magnification])}]], 
+            GridBox[{{
+               RowBox[{
+                 TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  TemplateBox[{
+                    TagBox["5", HoldCompleteForm], 
+                    RowBox[{"HoldComplete", "[", "5", "]"}]}, "ClickToCopy2"],
+                   "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Expr registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Bool registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}}, AutoDelete -> False, 
+             BaseStyle -> {
+              ShowStringCharacters -> False, NumberMarks -> False, 
+               PrintPrecision -> 3, ShowSyntaxStyles -> False}, 
+             GridBoxAlignment -> {
+              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             GridBoxSpacings -> {
+              "Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}}, AutoDelete -> 
+          False, BaselinePosition -> {1, 1}, 
+          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+          GridBoxItemSize -> {
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}], True -> 
+        GridBox[{{
+            PaneBox[
+             ButtonBox[
+              DynamicBox[
+               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxCloser"], 
+               ImageSizeCache -> {10.6984921875, {0., 10.6984921875}}], 
+              Appearance -> None, BaseStyle -> {}, 
+              ButtonFunction :> (Typeset`open$$ = False), Evaluator -> 
+              Automatic, Method -> "Preemptive"], 
+             Alignment -> {Center, Center}, ImageSize -> 
+             Dynamic[{
+               Automatic, 
+                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+                 Magnification])}]], 
+            GridBox[{{
+               RowBox[{
+                 TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  TemplateBox[{
+                    TagBox["5", HoldCompleteForm], 
+                    RowBox[{"HoldComplete", "[", "5", "]"}]}, "ClickToCopy2"],
+                   "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Expr registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Bool registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox["\"Disassembly: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  
+                  TemplateBox[{
+                   "\"\\nL0:\\n 0    BEGIN_BLOCK     Label[0]\\n 1    \
+MATCH_LITERAL   %e0, Expr[5], Label[1]\\n 2    JUMP            Label[2]\\n 3  \
+  END_BLOCK       Label[0]\\n\\nL1:\\n 4    BEGIN_BLOCK     Label[1]\\n 5    \
+DEBUG_PRINT     Expr[\\\"Pattern failed\\\"]\\n 6    LOAD_IMM        %b0, \
+0\\n 7    HALT            \\n 8    END_BLOCK       Label[1]\\n\\nL2:\\n 9    \
+BEGIN_BLOCK     Label[2]\\n10    DEBUG_PRINT     Expr[\\\"Pattern succeeded\\\
+\"]\\n11    SAVE_BINDINGS   \\n12    LOAD_IMM        %b0, 1\\n13    HALT      \
+      \\n14    END_BLOCK       \
+Label[2]\\n\\n----------------------------------------\\nExpr registers: 1, \
+Bool registers: 1\\n\""}, "ClickToCopy"], "SummaryItem"]}]}}, AutoDelete -> 
+             False, BaseStyle -> {
+              ShowStringCharacters -> False, NumberMarks -> False, 
+               PrintPrecision -> 3, ShowSyntaxStyles -> False}, 
+             GridBoxAlignment -> {
+              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             GridBoxSpacings -> {
+              "Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}}, AutoDelete -> 
+          False, BaselinePosition -> {1, 1}, 
+          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+          GridBoxItemSize -> {
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}]}, 
+       Dynamic[Typeset`open$$], ImageSize -> Automatic]},
+     "SummaryPanel"],
+    DynamicModuleValues:>{}], "]"}],
+  PatternMatcherLibrary`VM`PatternBytecode[
+  "PatternMatcherLibrary`VM`PatternBytecode", $Failed],
+  Editable->False,
+  SelectWithContents->True,
+  Selectable->False]], "Output",
+ CellChangeTimes->{3.9702492739781437`*^9, 3.97024947270944*^9, 
+  3.970256025456946*^9, 3.97215143663772*^9},
+ CellLabel->"Out[3]=",ExpressionUUID->"db008dfa-5a60-4800-b19a-b399f348105a"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"ToString", "[", "bc1", "]"}]], "Input",
+ CellChangeTimes->{{3.972151796706174*^9, 3.972151798473743*^9}},
+ CellLabel->"In[6]:=",ExpressionUUID->"a865d15b-7f0a-401d-8f16-0257e7d3ff91"],
+
+Cell[BoxData["\<\"\\nL0:\\n 0    BEGIN_BLOCK     Label[0]\\n 1    \
+MATCH_LITERAL   %e0, Expr[5], Label[1]\\n 2    JUMP            Label[2]\\n 3  \
+  END_BLOCK       Label[0]\\n\\nL1:\\n 4    BEGIN_BLOCK     Label[1]\\n 5    \
+DEBUG_PRINT     Expr[\\\"Pattern failed\\\"]\\n 6    LOAD_IMM        %b0, \
+0\\n 7    HALT            \\n 8    END_BLOCK       Label[1]\\n\\nL2:\\n 9    \
+BEGIN_BLOCK     Label[2]\\n10    DEBUG_PRINT     Expr[\\\"Pattern succeeded\\\
+\"]\\n11    SAVE_BINDINGS   \\n12    LOAD_IMM        %b0, 1\\n13    HALT      \
+      \\n14    END_BLOCK       \
+Label[2]\\n\\n----------------------------------------\\nExpr registers: 1, \
+Bool registers: 1\\n\"\>"], "Output",
+ CellChangeTimes->{3.9721517987037086`*^9},
+ CellLabel->"Out[6]=",ExpressionUUID->"823c7fdc-0324-4983-9e30-7d7c7a583a84"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["String", "Subsubsection",
+ CellChangeTimes->{{3.972152234963955*^9, 
+  3.972152235487074*^9}},ExpressionUUID->"0534ca93-9932-48f0-b9cf-\
+6a991bb7a4b9"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"bc2", "=", 
+  RowBox[{"CompilePatternToBytecode", "[", "\"\<foo\>\"", "]"}]}]], "Input",
+ CellChangeTimes->{{3.972151963061483*^9, 3.972151965750699*^9}, 
+   3.972152003924917*^9, {3.97215223825814*^9, 3.972152239553953*^9}},
+ CellLabel->"In[12]:=",ExpressionUUID->"2d5cbb46-d70a-480a-8bbc-e70a4d89ed0a"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{
+   TagBox["PatternBytecode",
+    "SummaryHead"], "[", 
+   DynamicModuleBox[{Typeset`open$$ = False, Typeset`embedState$$ = "Ready"}, 
+    
+    TemplateBox[{
+      PaneSelectorBox[{False -> GridBox[{{
+            PaneBox[
+             ButtonBox[
+              DynamicBox[
+               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxOpener"], 
+               ImageSizeCache -> {10.6984921875, {0., 10.6984921875}}], 
+              Appearance -> None, BaseStyle -> {}, 
+              ButtonFunction :> (Typeset`open$$ = True), Evaluator -> 
+              Automatic, Method -> "Preemptive"], 
+             Alignment -> {Center, Center}, ImageSize -> 
+             Dynamic[{
+               Automatic, 
+                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+                 Magnification])}]], 
+            GridBox[{{
+               RowBox[{
+                 TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  TemplateBox[{
+                    TagBox["\"foo\"", HoldCompleteForm], 
+                    RowBox[{"HoldComplete", "[", "\"foo\"", "]"}]}, 
+                   "ClickToCopy2"], "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Expr registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Bool registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}}, AutoDelete -> False, 
+             BaseStyle -> {
+              ShowStringCharacters -> False, NumberMarks -> False, 
+               PrintPrecision -> 3, ShowSyntaxStyles -> False}, 
+             GridBoxAlignment -> {
+              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             GridBoxSpacings -> {
+              "Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}}, AutoDelete -> 
+          False, BaselinePosition -> {1, 1}, 
+          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+          GridBoxItemSize -> {
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}], True -> 
+        GridBox[{{
+            PaneBox[
+             ButtonBox[
+              DynamicBox[
+               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxCloser"]], 
+              Appearance -> None, BaseStyle -> {}, 
+              ButtonFunction :> (Typeset`open$$ = False), Evaluator -> 
+              Automatic, Method -> "Preemptive"], 
+             Alignment -> {Center, Center}, ImageSize -> 
+             Dynamic[{
+               Automatic, 
+                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+                 Magnification])}]], 
+            GridBox[{{
+               RowBox[{
+                 TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  TemplateBox[{
+                    TagBox["\"foo\"", HoldCompleteForm], 
+                    RowBox[{"HoldComplete", "[", "\"foo\"", "]"}]}, 
+                   "ClickToCopy2"], "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Expr registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Bool registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox["\"Disassembly: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  
+                  TemplateBox[{
+                   "\"\\nL0:\\n 0    BEGIN_BLOCK     Label[0]\\n 1    \
+MATCH_LITERAL   %e0, Expr[\\\"foo\\\"], Label[1]\\n 2    JUMP            \
+Label[2]\\n 3    END_BLOCK       Label[0]\\n\\nL1:\\n 4    BEGIN_BLOCK     \
+Label[1]\\n 5    DEBUG_PRINT     Expr[\\\"Pattern failed\\\"]\\n 6    \
+LOAD_IMM        %b0, 0\\n 7    HALT            \\n 8    END_BLOCK       \
+Label[1]\\n\\nL2:\\n 9    BEGIN_BLOCK     Label[2]\\n10    DEBUG_PRINT     \
+Expr[\\\"Pattern succeeded\\\"]\\n11    SAVE_BINDINGS   \\n12    LOAD_IMM     \
+   %b0, 1\\n13    HALT            \\n14    END_BLOCK       \
+Label[2]\\n\\n----------------------------------------\\nExpr registers: 1, \
+Bool registers: 1\\n\""}, "ClickToCopy"], "SummaryItem"]}]}}, AutoDelete -> 
+             False, BaseStyle -> {
+              ShowStringCharacters -> False, NumberMarks -> False, 
+               PrintPrecision -> 3, ShowSyntaxStyles -> False}, 
+             GridBoxAlignment -> {
+              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             GridBoxSpacings -> {
+              "Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}}, AutoDelete -> 
+          False, BaselinePosition -> {1, 1}, 
+          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+          GridBoxItemSize -> {
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}]}, 
+       Dynamic[Typeset`open$$], ImageSize -> Automatic]},
+     "SummaryPanel"],
+    DynamicModuleValues:>{}], "]"}],
+  PatternMatcherLibrary`VM`PatternBytecode[
+  "PatternMatcherLibrary`VM`PatternBytecode", $Failed],
+  Editable->False,
+  SelectWithContents->True,
+  Selectable->False]], "Output",
+ CellChangeTimes->{3.972151967495781*^9, 3.972152004269788*^9, 
+  3.9721522405369263`*^9},
+ CellLabel->"Out[12]=",ExpressionUUID->"3e9ab1a9-3e45-4fae-9c4d-f044b9eacf4d"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"ToString", "[", "bc2", "]"}]], "Input",
+ CellChangeTimes->{{3.97215196945212*^9, 3.972151971429605*^9}},
+ CellLabel->"In[13]:=",ExpressionUUID->"933cc67b-0f4c-4211-a326-34ce5c4f5961"],
+
+Cell[BoxData["\<\"\\nL0:\\n 0    BEGIN_BLOCK     Label[0]\\n 1    \
+MATCH_LITERAL   %e0, Expr[\\\"foo\\\"], Label[1]\\n 2    JUMP            \
+Label[2]\\n 3    END_BLOCK       Label[0]\\n\\nL1:\\n 4    BEGIN_BLOCK     \
+Label[1]\\n 5    DEBUG_PRINT     Expr[\\\"Pattern failed\\\"]\\n 6    \
+LOAD_IMM        %b0, 0\\n 7    HALT            \\n 8    END_BLOCK       \
+Label[1]\\n\\nL2:\\n 9    BEGIN_BLOCK     Label[2]\\n10    DEBUG_PRINT     \
+Expr[\\\"Pattern succeeded\\\"]\\n11    SAVE_BINDINGS   \\n12    LOAD_IMM     \
+   %b0, 1\\n13    HALT            \\n14    END_BLOCK       \
+Label[2]\\n\\n----------------------------------------\\nExpr registers: 1, \
+Bool registers: 1\\n\"\>"], "Output",
+ CellChangeTimes->{3.972151971629323*^9, 3.972152005273499*^9, 
+  3.97215224147333*^9},
+ CellLabel->"Out[13]=",ExpressionUUID->"c3829f94-4f12-4ab7-ad0d-79b831f542b8"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Symbol", "Subsubsection",
+ CellChangeTimes->{{3.972152234963955*^9, 3.972152235487074*^9}, {
+  3.972152340823688*^9, 
+  3.9721523414910517`*^9}},ExpressionUUID->"d24099ac-a8b0-4459-99a6-\
+7ffca1e835fe"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"bc3", "=", 
+  RowBox[{"CompilePatternToBytecode", "[", "bar", "]"}]}]], "Input",
+ CellChangeTimes->{{3.972151963061483*^9, 3.972151965750699*^9}, 
+   3.972152003924917*^9, {3.97215223825814*^9, 3.972152239553953*^9}, {
+   3.972152343324502*^9, 3.972152345460528*^9}},
+ CellLabel->"In[17]:=",ExpressionUUID->"60caeea6-265a-4e46-8064-ecde38938fa1"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{
+   TagBox["PatternBytecode",
+    "SummaryHead"], "[", 
+   DynamicModuleBox[{Typeset`open$$ = False, Typeset`embedState$$ = "Ready"}, 
+    
+    TemplateBox[{
+      PaneSelectorBox[{False -> GridBox[{{
+            PaneBox[
+             ButtonBox[
+              DynamicBox[
+               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxOpener"], 
+               ImageSizeCache -> {10.6984921875, {0., 10.6984921875}}], 
+              Appearance -> None, BaseStyle -> {}, 
+              ButtonFunction :> (Typeset`open$$ = True), Evaluator -> 
+              Automatic, Method -> "Preemptive"], 
+             Alignment -> {Center, Center}, ImageSize -> 
+             Dynamic[{
+               Automatic, 
+                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+                 Magnification])}]], 
+            GridBox[{{
+               RowBox[{
+                 TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  TemplateBox[{
+                    TagBox["5", HoldCompleteForm], 
+                    RowBox[{"HoldComplete", "[", "5", "]"}]}, "ClickToCopy2"],
+                   "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Expr registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Bool registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}}, AutoDelete -> False, 
+             BaseStyle -> {
+              ShowStringCharacters -> False, NumberMarks -> False, 
+               PrintPrecision -> 3, ShowSyntaxStyles -> False}, 
+             GridBoxAlignment -> {
+              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             GridBoxSpacings -> {
+              "Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}}, AutoDelete -> 
+          False, BaselinePosition -> {1, 1}, 
+          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+          GridBoxItemSize -> {
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}], True -> 
+        GridBox[{{
+            PaneBox[
+             ButtonBox[
+              DynamicBox[
+               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxCloser"]], 
+              Appearance -> None, BaseStyle -> {}, 
+              ButtonFunction :> (Typeset`open$$ = False), Evaluator -> 
+              Automatic, Method -> "Preemptive"], 
+             Alignment -> {Center, Center}, ImageSize -> 
+             Dynamic[{
+               Automatic, 
+                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+                 Magnification])}]], 
+            GridBox[{{
+               RowBox[{
+                 TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  TemplateBox[{
+                    TagBox["5", HoldCompleteForm], 
+                    RowBox[{"HoldComplete", "[", "5", "]"}]}, "ClickToCopy2"],
+                   "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Expr registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Bool registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox["\"Disassembly: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  
+                  TemplateBox[{
+                   "\"\\nL0:\\n 0    BEGIN_BLOCK     Label[0]\\n 1    \
+MATCH_LITERAL   %e0, Expr[5], Label[1]\\n 2    JUMP            Label[2]\\n 3  \
+  END_BLOCK       Label[0]\\n\\nL1:\\n 4    BEGIN_BLOCK     Label[1]\\n 5    \
+DEBUG_PRINT     Expr[\\\"Pattern failed\\\"]\\n 6    LOAD_IMM        %b0, \
+0\\n 7    HALT            \\n 8    END_BLOCK       Label[1]\\n\\nL2:\\n 9    \
+BEGIN_BLOCK     Label[2]\\n10    DEBUG_PRINT     Expr[\\\"Pattern succeeded\\\
+\"]\\n11    SAVE_BINDINGS   \\n12    LOAD_IMM        %b0, 1\\n13    HALT      \
+      \\n14    END_BLOCK       \
+Label[2]\\n\\n----------------------------------------\\nExpr registers: 1, \
+Bool registers: 1\\n\""}, "ClickToCopy"], "SummaryItem"]}]}}, AutoDelete -> 
+             False, BaseStyle -> {
+              ShowStringCharacters -> False, NumberMarks -> False, 
+               PrintPrecision -> 3, ShowSyntaxStyles -> False}, 
+             GridBoxAlignment -> {
+              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             GridBoxSpacings -> {
+              "Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}}, AutoDelete -> 
+          False, BaselinePosition -> {1, 1}, 
+          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+          GridBoxItemSize -> {
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}]}, 
+       Dynamic[Typeset`open$$], ImageSize -> Automatic]},
+     "SummaryPanel"],
+    DynamicModuleValues:>{}], "]"}],
+  PatternMatcherLibrary`VM`PatternBytecode[
+  "PatternMatcherLibrary`VM`PatternBytecode", $Failed],
+  Editable->False,
+  SelectWithContents->True,
+  Selectable->False]], "Output",
+ CellChangeTimes->{
+  3.972151967495781*^9, 3.972152004269788*^9, 3.9721522405369263`*^9, {
+   3.97215234569175*^9, 3.97215235348547*^9}},
+ CellLabel->"Out[17]=",ExpressionUUID->"2fe28852-d841-46d5-afbd-05318d9966ec"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"ToString", "[", "bc3", "]"}]], "Input",
+ CellChangeTimes->{{3.97215196945212*^9, 3.972151971429605*^9}, {
+  3.972152347205085*^9, 3.972152347270108*^9}},
+ CellLabel->"In[15]:=",ExpressionUUID->"f1b0e421-cb2a-46e1-8b3c-4637a0e3c9e7"],
+
+Cell[BoxData["\<\"\\nL0:\\n 0    BEGIN_BLOCK     Label[0]\\n 1    \
+MATCH_LITERAL   %e0, Expr[bar], Label[1]\\n 2    JUMP            Label[2]\\n \
+3    END_BLOCK       Label[0]\\n\\nL1:\\n 4    BEGIN_BLOCK     Label[1]\\n 5  \
+  DEBUG_PRINT     Expr[\\\"Pattern failed\\\"]\\n 6    LOAD_IMM        %b0, 0\
+\\n 7    HALT            \\n 8    END_BLOCK       Label[1]\\n\\nL2:\\n 9    \
+BEGIN_BLOCK     Label[2]\\n10    DEBUG_PRINT     Expr[\\\"Pattern succeeded\\\
+\"]\\n11    SAVE_BINDINGS   \\n12    LOAD_IMM        %b0, 1\\n13    HALT      \
+      \\n14    END_BLOCK       \
+Label[2]\\n\\n----------------------------------------\\nExpr registers: 1, \
+Bool registers: 1\\n\"\>"], "Output",
+ CellChangeTimes->{3.972151971629323*^9, 3.972152005273499*^9, 
+  3.97215224147333*^9, 3.9721523475018663`*^9},
+ CellLabel->"Out[15]=",ExpressionUUID->"59a1ab08-a7f4-4879-8937-16fd9b058535"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Blank[]", "Subsubsection",
+ CellChangeTimes->{{3.972152234963955*^9, 3.972152235487074*^9}, {
+  3.972152340823688*^9, 3.9721523414910517`*^9}, {3.972152607775051*^9, 
+  3.972152608278584*^9}, {3.972153461298999*^9, 
+  3.972153461478854*^9}},ExpressionUUID->"678baf32-e9bd-4ca9-813e-\
+4ec09bbc4458"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"bc4", "=", 
+  RowBox[{"CompilePatternToBytecode", "[", "_", "]"}]}]], "Input",
+ CellChangeTimes->{{3.972151963061483*^9, 3.972151965750699*^9}, 
+   3.972152003924917*^9, {3.97215223825814*^9, 3.972152239553953*^9}, {
+   3.972152343324502*^9, 3.972152345460528*^9}, {3.9721526140051527`*^9, 
+   3.972152615690366*^9}, {3.9721527232420588`*^9, 3.9721527312622347`*^9}},
+ CellLabel->"In[4]:=",ExpressionUUID->"54f8f481-8fc8-4cd5-b412-7248e18c84a1"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{
+   TagBox["PatternBytecode",
+    "SummaryHead"], "[", 
+   DynamicModuleBox[{Typeset`open$$ = False, Typeset`embedState$$ = "Ready"}, 
+    
+    TemplateBox[{
+      PaneSelectorBox[{False -> GridBox[{{
+            PaneBox[
+             ButtonBox[
+              DynamicBox[
+               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxOpener"], 
+               ImageSizeCache -> {10.6984921875, {0., 10.6984921875}}], 
+              Appearance -> None, BaseStyle -> {}, 
+              ButtonFunction :> (Typeset`open$$ = True), Evaluator -> 
+              Automatic, Method -> "Preemptive"], 
+             Alignment -> {Center, Center}, ImageSize -> 
+             Dynamic[{
+               Automatic, 
+                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+                 Magnification])}]], 
+            GridBox[{{
+               RowBox[{
+                 TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  TemplateBox[{
+                    TagBox["_", HoldCompleteForm], 
+                    RowBox[{"HoldComplete", "[", "_", "]"}]}, "ClickToCopy2"],
+                   "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Expr registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Bool registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}}, AutoDelete -> False, 
+             BaseStyle -> {
+              ShowStringCharacters -> False, NumberMarks -> False, 
+               PrintPrecision -> 3, ShowSyntaxStyles -> False}, 
+             GridBoxAlignment -> {
+              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             GridBoxSpacings -> {
+              "Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}}, AutoDelete -> 
+          False, BaselinePosition -> {1, 1}, 
+          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+          GridBoxItemSize -> {
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}], True -> 
+        GridBox[{{
+            PaneBox[
+             ButtonBox[
+              DynamicBox[
+               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxCloser"]], 
+              Appearance -> None, BaseStyle -> {}, 
+              ButtonFunction :> (Typeset`open$$ = False), Evaluator -> 
+              Automatic, Method -> "Preemptive"], 
+             Alignment -> {Center, Center}, ImageSize -> 
+             Dynamic[{
+               Automatic, 
+                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+                 Magnification])}]], 
+            GridBox[{{
+               RowBox[{
+                 TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  TemplateBox[{
+                    TagBox["_", HoldCompleteForm], 
+                    RowBox[{"HoldComplete", "[", "_", "]"}]}, "ClickToCopy2"],
+                   "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Expr registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Bool registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox["\"Disassembly: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  
+                  TemplateBox[{
+                   "\"\\nL0:\\n 0    BEGIN_BLOCK     Label[0]\\n 1    JUMP    \
+        Label[2]\\n 2    END_BLOCK       Label[0]\\n\\nL1:\\n 3    \
+BEGIN_BLOCK     Label[1]\\n 4    DEBUG_PRINT     Expr[\\\"Pattern failed\\\"]\
+\\n 5    LOAD_IMM        %b0, 0\\n 6    HALT            \\n 7    END_BLOCK    \
+   Label[1]\\n\\nL2:\\n 8    BEGIN_BLOCK     Label[2]\\n 9    DEBUG_PRINT     \
+Expr[\\\"Pattern succeeded\\\"]\\n10    SAVE_BINDINGS   \\n11    LOAD_IMM     \
+   %b0, 1\\n12    HALT            \\n13    END_BLOCK       \
+Label[2]\\n\\n----------------------------------------\\nExpr registers: 1, \
+Bool registers: 1\\n\""}, "ClickToCopy"], "SummaryItem"]}]}}, AutoDelete -> 
+             False, BaseStyle -> {
+              ShowStringCharacters -> False, NumberMarks -> False, 
+               PrintPrecision -> 3, ShowSyntaxStyles -> False}, 
+             GridBoxAlignment -> {
+              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             GridBoxSpacings -> {
+              "Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}}, AutoDelete -> 
+          False, BaselinePosition -> {1, 1}, 
+          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+          GridBoxItemSize -> {
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}]}, 
+       Dynamic[Typeset`open$$], ImageSize -> Automatic]},
+     "SummaryPanel"],
+    DynamicModuleValues:>{}], "]"}],
+  PatternMatcherLibrary`VM`PatternBytecode[
+  "PatternMatcherLibrary`VM`PatternBytecode", $Failed],
+  Editable->False,
+  SelectWithContents->True,
+  Selectable->False]], "Output",
+ CellChangeTimes->{
+  3.972151967495781*^9, 3.972152004269788*^9, 3.9721522405369263`*^9, {
+   3.97215234569175*^9, 3.97215235348547*^9}, 3.972152616065913*^9, {
+   3.972152723991214*^9, 3.972152731575523*^9}, 3.972152938455351*^9},
+ CellLabel->"Out[4]=",ExpressionUUID->"995a883b-d93a-41bf-8683-0b35edae21d0"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"ToString", "[", "bc4", "]"}]], "Input",
+ CellChangeTimes->{{3.97215196945212*^9, 3.972151971429605*^9}, {
+  3.972152347205085*^9, 3.972152347270108*^9}, {3.972152617361177*^9, 
+  3.972152618364204*^9}},
+ CellLabel->"In[5]:=",ExpressionUUID->"1831dcfb-7b29-4fb3-afaf-299cab9d5c93"],
+
+Cell[BoxData["\<\"\\nL0:\\n 0    BEGIN_BLOCK     Label[0]\\n 1    JUMP        \
+    Label[2]\\n 2    END_BLOCK       Label[0]\\n\\nL1:\\n 3    BEGIN_BLOCK    \
+ Label[1]\\n 4    DEBUG_PRINT     Expr[\\\"Pattern failed\\\"]\\n 5    \
+LOAD_IMM        %b0, 0\\n 6    HALT            \\n 7    END_BLOCK       \
+Label[1]\\n\\nL2:\\n 8    BEGIN_BLOCK     Label[2]\\n 9    DEBUG_PRINT     \
+Expr[\\\"Pattern succeeded\\\"]\\n10    SAVE_BINDINGS   \\n11    LOAD_IMM     \
+   %b0, 1\\n12    HALT            \\n13    END_BLOCK       \
+Label[2]\\n\\n----------------------------------------\\nExpr registers: 1, \
+Bool registers: 1\\n\"\>"], "Output",
+ CellChangeTimes->{
+  3.972151971629323*^9, 3.972152005273499*^9, 3.97215224147333*^9, 
+   3.9721523475018663`*^9, 3.972152618719328*^9, {3.9721527247749243`*^9, 
+   3.972152732560203*^9}, 3.972152939013219*^9},
+ CellLabel->"Out[5]=",ExpressionUUID->"9f3b3d4b-82e9-4f42-aa25-7c94f3bd790a"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Add a post-compilation optimization that removes:", "Item",
+ CellChangeTimes->{{3.972153118504218*^9, 
+  3.972153120584643*^9}},ExpressionUUID->"d944f480-3e79-43b7-8988-\
+8eb9c4797966"],
+
+Cell["\<\
+Empty blocks (BEGIN_BLOCK followed immediately by END_BLOCK with only jumps)\
+\>", "Subitem",
+ CellChangeTimes->{{3.972153118504218*^9, 
+  3.972153122563751*^9}},ExpressionUUID->"dcfedec7-b693-406e-a3fd-\
+dff6461e20f4"],
+
+Cell[CellGroupData[{
+
+Cell["Unreachable code (blocks never jumped to)", "Subitem",
+ CellChangeTimes->{{3.972153118504218*^9, 
+  3.97215311916328*^9}},ExpressionUUID->"63350587-c314-4d5b-9033-\
+3317e75f19c4"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"PatternMatcherExecute", "[", 
+  RowBox[{"_", ",", "5"}], "]"}]], "Input",
+ CellChangeTimes->{{3.972152716181034*^9, 3.972152718692543*^9}},
+ CellLabel->"In[6]:=",ExpressionUUID->"2accdab5-7e22-4747-a580-c82b3ed1f3a9"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData["\<\"BEGIN_BLOCK L0 (frame depth=1)\"\>"], "Print",
+ CellChangeTimes->{3.9721527193511963`*^9, 3.972153013091073*^9},
+ CellLabel->
+  "During evaluation of \
+In[6]:=",ExpressionUUID->"b89e5d6b-2e21-42c7-9ba1-f9f969dbf31f"],
+
+Cell[BoxData["\<\"JUMP to L2 (pc=8)\"\>"], "Print",
+ CellChangeTimes->{3.9721527193511963`*^9, 3.972153013091782*^9},
+ CellLabel->
+  "During evaluation of \
+In[6]:=",ExpressionUUID->"dde16fe9-adb1-4cc9-8c57-f1be9990f205"],
+
+Cell[BoxData["\<\"BEGIN_BLOCK L2 (frame depth=2)\"\>"], "Print",
+ CellChangeTimes->{3.9721527193511963`*^9, 3.972153013092367*^9},
+ CellLabel->
+  "During evaluation of \
+In[6]:=",ExpressionUUID->"f17b86a1-2c8f-44a7-b205-60cae58d6e91"],
+
+Cell[BoxData["\<\"VM_DEBUG_PRINT: Expr[\\\"Pattern succeeded\\\"]\"\>"], \
+"Print",
+ CellChangeTimes->{3.9721527193511963`*^9, 3.9721530130928793`*^9},
+ CellLabel->
+  "During evaluation of \
+In[6]:=",ExpressionUUID->"d70ae1e0-8600-414a-8ef2-fec59b57bbe1"],
+
+Cell[BoxData["\<\"SAVE_BINDINGS: Current bindings saved in frame \
+(depth=2)\"\>"], "Print",
+ CellChangeTimes->{3.9721527193511963`*^9, 3.972153013093358*^9},
+ CellLabel->
+  "During evaluation of \
+In[6]:=",ExpressionUUID->"3c07a44a-509a-42a9-92a4-64296f159556"],
+
+Cell[BoxData["\<\"LOAD_IMM %b0 <- True\"\>"], "Print",
+ CellChangeTimes->{3.9721527193511963`*^9, 3.97215301309385*^9},
+ CellLabel->
+  "During evaluation of \
+In[6]:=",ExpressionUUID->"e71f8cec-b287-464f-bb54-d19155b924b1"],
+
+Cell[BoxData["\<\"HALT: Stopping execution\"\>"], "Print",
+ CellChangeTimes->{3.9721527193511963`*^9, 3.972153013094281*^9},
+ CellLabel->
+  "During evaluation of \
+In[6]:=",ExpressionUUID->"b7845987-94f0-4a29-817c-990183f69b1a"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"\[LeftAssociation]", 
+  RowBox[{
+   RowBox[{"\<\"Result\"\>", "\[Rule]", "True"}], ",", 
+   RowBox[{"\<\"CyclesExecuted\"\>", "\[Rule]", "7"}], ",", 
+   RowBox[{"\<\"Bindings\"\>", "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", "\[RightAssociation]"}]}]}], 
+  "\[RightAssociation]"}]], "Output",
+ CellChangeTimes->{3.972152719355027*^9, 3.9721530130947657`*^9},
+ CellLabel->"Out[6]=",ExpressionUUID->"3310ac3a-1b0e-491e-b47f-62bc02a4f3bd"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"PatternMatcherExecute", "[", 
+  RowBox[{"_", ",", 
+   RowBox[{"f", "[", 
+    RowBox[{"x", ",", "y"}], "]"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.972152716181034*^9, 3.972152718692543*^9}, {
+  3.972153315974414*^9, 3.972153317437162*^9}},
+ CellLabel->"In[7]:=",ExpressionUUID->"0056dd09-a208-430f-993a-2b28343f9be7"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData["\<\"BEGIN_BLOCK L0 (frame depth=1)\"\>"], "Print",
+ CellChangeTimes->{3.972153317777009*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"269e0432-0912-4bf5-8300-28309b8bad11"],
+
+Cell[BoxData["\<\"JUMP to L2 (pc=8)\"\>"], "Print",
+ CellChangeTimes->{3.9721533177779627`*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"7066e6bd-5b96-4a10-b5c6-cc6fa765ef61"],
+
+Cell[BoxData["\<\"BEGIN_BLOCK L2 (frame depth=2)\"\>"], "Print",
+ CellChangeTimes->{3.972153317778617*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"94172993-c705-4b02-8a2d-c6f5d831006d"],
+
+Cell[BoxData["\<\"VM_DEBUG_PRINT: Expr[\\\"Pattern succeeded\\\"]\"\>"], \
+"Print",
+ CellChangeTimes->{3.972153317779133*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"ed869494-60a1-4998-906e-7652fa8bc319"],
+
+Cell[BoxData["\<\"SAVE_BINDINGS: Current bindings saved in frame \
+(depth=2)\"\>"], "Print",
+ CellChangeTimes->{3.972153317779647*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"d319006f-fd91-4dec-be1f-96b5a53e32bd"],
+
+Cell[BoxData["\<\"LOAD_IMM %b0 <- True\"\>"], "Print",
+ CellChangeTimes->{3.972153317780158*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"9e8acc53-b087-4842-b9fa-751861e527a1"],
+
+Cell[BoxData["\<\"HALT: Stopping execution\"\>"], "Print",
+ CellChangeTimes->{3.972153317780645*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"f5a50c07-80e5-4d16-a16c-d28dee439452"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"\[LeftAssociation]", 
+  RowBox[{
+   RowBox[{"\<\"Result\"\>", "\[Rule]", "True"}], ",", 
+   RowBox[{"\<\"CyclesExecuted\"\>", "\[Rule]", "7"}], ",", 
+   RowBox[{"\<\"Bindings\"\>", "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", "\[RightAssociation]"}]}]}], 
+  "\[RightAssociation]"}]], "Output",
+ CellChangeTimes->{3.9721533177812157`*^9},
+ CellLabel->"Out[7]=",ExpressionUUID->"9436ea72-535b-4e94-b6dd-36550c3c55fa"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Blank[h]", "Subsubsection",
+ CellChangeTimes->{{3.972152234963955*^9, 3.972152235487074*^9}, {
+  3.972152340823688*^9, 3.9721523414910517`*^9}, {3.972152607775051*^9, 
+  3.972152608278584*^9}, {3.972153461298999*^9, 3.972153461478854*^9}, {
+  3.972153752092813*^9, 
+  3.9721537527084007`*^9}},ExpressionUUID->"b6c121df-c014-459c-97e8-\
+8b4434ec2883"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"bc5", "=", 
+  RowBox[{"CompilePatternToBytecode", "[", "_Integer", "]"}]}]], "Input",
+ CellChangeTimes->{{3.972151963061483*^9, 3.972151965750699*^9}, 
+   3.972152003924917*^9, {3.97215223825814*^9, 3.972152239553953*^9}, {
+   3.972152343324502*^9, 3.972152345460528*^9}, {3.9721526140051527`*^9, 
+   3.972152615690366*^9}, {3.9721527232420588`*^9, 3.9721527312622347`*^9}, {
+   3.972153518951559*^9, 3.9721535200332823`*^9}},
+ CellLabel->"In[8]:=",ExpressionUUID->"d0f3ba6c-7acd-44a5-b924-3957a9ed0070"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{
+   TagBox["PatternBytecode",
+    "SummaryHead"], "[", 
+   DynamicModuleBox[{Typeset`open$$ = False, Typeset`embedState$$ = "Ready"}, 
+    
+    TemplateBox[{
+      PaneSelectorBox[{False -> GridBox[{{
+            PaneBox[
+             ButtonBox[
+              DynamicBox[
+               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxOpener"], 
+               ImageSizeCache -> {10.6984921875, {0., 10.6984921875}}], 
+              Appearance -> None, BaseStyle -> {}, 
+              ButtonFunction :> (Typeset`open$$ = True), Evaluator -> 
+              Automatic, Method -> "Preemptive"], 
+             Alignment -> {Center, Center}, ImageSize -> 
+             Dynamic[{
+               Automatic, 
+                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+                 Magnification])}]], 
+            GridBox[{{
+               RowBox[{
+                 TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  TemplateBox[{
+                    TagBox["_Integer", HoldCompleteForm], 
+                    RowBox[{"HoldComplete", "[", "_Integer", "]"}]}, 
+                   "ClickToCopy2"], "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Expr registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Bool registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}}, AutoDelete -> False, 
+             BaseStyle -> {
+              ShowStringCharacters -> False, NumberMarks -> False, 
+               PrintPrecision -> 3, ShowSyntaxStyles -> False}, 
+             GridBoxAlignment -> {
+              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             GridBoxSpacings -> {
+              "Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}}, AutoDelete -> 
+          False, BaselinePosition -> {1, 1}, 
+          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+          GridBoxItemSize -> {
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}], True -> 
+        GridBox[{{
+            PaneBox[
+             ButtonBox[
+              DynamicBox[
+               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxCloser"]], 
+              Appearance -> None, BaseStyle -> {}, 
+              ButtonFunction :> (Typeset`open$$ = False), Evaluator -> 
+              Automatic, Method -> "Preemptive"], 
+             Alignment -> {Center, Center}, ImageSize -> 
+             Dynamic[{
+               Automatic, 
+                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+                 Magnification])}]], 
+            GridBox[{{
+               RowBox[{
+                 TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  TemplateBox[{
+                    TagBox["_Integer", HoldCompleteForm], 
+                    RowBox[{"HoldComplete", "[", "_Integer", "]"}]}, 
+                   "ClickToCopy2"], "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Expr registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Bool registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox["\"Disassembly: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  
+                  TemplateBox[{
+                   "\"\\nL0:\\n 0    BEGIN_BLOCK     Label[0]\\n 1    \
+MATCH_HEAD      %e0, Expr[Integer], Label[1]\\n 2    JUMP            Label[2]\
+\\n 3    END_BLOCK       Label[0]\\n\\nL1:\\n 4    BEGIN_BLOCK     \
+Label[1]\\n 5    DEBUG_PRINT     Expr[\\\"Pattern failed\\\"]\\n 6    \
+LOAD_IMM        %b0, 0\\n 7    HALT            \\n 8    END_BLOCK       \
+Label[1]\\n\\nL2:\\n 9    BEGIN_BLOCK     Label[2]\\n10    DEBUG_PRINT     \
+Expr[\\\"Pattern succeeded\\\"]\\n11    SAVE_BINDINGS   \\n12    LOAD_IMM     \
+   %b0, 1\\n13    HALT            \\n14    END_BLOCK       \
+Label[2]\\n\\n----------------------------------------\\nExpr registers: 1, \
+Bool registers: 1\\n\""}, "ClickToCopy"], "SummaryItem"]}]}}, AutoDelete -> 
+             False, BaseStyle -> {
+              ShowStringCharacters -> False, NumberMarks -> False, 
+               PrintPrecision -> 3, ShowSyntaxStyles -> False}, 
+             GridBoxAlignment -> {
+              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             GridBoxSpacings -> {
+              "Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}}, AutoDelete -> 
+          False, BaselinePosition -> {1, 1}, 
+          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+          GridBoxItemSize -> {
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}]}, 
+       Dynamic[Typeset`open$$], ImageSize -> Automatic]},
+     "SummaryPanel"],
+    DynamicModuleValues:>{}], "]"}],
+  PatternMatcherLibrary`VM`PatternBytecode[
+  "PatternMatcherLibrary`VM`PatternBytecode", $Failed],
+  Editable->False,
+  SelectWithContents->True,
+  Selectable->False]], "Output",
+ CellChangeTimes->{
+  3.972151967495781*^9, 3.972152004269788*^9, 3.9721522405369263`*^9, {
+   3.97215234569175*^9, 3.97215235348547*^9}, 3.972152616065913*^9, {
+   3.972152723991214*^9, 3.972152731575523*^9}, 3.972152938455351*^9, 
+   3.972153520618702*^9},
+ CellLabel->"Out[8]=",ExpressionUUID->"fbf720c2-9be7-4d10-9f21-3eb3ca3e112d"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"ToString", "[", "bc5", "]"}]], "Input",
+ CellChangeTimes->{{3.97215196945212*^9, 3.972151971429605*^9}, {
+  3.972152347205085*^9, 3.972152347270108*^9}, {3.972152617361177*^9, 
+  3.972152618364204*^9}, {3.972153521857799*^9, 3.972153522129437*^9}},
+ CellLabel->"In[9]:=",ExpressionUUID->"d9aa9be0-66fa-4896-b026-8b42c3a9863c"],
+
+Cell[BoxData["\<\"\\nL0:\\n 0    BEGIN_BLOCK     Label[0]\\n 1    MATCH_HEAD  \
+    %e0, Expr[Integer], Label[1]\\n 2    JUMP            Label[2]\\n 3    \
+END_BLOCK       Label[0]\\n\\nL1:\\n 4    BEGIN_BLOCK     Label[1]\\n 5    \
+DEBUG_PRINT     Expr[\\\"Pattern failed\\\"]\\n 6    LOAD_IMM        %b0, \
+0\\n 7    HALT            \\n 8    END_BLOCK       Label[1]\\n\\nL2:\\n 9    \
+BEGIN_BLOCK     Label[2]\\n10    DEBUG_PRINT     Expr[\\\"Pattern succeeded\\\
+\"]\\n11    SAVE_BINDINGS   \\n12    LOAD_IMM        %b0, 1\\n13    HALT      \
+      \\n14    END_BLOCK       \
+Label[2]\\n\\n----------------------------------------\\nExpr registers: 1, \
+Bool registers: 1\\n\"\>"], "Output",
+ CellChangeTimes->{3.972153522309662*^9},
+ CellLabel->"Out[9]=",ExpressionUUID->"5949a16e-ab32-44fb-9401-9f68ecc16621"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"PatternMatcherExecute", "[", 
+  RowBox[{"_Integer", ",", "5"}], "]"}]], "Input",
+ CellChangeTimes->{{3.972153560793408*^9, 3.972153566759729*^9}},
+ CellLabel->"In[10]:=",ExpressionUUID->"80a2843f-aed7-4328-ad49-f9cc753e79b0"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData["\<\"BEGIN_BLOCK L0 (frame depth=1)\"\>"], "Print",
+ CellChangeTimes->{3.972153567128153*^9},
+ CellLabel->
+  "During evaluation of \
+In[10]:=",ExpressionUUID->"57d299d4-be37-4d5b-9361-dd6ea4ab9c7b"],
+
+Cell[BoxData["\<\"MATCH_HEAD %e0 == Integer -> SUCCESS\"\>"], "Print",
+ CellChangeTimes->{3.972153567129136*^9},
+ CellLabel->
+  "During evaluation of \
+In[10]:=",ExpressionUUID->"14c549ba-f6b1-4722-992e-128f1300e20d"],
+
+Cell[BoxData["\<\"JUMP to L2 (pc=9)\"\>"], "Print",
+ CellChangeTimes->{3.972153567129928*^9},
+ CellLabel->
+  "During evaluation of \
+In[10]:=",ExpressionUUID->"e43ab6ec-14f9-4b0b-bfb8-708a15b96f6a"],
+
+Cell[BoxData["\<\"BEGIN_BLOCK L2 (frame depth=2)\"\>"], "Print",
+ CellChangeTimes->{3.9721535671305103`*^9},
+ CellLabel->
+  "During evaluation of \
+In[10]:=",ExpressionUUID->"48fb6f81-589a-44dc-a8a7-f30709566d41"],
+
+Cell[BoxData["\<\"VM_DEBUG_PRINT: Expr[\\\"Pattern succeeded\\\"]\"\>"], \
+"Print",
+ CellChangeTimes->{3.972153567131062*^9},
+ CellLabel->
+  "During evaluation of \
+In[10]:=",ExpressionUUID->"87c87019-da13-46b1-bc16-8c225be32e83"],
+
+Cell[BoxData["\<\"SAVE_BINDINGS: Current bindings saved in frame \
+(depth=2)\"\>"], "Print",
+ CellChangeTimes->{3.9721535671315823`*^9},
+ CellLabel->
+  "During evaluation of \
+In[10]:=",ExpressionUUID->"a74e9e8b-c2bb-4e29-b79c-959a061c720f"],
+
+Cell[BoxData["\<\"LOAD_IMM %b0 <- True\"\>"], "Print",
+ CellChangeTimes->{3.972153567132102*^9},
+ CellLabel->
+  "During evaluation of \
+In[10]:=",ExpressionUUID->"3da58772-b0cb-4c4b-b98a-b05cf9c5c967"],
+
+Cell[BoxData["\<\"HALT: Stopping execution\"\>"], "Print",
+ CellChangeTimes->{3.972153567132592*^9},
+ CellLabel->
+  "During evaluation of \
+In[10]:=",ExpressionUUID->"4a16e1dd-728d-4e90-9a3a-dea96f55db55"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"\[LeftAssociation]", 
+  RowBox[{
+   RowBox[{"\<\"Result\"\>", "\[Rule]", "True"}], ",", 
+   RowBox[{"\<\"CyclesExecuted\"\>", "\[Rule]", "8"}], ",", 
+   RowBox[{"\<\"Bindings\"\>", "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", "\[RightAssociation]"}]}]}], 
+  "\[RightAssociation]"}]], "Output",
+ CellChangeTimes->{3.972153567133174*^9},
+ CellLabel->"Out[10]=",ExpressionUUID->"962ed700-1873-49ed-8154-0bdc053c5062"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"PatternMatcherExecute", "[", 
+  RowBox[{"_Integer", ",", 
+   RowBox[{"f", "[", 
+    RowBox[{"x", ",", "y"}], "]"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.972153560793408*^9, 3.972153572999032*^9}},
+ CellLabel->"In[11]:=",ExpressionUUID->"af288096-c757-40e0-b85e-cf4076c3da18"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData["\<\"BEGIN_BLOCK L0 (frame depth=1)\"\>"], "Print",
+ CellChangeTimes->{3.9721535735414677`*^9},
+ CellLabel->
+  "During evaluation of \
+In[11]:=",ExpressionUUID->"c836a28a-7d9e-4d7b-9393-d068476e439b"],
+
+Cell[BoxData["\<\"MATCH_HEAD %e0 == Integer -> FAILURE\"\>"], "Print",
+ CellChangeTimes->{3.972153573542379*^9},
+ CellLabel->
+  "During evaluation of \
+In[11]:=",ExpressionUUID->"25b4a2ff-b4c0-4147-8733-3f40976157f8"],
+
+Cell[BoxData["\<\"FAIL_JUMP to L1 (pc=4)\"\>"], "Print",
+ CellChangeTimes->{3.972153573542988*^9},
+ CellLabel->
+  "During evaluation of \
+In[11]:=",ExpressionUUID->"c1142337-ae1b-4956-b2d2-a9481fc5a77c"],
+
+Cell[BoxData["\<\"BEGIN_BLOCK L1 (frame depth=2)\"\>"], "Print",
+ CellChangeTimes->{3.972153573543458*^9},
+ CellLabel->
+  "During evaluation of \
+In[11]:=",ExpressionUUID->"83cd3e77-0912-4ffd-904b-9486e88b17cd"],
+
+Cell[BoxData["\<\"VM_DEBUG_PRINT: Expr[\\\"Pattern failed\\\"]\"\>"], "Print",
+ CellChangeTimes->{3.9721535735439157`*^9},
+ CellLabel->
+  "During evaluation of \
+In[11]:=",ExpressionUUID->"424d7bf3-9453-4050-9110-9ebdf6851c3a"],
+
+Cell[BoxData["\<\"LOAD_IMM %b0 <- False\"\>"], "Print",
+ CellChangeTimes->{3.9721535735443773`*^9},
+ CellLabel->
+  "During evaluation of \
+In[11]:=",ExpressionUUID->"5ff73f05-fc2f-4a67-9fcf-6cb9eda72177"],
+
+Cell[BoxData["\<\"HALT: Stopping execution\"\>"], "Print",
+ CellChangeTimes->{3.9721535735448217`*^9},
+ CellLabel->
+  "During evaluation of \
+In[11]:=",ExpressionUUID->"7be8b827-2eac-4dd3-8867-7284e781e507"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"\[LeftAssociation]", 
+  RowBox[{
+   RowBox[{"\<\"Result\"\>", "\[Rule]", "False"}], ",", 
+   RowBox[{"\<\"CyclesExecuted\"\>", "\[Rule]", "6"}], ",", 
+   RowBox[{"\<\"Bindings\"\>", "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", "\[RightAssociation]"}]}]}], 
+  "\[RightAssociation]"}]], "Output",
+ CellChangeTimes->{3.97215357354536*^9},
+ CellLabel->"Out[11]=",ExpressionUUID->"a5381bc1-c96d-4283-b61c-76159dd88dd9"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"PatternMatcherExecute", "[", 
+  RowBox[{"_Integer", ",", 
+   RowBox[{"Integer", "[", "\"\<hi\>\"", "]"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.972153560793408*^9, 3.9721535897335653`*^9}},
+ CellLabel->"In[12]:=",ExpressionUUID->"04bfddd6-6adc-443e-982f-0a9aa0a466a3"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData["\<\"BEGIN_BLOCK L0 (frame depth=1)\"\>"], "Print",
+ CellChangeTimes->{3.9721535901160383`*^9},
+ CellLabel->
+  "During evaluation of \
+In[12]:=",ExpressionUUID->"fef75333-1a00-47ff-ae5e-8f06bc7a44c5"],
+
+Cell[BoxData["\<\"MATCH_HEAD %e0 == Integer -> SUCCESS\"\>"], "Print",
+ CellChangeTimes->{3.972153590117009*^9},
+ CellLabel->
+  "During evaluation of \
+In[12]:=",ExpressionUUID->"ecf08d72-90f5-43f1-9e1b-7327022fbbc2"],
+
+Cell[BoxData["\<\"JUMP to L2 (pc=9)\"\>"], "Print",
+ CellChangeTimes->{3.972153590117684*^9},
+ CellLabel->
+  "During evaluation of \
+In[12]:=",ExpressionUUID->"32e41ecc-4ed3-4090-80f0-e3b8e635898b"],
+
+Cell[BoxData["\<\"BEGIN_BLOCK L2 (frame depth=2)\"\>"], "Print",
+ CellChangeTimes->{3.972153590118222*^9},
+ CellLabel->
+  "During evaluation of \
+In[12]:=",ExpressionUUID->"c73fd9e3-6e9c-46d4-b22b-9a68a09e05e3"],
+
+Cell[BoxData["\<\"VM_DEBUG_PRINT: Expr[\\\"Pattern succeeded\\\"]\"\>"], \
+"Print",
+ CellChangeTimes->{3.9721535901187468`*^9},
+ CellLabel->
+  "During evaluation of \
+In[12]:=",ExpressionUUID->"4929a4db-a259-417d-b58c-e2706b74646e"],
+
+Cell[BoxData["\<\"SAVE_BINDINGS: Current bindings saved in frame \
+(depth=2)\"\>"], "Print",
+ CellChangeTimes->{3.972153590119285*^9},
+ CellLabel->
+  "During evaluation of \
+In[12]:=",ExpressionUUID->"51b84a61-da25-4de6-b97b-422c65ed9ccb"],
+
+Cell[BoxData["\<\"LOAD_IMM %b0 <- True\"\>"], "Print",
+ CellChangeTimes->{3.972153590119808*^9},
+ CellLabel->
+  "During evaluation of \
+In[12]:=",ExpressionUUID->"b0e084fa-1559-45b9-b4b1-42bca478b100"],
+
+Cell[BoxData["\<\"HALT: Stopping execution\"\>"], "Print",
+ CellChangeTimes->{3.972153590120332*^9},
+ CellLabel->
+  "During evaluation of \
+In[12]:=",ExpressionUUID->"2a0d9487-0b22-408d-9bd4-d450fdcaf4a0"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"\[LeftAssociation]", 
+  RowBox[{
+   RowBox[{"\<\"Result\"\>", "\[Rule]", "True"}], ",", 
+   RowBox[{"\<\"CyclesExecuted\"\>", "\[Rule]", "8"}], ",", 
+   RowBox[{"\<\"Bindings\"\>", "\[Rule]", 
+    RowBox[{"\[LeftAssociation]", "\[RightAssociation]"}]}]}], 
+  "\[RightAssociation]"}]], "Output",
+ CellChangeTimes->{3.972153590120899*^9},
+ CellLabel->"Out[12]=",ExpressionUUID->"ac15f81e-cdf9-46b1-8f36-250df6598b6a"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["f[_]", "Subsubsubsection",
+ CellChangeTimes->{{3.972152234963955*^9, 3.972152235487074*^9}, {
+  3.972152340823688*^9, 3.9721523414910517`*^9}, {3.972152607775051*^9, 
+  3.972152608278584*^9}, {3.972153461298999*^9, 3.972153461478854*^9}, {
+  3.972153752092813*^9, 3.9721537527084007`*^9}, {3.972153870710251*^9, 
+  3.972153871608635*^9}},ExpressionUUID->"7e2afdab-9009-4c39-9a7f-\
+5cf4f9a8e6f6"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"bc6", "=", 
+  RowBox[{"CompilePatternToBytecode", "[", 
+   RowBox[{"f", "[", "_", "]"}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.972151963061483*^9, 3.972151965750699*^9}, 
+   3.972152003924917*^9, {3.97215223825814*^9, 3.972152239553953*^9}, {
+   3.972152343324502*^9, 3.972152345460528*^9}, {3.9721526140051527`*^9, 
+   3.972152615690366*^9}, {3.9721527232420588`*^9, 3.9721527312622347`*^9}, {
+   3.972153518951559*^9, 3.9721535200332823`*^9}, {3.9721538825267067`*^9, 
+   3.972153886080243*^9}},
+ CellLabel->"In[13]:=",ExpressionUUID->"ddab9feb-4373-4a77-85d0-c12d02b81787"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{
+   TagBox["PatternBytecode",
+    "SummaryHead"], "[", 
+   DynamicModuleBox[{Typeset`open$$ = False, Typeset`embedState$$ = "Ready"}, 
+    
+    TemplateBox[{
+      PaneSelectorBox[{False -> GridBox[{{
+            PaneBox[
+             ButtonBox[
+              DynamicBox[
+               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxOpener"], 
+               ImageSizeCache -> {10.6984921875, {0., 10.6984921875}}], 
+              Appearance -> None, BaseStyle -> {}, 
+              ButtonFunction :> (Typeset`open$$ = True), Evaluator -> 
+              Automatic, Method -> "Preemptive"], 
+             Alignment -> {Center, Center}, ImageSize -> 
+             Dynamic[{
+               Automatic, 
+                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+                 Magnification])}]], 
+            GridBox[{{
+               RowBox[{
+                 TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  TemplateBox[{
+                    TagBox[
+                    RowBox[{"f", "[", "_", "]"}], HoldCompleteForm], 
+                    RowBox[{"HoldComplete", "[", 
+                    RowBox[{"f", "[", "_", "]"}], "]"}]}, "ClickToCopy2"], 
+                  "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Expr registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["3", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Bool registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}}, AutoDelete -> False, 
+             BaseStyle -> {
+              ShowStringCharacters -> False, NumberMarks -> False, 
+               PrintPrecision -> 3, ShowSyntaxStyles -> False}, 
+             GridBoxAlignment -> {
+              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             GridBoxSpacings -> {
+              "Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}}, AutoDelete -> 
+          False, BaselinePosition -> {1, 1}, 
+          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+          GridBoxItemSize -> {
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}], True -> 
+        GridBox[{{
+            PaneBox[
+             ButtonBox[
+              DynamicBox[
+               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxCloser"]], 
+              Appearance -> None, BaseStyle -> {}, 
+              ButtonFunction :> (Typeset`open$$ = False), Evaluator -> 
+              Automatic, Method -> "Preemptive"], 
+             Alignment -> {Center, Center}, ImageSize -> 
+             Dynamic[{
+               Automatic, 
+                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
+                 Magnification])}]], 
+            GridBox[{{
+               RowBox[{
+                 TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  TemplateBox[{
+                    TagBox[
+                    RowBox[{"f", "[", "_", "]"}], HoldCompleteForm], 
+                    RowBox[{"HoldComplete", "[", 
+                    RowBox[{"f", "[", "_", "]"}], "]"}]}, "ClickToCopy2"], 
+                  "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Expr registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["3", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox[
+                 "\"Number of Bool registers: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox["1", "SummaryItem"]}]}, {
+               RowBox[{
+                 TagBox["\"Disassembly: \"", "SummaryItemAnnotation"], 
+                 "\[InvisibleSpace]", 
+                 TagBox[
+                  
+                  TemplateBox[{
+                   "\"\\nL0:\\n 0    BEGIN_BLOCK     Label[0]\\n\\nL3:\\n 1   \
+ BEGIN_BLOCK     Label[3]\\n 2    MATCH_LENGTH    %e0, 1, Label[4]\\n 3    \
+MATCH_HEAD      %e0, Expr[f], Label[4]\\n 4    MOVE            %e1, %e0\\n 5  \
+  GET_PART        %e2, %e0, 1\\n 6    MOVE            %e0, %e2\\n 7    MOVE   \
+         %e0, %e1\\n 8    END_BLOCK       Label[3]\\n 9    JUMP            \
+Label[2]\\n\\nL4:\\n10    END_BLOCK       Label[3]\\n11    JUMP            \
+Label[1]\\n\\nL5:\\n12    END_BLOCK       Label[0]\\n\\nL1:\\n13    \
+BEGIN_BLOCK     Label[1]\\n14    DEBUG_PRINT     Expr[\\\"Pattern failed\\\"]\
+\\n15    LOAD_IMM        %b0, 0\\n16    HALT            \\n17    END_BLOCK    \
+   Label[1]\\n\\nL2:\\n18    BEGIN_BLOCK     Label[2]\\n19    DEBUG_PRINT     \
+Expr[\\\"Pattern succeeded\\\"]\\n20    SAVE_BINDINGS   \\n21    LOAD_IMM     \
+   %b0, 1\\n22    HALT            \\n23    END_BLOCK       \
+Label[2]\\n\\n----------------------------------------\\nExpr registers: 3, \
+Bool registers: 1\\n\""}, "ClickToCopy"], "SummaryItem"]}]}}, AutoDelete -> 
+             False, BaseStyle -> {
+              ShowStringCharacters -> False, NumberMarks -> False, 
+               PrintPrecision -> 3, ShowSyntaxStyles -> False}, 
+             GridBoxAlignment -> {
+              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
+             GridBoxItemSize -> {
+              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
+             GridBoxSpacings -> {
+              "Columns" -> {{2}}, "Rows" -> {{Automatic}}}]}}, AutoDelete -> 
+          False, BaselinePosition -> {1, 1}, 
+          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+          GridBoxItemSize -> {
+           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}]}, 
+       Dynamic[Typeset`open$$], ImageSize -> Automatic]},
+     "SummaryPanel"],
+    DynamicModuleValues:>{}], "]"}],
+  PatternMatcherLibrary`VM`PatternBytecode[
+  "PatternMatcherLibrary`VM`PatternBytecode", $Failed],
+  Editable->False,
+  SelectWithContents->True,
+  Selectable->False]], "Output",
+ CellChangeTimes->{
+  3.972151967495781*^9, 3.972152004269788*^9, 3.9721522405369263`*^9, {
+   3.97215234569175*^9, 3.97215235348547*^9}, 3.972152616065913*^9, {
+   3.972152723991214*^9, 3.972152731575523*^9}, 3.972152938455351*^9, 
+   3.972153520618702*^9, 3.972153887443359*^9},
+ CellLabel->"Out[13]=",ExpressionUUID->"914ffd80-5cd6-4f97-a69e-cf4d813f6f8c"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"ToString", "[", "bc6", "]"}]], "Input",
+ CellChangeTimes->{{3.97215196945212*^9, 3.972151971429605*^9}, {
+  3.972152347205085*^9, 3.972152347270108*^9}, {3.972152617361177*^9, 
+  3.972152618364204*^9}, {3.972153521857799*^9, 3.972153522129437*^9}, {
+  3.972153889894919*^9, 3.972153889963952*^9}},
+ CellLabel->"In[14]:=",ExpressionUUID->"f449a2f2-c30e-4f95-8598-c8b428d5d769"],
+
+Cell[BoxData["\<\"\\nL0:\\n 0    BEGIN_BLOCK     Label[0]\\n\\nL3:\\n 1    \
+BEGIN_BLOCK     Label[3]\\n 2    MATCH_LENGTH    %e0, 1, Label[4]\\n 3    \
+MATCH_HEAD      %e0, Expr[f], Label[4]\\n 4    MOVE            %e1, %e0\\n 5  \
+  GET_PART        %e2, %e0, 1\\n 6    MOVE            %e0, %e2\\n 7    MOVE   \
+         %e0, %e1\\n 8    END_BLOCK       Label[3]\\n 9    JUMP            \
+Label[2]\\n\\nL4:\\n10    END_BLOCK       Label[3]\\n11    JUMP            \
+Label[1]\\n\\nL5:\\n12    END_BLOCK       Label[0]\\n\\nL1:\\n13    \
+BEGIN_BLOCK     Label[1]\\n14    DEBUG_PRINT     Expr[\\\"Pattern failed\\\"]\
+\\n15    LOAD_IMM        %b0, 0\\n16    HALT            \\n17    END_BLOCK    \
+   Label[1]\\n\\nL2:\\n18    BEGIN_BLOCK     Label[2]\\n19    DEBUG_PRINT     \
+Expr[\\\"Pattern succeeded\\\"]\\n20    SAVE_BINDINGS   \\n21    LOAD_IMM     \
+   %b0, 1\\n22    HALT            \\n23    END_BLOCK       \
+Label[2]\\n\\n----------------------------------------\\nExpr registers: 3, \
+Bool registers: 1\\n\"\>"], "Output",
+ CellChangeTimes->{3.972153890214916*^9},
+ CellLabel->"Out[14]=",ExpressionUUID->"f75c92b1-f2cc-4fe1-9300-0639e510739b"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{1512, 831},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+FrontEndVersion->"15.0 for Mac OS X ARM (64-bit) (October 23, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"5b83726f-8ad1-4721-80a2-e9d6234d4915"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 199, 3, 29, "Input",ExpressionUUID->"c796eca3-ff98-47eb-a667-ad49dadee252"],
+Cell[756, 25, 348, 8, 51, "Code",ExpressionUUID->"5d53859a-9568-4456-b6d5-4de8cbc2675c"],
+Cell[1107, 35, 282, 4, 51, "Code",ExpressionUUID->"d82f9430-8fd8-4253-a35e-45ea2c92753b"],
+Cell[CellGroupData[{
+Cell[1414, 43, 148, 3, 53, "Subsection",ExpressionUUID->"4c7b57f5-fa05-4ed7-a77d-2e2d76520d31"],
+Cell[1565, 48, 388, 13, 30, "Item",ExpressionUUID->"fac1e387-c37c-4ead-97a5-8483e6fa0cb5"],
+Cell[CellGroupData[{
+Cell[1978, 65, 162, 3, 43, "Subsubsection",ExpressionUUID->"fbea7fdb-c26c-4b19-bfef-9a5587c29d96"],
+Cell[CellGroupData[{
+Cell[2165, 72, 296, 5, 29, "Input",ExpressionUUID->"f3f8220e-973a-461d-bf7d-752f3ae08af1"],
+Cell[2464, 79, 5975, 126, 72, "Output",ExpressionUUID->"db008dfa-5a60-4800-b19a-b399f348105a"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8476, 210, 207, 3, 29, "Input",ExpressionUUID->"a865d15b-7f0a-401d-8f16-0257e7d3ff91"],
+Cell[8686, 215, 811, 11, 523, "Output",ExpressionUUID->"823c7fdc-0324-4983-9e30-7d7c7a583a84"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[9546, 232, 157, 3, 43, "Subsubsection",ExpressionUUID->"0534ca93-9932-48f0-b9cf-6a991bb7a4b9"],
+Cell[CellGroupData[{
+Cell[9728, 239, 328, 5, 29, "Input",ExpressionUUID->"2d5cbb46-d70a-480a-8bbc-e70a4d89ed0a"],
+Cell[10059, 246, 5920, 125, 72, "Output",ExpressionUUID->"3e9ab1a9-3e45-4fae-9c4d-f044b9eacf4d"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[16016, 376, 207, 3, 29, "Input",ExpressionUUID->"933cc67b-0f4c-4211-a326-34ce5c4f5961"],
+Cell[16226, 381, 866, 12, 523, "Output",ExpressionUUID->"c3829f94-4f12-4ab7-ad0d-79b831f542b8"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[17141, 399, 208, 4, 43, "Subsubsection",ExpressionUUID->"d24099ac-a8b0-4459-99a6-7ffca1e835fe"],
+Cell[CellGroupData[{
+Cell[17374, 407, 370, 6, 29, "Input",ExpressionUUID->"60caeea6-265a-4e46-8064-ecde38938fa1"],
+Cell[17747, 415, 5932, 126, 72, "Output",ExpressionUUID->"2fe28852-d841-46d5-afbd-05318d9966ec"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[23716, 546, 256, 4, 29, "Input",ExpressionUUID->"f1b0e421-cb2a-46e1-8b3c-4637a0e3c9e7"],
+Cell[23975, 552, 882, 12, 523, "Output",ExpressionUUID->"59a1ab08-a7f4-4879-8937-16fd9b058535"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[24906, 570, 304, 5, 43, "Subsubsection",ExpressionUUID->"678baf32-e9bd-4ca9-813e-4ec09bbc4458"],
+Cell[CellGroupData[{
+Cell[25235, 579, 469, 7, 29, "Input",ExpressionUUID->"54f8f481-8fc8-4cd5-b412-7248e18c84a1"],
+Cell[25707, 588, 5976, 126, 72, "Output",ExpressionUUID->"995a883b-d93a-41bf-8683-0b35edae21d0"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[31720, 719, 304, 5, 29, "Input",ExpressionUUID->"1831dcfb-7b29-4fb3-afaf-299cab9d5c93"],
+Cell[32027, 726, 930, 13, 503, "Output",ExpressionUUID->"9f3b3d4b-82e9-4f42-aa25-7c94f3bd790a"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[32994, 744, 191, 3, 30, "Item",ExpressionUUID->"d944f480-3e79-43b7-8988-8eb9c4797966"],
+Cell[33188, 749, 229, 5, 25, "Subitem",ExpressionUUID->"dcfedec7-b693-406e-a3fd-dff6461e20f4"],
+Cell[CellGroupData[{
+Cell[33442, 758, 185, 3, 25, "Subitem",ExpressionUUID->"63350587-c314-4d5b-9033-3317e75f19c4"],
+Cell[CellGroupData[{
+Cell[33652, 765, 241, 4, 29, "Input",ExpressionUUID->"2accdab5-7e22-4747-a580-c82b3ed1f3a9"],
+Cell[CellGroupData[{
+Cell[33918, 773, 234, 4, 23, "Print",ExpressionUUID->"b89e5d6b-2e21-42c7-9ba1-f9f969dbf31f"],
+Cell[34155, 779, 221, 4, 23, "Print",ExpressionUUID->"dde16fe9-adb1-4cc9-8c57-f1be9990f205"],
+Cell[34379, 785, 234, 4, 23, "Print",ExpressionUUID->"f17b86a1-2c8f-44a7-b205-60cae58d6e91"],
+Cell[34616, 791, 255, 5, 23, "Print",ExpressionUUID->"d70ae1e0-8600-414a-8ef2-fec59b57bbe1"],
+Cell[34874, 798, 262, 5, 23, "Print",ExpressionUUID->"3c07a44a-509a-42a9-92a4-64296f159556"],
+Cell[35139, 805, 223, 4, 23, "Print",ExpressionUUID->"e71f8cec-b287-464f-bb54-d19155b924b1"],
+Cell[35365, 811, 228, 4, 23, "Print",ExpressionUUID->"b7845987-94f0-4a29-817c-990183f69b1a"]
+}, Open  ]],
+Cell[35608, 818, 462, 9, 33, "Output",ExpressionUUID->"3310ac3a-1b0e-491e-b47f-62bc02a4f3bd"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[36107, 832, 344, 7, 29, "Input",ExpressionUUID->"0056dd09-a208-430f-993a-2b28343f9be7"],
+Cell[CellGroupData[{
+Cell[36476, 843, 210, 4, 23, "Print",ExpressionUUID->"269e0432-0912-4bf5-8300-28309b8bad11"],
+Cell[36689, 849, 199, 4, 23, "Print",ExpressionUUID->"7066e6bd-5b96-4a10-b5c6-cc6fa765ef61"],
+Cell[36891, 855, 210, 4, 23, "Print",ExpressionUUID->"94172993-c705-4b02-8a2d-c6f5d831006d"],
+Cell[37104, 861, 229, 5, 23, "Print",ExpressionUUID->"ed869494-60a1-4998-906e-7652fa8bc319"],
+Cell[37336, 868, 238, 5, 23, "Print",ExpressionUUID->"d319006f-fd91-4dec-be1f-96b5a53e32bd"],
+Cell[37577, 875, 200, 4, 23, "Print",ExpressionUUID->"9e8acc53-b087-4842-b9fa-751861e527a1"],
+Cell[37780, 881, 204, 4, 23, "Print",ExpressionUUID->"f5a50c07-80e5-4d16-a16c-d28dee439452"]
+}, Open  ]],
+Cell[37999, 888, 440, 9, 33, "Output",ExpressionUUID->"9436ea72-535b-4e94-b6dd-36550c3c55fa"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[38512, 905, 356, 6, 43, "Subsubsection",ExpressionUUID->"b6c121df-c014-459c-97e8-8b4434ec2883"],
+Cell[CellGroupData[{
+Cell[38893, 915, 528, 8, 29, "Input",ExpressionUUID->"d0f3ba6c-7acd-44a5-b924-3957a9ed0070"],
+Cell[39424, 925, 6087, 128, 72, "Output",ExpressionUUID->"fbf720c2-9be7-4d10-9f21-3eb3ca3e112d"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[45548, 1058, 350, 5, 29, "Input",ExpressionUUID->"d9aa9be0-66fa-4896-b026-8b42c3a9863c"],
+Cell[45901, 1065, 815, 11, 523, "Output",ExpressionUUID->"5949a16e-ab32-44fb-9401-9f68ecc16621"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[46753, 1081, 249, 4, 29, "Input",ExpressionUUID->"80a2843f-aed7-4328-ad49-f9cc753e79b0"],
+Cell[CellGroupData[{
+Cell[47027, 1089, 211, 4, 23, "Print",ExpressionUUID->"57d299d4-be37-4d5b-9361-dd6ea4ab9c7b"],
+Cell[47241, 1095, 217, 4, 23, "Print",ExpressionUUID->"14c549ba-f6b1-4722-992e-128f1300e20d"],
+Cell[47461, 1101, 198, 4, 23, "Print",ExpressionUUID->"e43ab6ec-14f9-4b0b-bfb8-708a15b96f6a"],
+Cell[47662, 1107, 213, 4, 23, "Print",ExpressionUUID->"48fb6f81-589a-44dc-a8a7-f30709566d41"],
+Cell[47878, 1113, 230, 5, 23, "Print",ExpressionUUID->"87c87019-da13-46b1-bc16-8c225be32e83"],
+Cell[48111, 1120, 241, 5, 23, "Print",ExpressionUUID->"a74e9e8b-c2bb-4e29-b79c-959a061c720f"],
+Cell[48355, 1127, 201, 4, 23, "Print",ExpressionUUID->"3da58772-b0cb-4c4b-b98a-b05cf9c5c967"],
+Cell[48559, 1133, 205, 4, 23, "Print",ExpressionUUID->"4a16e1dd-728d-4e90-9a3a-dea96f55db55"]
+}, Open  ]],
+Cell[48779, 1140, 439, 9, 33, "Output",ExpressionUUID->"962ed700-1873-49ed-8154-0bdc053c5062"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[49255, 1154, 303, 6, 29, "Input",ExpressionUUID->"af288096-c757-40e0-b85e-cf4076c3da18"],
+Cell[CellGroupData[{
+Cell[49583, 1164, 213, 4, 23, "Print",ExpressionUUID->"c836a28a-7d9e-4d7b-9393-d068476e439b"],
+Cell[49799, 1170, 217, 4, 23, "Print",ExpressionUUID->"25b4a2ff-b4c0-4147-8733-3f40976157f8"],
+Cell[50019, 1176, 203, 4, 23, "Print",ExpressionUUID->"c1142337-ae1b-4956-b2d2-a9481fc5a77c"],
+Cell[50225, 1182, 211, 4, 23, "Print",ExpressionUUID->"83cd3e77-0912-4ffd-904b-9486e88b17cd"],
+Cell[50439, 1188, 227, 4, 23, "Print",ExpressionUUID->"424d7bf3-9453-4050-9110-9ebdf6851c3a"],
+Cell[50669, 1194, 204, 4, 23, "Print",ExpressionUUID->"5ff73f05-fc2f-4a67-9fcf-6cb9eda72177"],
+Cell[50876, 1200, 207, 4, 23, "Print",ExpressionUUID->"7be8b827-2eac-4dd3-8867-7284e781e507"]
+}, Open  ]],
+Cell[51098, 1207, 439, 9, 33, "Output",ExpressionUUID->"a5381bc1-c96d-4283-b61c-76159dd88dd9"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[51574, 1221, 295, 5, 29, "Input",ExpressionUUID->"04bfddd6-6adc-443e-982f-0a9aa0a466a3"],
+Cell[CellGroupData[{
+Cell[51894, 1230, 213, 4, 23, "Print",ExpressionUUID->"fef75333-1a00-47ff-ae5e-8f06bc7a44c5"],
+Cell[52110, 1236, 217, 4, 23, "Print",ExpressionUUID->"ecf08d72-90f5-43f1-9e1b-7327022fbbc2"],
+Cell[52330, 1242, 198, 4, 23, "Print",ExpressionUUID->"32e41ecc-4ed3-4090-80f0-e3b8e635898b"],
+Cell[52531, 1248, 211, 4, 23, "Print",ExpressionUUID->"c73fd9e3-6e9c-46d4-b22b-9a68a09e05e3"],
+Cell[52745, 1254, 232, 5, 23, "Print",ExpressionUUID->"4929a4db-a259-417d-b58c-e2706b74646e"],
+Cell[52980, 1261, 239, 5, 23, "Print",ExpressionUUID->"51b84a61-da25-4de6-b97b-422c65ed9ccb"],
+Cell[53222, 1268, 201, 4, 23, "Print",ExpressionUUID->"b0e084fa-1559-45b9-b4b1-42bca478b100"],
+Cell[53426, 1274, 205, 4, 23, "Print",ExpressionUUID->"2a0d9487-0b22-408d-9bd4-d450fdcaf4a0"]
+}, Open  ]],
+Cell[53646, 1281, 439, 9, 33, "Output",ExpressionUUID->"ac15f81e-cdf9-46b1-8f36-250df6598b6a"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[54122, 1295, 401, 6, 30, "Subsubsubsection",ExpressionUUID->"7e2afdab-9009-4c39-9a7f-5cf4f9a8e6f6"],
+Cell[CellGroupData[{
+Cell[54548, 1305, 603, 10, 29, "Input",ExpressionUUID->"ddab9feb-4373-4a77-85d0-c12d02b81787"],
+Cell[55154, 1317, 6601, 136, 72, "Output",ExpressionUUID->"914ffd80-5cd6-4f97-a69e-cf4d813f6f8c"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[61792, 1458, 400, 6, 29, "Input",ExpressionUUID->"f449a2f2-c30e-4f95-8598-c8b428d5d769"],
+Cell[62195, 1466, 1153, 15, 829, "Output",ExpressionUUID->"f75c92b1-f2cc-4fe1-9300-0639e510739b"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
