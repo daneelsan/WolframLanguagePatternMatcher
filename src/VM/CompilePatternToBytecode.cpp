@@ -155,7 +155,7 @@ static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr
 		return;
 	}
 
-	// part(1): symbol name; part(2): subpattern
+	// Pattern[symbol, subpattern]
 	auto symM = std::static_pointer_cast<MExprSymbol>(parts[0]);
 	std::string lexName = symM->getLexicalName();
 	auto subp = parts[1];
@@ -206,18 +206,10 @@ static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr
 		// Create a label to jump past the failure handler
 		Label afterFailHandler = st.newLabel();
 		// If top-level, jump to success; otherwise jump past failure handler
-		if (isTopLevel)
-		{
-			st.emit(Opcode::JUMP, { OpLabel(successLabel) });
-		}
-		else
-		{
-			st.emit(Opcode::JUMP, { OpLabel(afterFailHandler) });
-		}
+		st.emit(Opcode::JUMP, { OpLabel(isTopLevel ? successLabel : afterFailHandler) });
 
 		// Failure handler
 		st.bindLabel(innerFail);
-		// Jump to outer failure
 		st.emit(Opcode::JUMP, { OpLabel(outerFail) });
 
 		// Bind the "after failure handler" label so normal execution continues here
@@ -341,7 +333,7 @@ static void compileNormal(CompilerState& st, std::shared_ptr<MExprNormal> mexpr,
 	// FAILURE HANDLER: Unwind and propagate
 	// ============================================================
 	st.bindLabel(innerFail);
-	st.emit(Opcode::END_BLOCK, { OpLabel(blockLabel) });
+	//st.emit(Opcode::END_BLOCK, { OpLabel(blockLabel) });
 	st.emit(Opcode::JUMP, { OpLabel(outerFail) });
 
 	// Bind the "after failure handler" label
@@ -409,33 +401,28 @@ std::shared_ptr<PatternBytecode> CompilePatternToBytecode(const Expr& patternExp
 	// ============================================================
 	// ENTRY BLOCK
 	// ============================================================
+	// Mark entry point. It is not necessary to create a block here.
 	st.beginBlock(entryLabel);
-	// Compile the pattern (isTopLevel=true means it will jump to success/fail)
 	compilePatternRec(st, pattern, successLabel, failLabel, true);
-	// Close entry block
 	st.endBlock(entryLabel);
 
 	// ============================================================
 	// FAILURE BLOCK
 	// ============================================================
 	st.bindLabel(failLabel);
-	st.beginBlock(failLabel);
 	st.emit(Opcode::DEBUG_PRINT, { OpImm(Expr("Pattern failed")) });
 	st.emit(Opcode::LOAD_IMM, { OpBoolReg(0), OpImm(false) });
 	st.emit(Opcode::HALT, {});
-	st.endBlock(failLabel);
 
 	// ============================================================
 	// SUCCESS BLOCK
 	// ============================================================
 	st.bindLabel(successLabel);
-	st.beginBlock(successLabel);
 	st.emit(Opcode::DEBUG_PRINT, { OpImm(Expr("Pattern succeeded")) });
 	st.emit(Opcode::SAVE_BINDINGS, {}); // Save current variable bindings
 	st.emit(Opcode::LOAD_IMM, { OpBoolReg(0), OpImm(true) });
 	// st.emit(Opcode::STORE_BINDINGS, {}); // Store all top-level bindings
 	st.emit(Opcode::HALT, {});
-	st.endBlock(successLabel);
 
 	st.out->set_metadata(pattern, st.nextExprReg, st.nextBoolReg, st.lexical);
 	return st.out;

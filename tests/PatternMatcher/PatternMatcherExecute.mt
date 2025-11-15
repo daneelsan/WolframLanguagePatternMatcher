@@ -198,35 +198,33 @@ Test[
 	Pattern
 ==============================================================================*)
 Test[
-	(* FIXME *)
-	PatternMatcherExecute[x_, 5]["Result"]
+	PatternMatcherExecute[x_, 5]
 	,
-	True
+	<|"Result" -> True, "CyclesExecuted" -> 8, "Bindings" -> <|"TestContext`x" -> 5|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-B6T7X1"
 ]
 
 Test[
-	(* FIXME *)
-	PatternMatcherExecute[x_, "string"]["Result"]
+	PatternMatcherExecute[x_, "a string"]
 	,
-	True
+	<|"Result" -> True, "CyclesExecuted" -> 8, "Bindings" -> <|"TestContext`x" -> "a string"|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-V1W6B9"
 ]
 
 Test[
-	PatternMatcherExecute[x_Integer, 5]["Result"]
+	PatternMatcherExecute[x_Integer, 5]
 	,
-	True
+	<|"Result" -> True, "CyclesExecuted" -> 9, "Bindings" -> <|"TestContext`x" -> 5|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-V7E5C8"
 ]
 
 Test[
-	PatternMatcherExecute[x_Integer, "string"]["Result"]
+	PatternMatcherExecute[x_Integer, "string"]
 	,
-	False
+	<|"Result" -> False, "CyclesExecuted" -> 6, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-R2L6F7"
 ]
