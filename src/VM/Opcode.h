@@ -93,6 +93,12 @@ All backtracking instructions manipulate the choice point stack.
                              jumps if %e0 is not exactly 5
                            Used for: literal patterns like 5, "hello", Pi */
 
+    APPLY_TEST,      /*  3: reg test fail      → jump fail if !test(reg)
+                           Apply a pattern test to reg and jump to fail if it doesn't return true.
+                           Example: APPLY_TEST %e0, IntegerQ, L_fail
+                             jumps if %e0 does not return true for the IntegerQ test
+                           Used for: type patterns like IntegerQ, RealQ, StringQ */
+
     //=========================================================================
     // COMPARISON (1 opcode)
     // Compute equality between expressions
@@ -260,6 +266,7 @@ inline OpcodeCategory getOpcodeCategory(Opcode op)
 			return OpcodeCategory::Introspection;
 
 		// Conditional matching (fused test + branch)
+		case Opcode::APPLY_TEST:
 		case Opcode::MATCH_HEAD:
 		case Opcode::MATCH_LENGTH:
 		case Opcode::MATCH_LITERAL:
@@ -318,8 +325,8 @@ inline bool isControlFlow(Opcode op)
 /// branches (BRANCH_FALSE, MATCH_*, FAIL). Used for control flow analysis.
 inline bool isBranch(Opcode op)
 {
-	return op == Opcode::JUMP || op == Opcode::BRANCH_FALSE || op == Opcode::MATCH_HEAD || op == Opcode::MATCH_LENGTH
-		|| op == Opcode::MATCH_LITERAL || op == Opcode::FAIL;
+	return op == Opcode::JUMP || op == Opcode::APPLY_TEST || op == Opcode::BRANCH_FALSE || op == Opcode::MATCH_HEAD
+		|| op == Opcode::MATCH_LENGTH || op == Opcode::MATCH_LITERAL || op == Opcode::FAIL;
 }
 
 /// @brief Check if opcode has side effects beyond register writes
@@ -392,6 +399,7 @@ inline size_t getOperandCount(Opcode op)
 			return 2;
 
 		// 3 operands
+		case Opcode::APPLY_TEST:
 		case Opcode::GET_PART:
 		case Opcode::MATCH_HEAD:
 		case Opcode::MATCH_LENGTH:
@@ -422,6 +430,8 @@ inline const char* getOpcodeDescription(Opcode op)
 			return "Extract part of expression";
 
 		// Pattern matching
+		case Opcode::APPLY_TEST:
+			return "Apply pattern test and branch on failure";
 		case Opcode::MATCH_HEAD:
 			return "Match head and branch on failure";
 		case Opcode::MATCH_LENGTH:

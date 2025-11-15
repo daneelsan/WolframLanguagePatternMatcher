@@ -419,6 +419,10 @@ static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> 
 		altLabels.push_back(st.newLabel());
 	}
 
+	// Create a local success label for alternatives
+	// Each alternative jumps here on success, then we handle isTopLevel
+	Label localSuccess = st.newLabel();
+
 	// ============================================================
 	// FIRST ALTERNATIVE: Create choice point with TRY
 	// ============================================================
@@ -431,7 +435,7 @@ static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> 
 		Label firstFail = st.newLabel();
 
 		// Compile first alternative as top-level (must jump to success)
-		compilePatternRec(st, firstAlt, successLabel, firstFail, true);
+		compilePatternRec(st, firstAlt, localSuccess, firstFail, true);
 
 		// If first alternative fails, trigger backtracking
 		st.bindLabel(firstFail);
@@ -456,7 +460,7 @@ static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> 
 		auto alt = mexpr->part(static_cast<mint>(i + 1));
 		Label altFail = st.newLabel();
 
-		compilePatternRec(st, alt, successLabel, altFail, true);
+		compilePatternRec(st, alt, localSuccess, altFail, true);
 
 		st.bindLabel(altFail);
 		st.emit(Opcode::FAIL, {}); // Backtrack to next alternative
@@ -475,8 +479,57 @@ static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> 
 		auto lastAlt = mexpr->part(static_cast<mint>(numAlts));
 		// Last alternative: on success → jump to successLabel
 		//                   on failure → jump to failLabel (no backtracking!)
-		compilePatternRec(st, lastAlt, successLabel, failLabel, true);
+		compilePatternRec(st, lastAlt, localSuccess, failLabel, true);
 	}
+
+	// ============================================================
+	// LOCAL SUCCESS HANDLER
+	// ============================================================
+	st.bindLabel(localSuccess);
+
+	// Now handle the top-level behavior
+	// If this alternative pattern is top-level, jump to global success
+	// If nested, fall through to continue matching
+	st.emitSuccessJumpIfTopLevel(successLabel, isTopLevel);
+}
+
+/*---------------------------------------------------------------------------
+compilePatternTest: Match Pattern with Test Function
+
+Compiles patterns like:
+- x_?IntegerQ (match any expression, bind to x, then test if IntegerQ)
+- _Integer?EvenQ (match integer, then test if even)
+- {a_, b_}?OrderedQ (match two-element list, then test if ordered)
+
+Strategy:
+1. Compile the base pattern (e.g., _Integer)
+2. Apply the test function to the matched value
+3. If test returns True, continue; otherwise jump to failLabel
+
+Generated code for x_Integer?EvenQ:
+  ; First match _Integer and bind x
+  MATCH_HEAD %e0, Integer, innerFail
+  MOVE %e3, %e0
+  BIND_VAR "Global`x", %e3
+
+  ; Then apply test
+  APPLY_TEST %e0, EvenQ, failLabel
+
+  ; Success
+  JUMP successLabel (if top-level)
+
+Note: Test is applied AFTER pattern matching, not before.
+---------------------------------------------------------------------------*/
+static void compilePatternTest(CompilerState& st, std::shared_ptr<MExprNormal> mexprNormal, Label successLabel,
+							   Label failLabel, bool isTopLevel)
+{
+	auto pvalMExpr = mexprNormal->part(1);
+	compilePatternRec(st, pvalMExpr, successLabel, failLabel, false);
+
+	auto testMExpr = mexprNormal->part(2);
+	st.emit(Opcode::APPLY_TEST, { OpExprReg(0), OpImm(testMExpr->getExpr()), OpLabel(failLabel) });
+
+	st.emitSuccessJumpIfTopLevel(successLabel, isTopLevel);
 }
 
 /*---------------------------------------------------------------------------
@@ -663,6 +716,10 @@ static void compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr, L
 			else if (MExprIsAlternatives(mexpr))
 			{
 				compileAlternatives(st, mexprNormal, successLabel, failLabel, isTopLevel);
+			}
+			else if (MExprIsPatternTest(mexpr))
+			{
+				compilePatternTest(st, mexprNormal, successLabel, failLabel, isTopLevel);
 			}
 			else
 			{

@@ -33,6 +33,8 @@ extern "C" mint Length_Expression_Integer(ExprStruct);
 extern "C" mint Depth_Expression_Integer(ExprStruct);
 extern "C" ExprStruct Part_E_I_E(ExprStruct, mint);
 
+extern "C" bool Cast_E_Boolean(ExprStruct);
+
 extern "C" ExprStruct Expression_SetPart_Export(ExprStruct, ExprStruct, ExprStruct, bool*);
 extern "C" void SetElement_EIE_E(ExprStruct base, mint pos, ExprStruct elem);
 
@@ -135,6 +137,12 @@ public:
 	{
 		const_cast<Expr*>(this)->acquire();
 		return instance;
+	}
+
+	// Automatically convert to bool.
+	explicit operator bool() const
+	{
+		return Cast_E_Boolean(instance);
 	}
 
 	bool sameQ(Expr other) const;
