@@ -1,0 +1,24 @@
+TestSuite[
+	{
+		"InitializeTests.m"
+		,
+		"AST/MExprEnvironment.mt"
+		,
+		"AST/MExprLiteral.mt"
+		,
+		"AST/MExprSymbol.mt"
+		,
+		"AST/MExprNormal.mt"
+		,
+		"AST/MExprUtilities.mt"
+		,
+		"PatternMatcher/PatternToMatchFunction.mt"
+		,
+		"PatternMatcher/FrontEnd.mt"
+		,
+		"PatternMatcher/BackEnd.mt"
+		,
+		"PatternMatcher/PatternMatcherExecute.mt"
+		,
+		"FinalizeTests.m"
+}]

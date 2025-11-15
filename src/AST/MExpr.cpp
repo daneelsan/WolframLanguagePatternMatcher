@@ -41,6 +41,16 @@ std::string MExpr::toString() const
 	return getExpr().toString();
 }
 
+Expr MExpr::toHeldExpr() const
+{
+	return Expr::construct("HoldComplete", getExpr());
+}
+
+Expr MExpr::toHeldFormExpr() const
+{
+	return Expr::construct("HoldCompleteForm", getExpr());
+}
+
 Expr MExpr::toExpr(std::shared_ptr<MExpr> mexpr)
 {
 	if (auto l = std::dynamic_pointer_cast<MExprLiteral>(mexpr))
@@ -53,8 +63,22 @@ Expr MExpr::toExpr(std::shared_ptr<MExpr> mexpr)
 	return Expr::throwError("Unexpected MExpr subclass in toExpr.");
 }
 
+static bool booleanQ(const Expr& e)
+{
+	return e.sameQ("True") || e.sameQ("False");
+}
+
 std::shared_ptr<MExpr> MExpr::construct(const Expr& e)
 {
+	if (auto mexprOpt = e.as<std::shared_ptr<MExpr>>())
+	{
+		return mexprOpt.value();
+	}
+	if (booleanQ(e))
+	{
+		// Booleans are literals
+		return MExprLiteral::create(e);
+	}
 	if (e.symbolQ())
 	{
 		// Improve test above
@@ -91,20 +115,26 @@ bool MExpr::hasHead(const char* headName) const
 namespace MethodInterface
 {
 	template <typename T>
-	Expr getHead(T* mexpr)
+	Expr getExpr(std::shared_ptr<T> mexpr)
+	{
+		return mexpr->getExpr();
+	}
+
+	template <typename T>
+	Expr getHead(std::shared_ptr<T> mexpr)
 	{
 		auto headMExpr = mexpr->getHead();
 		return MExpr::toExpr(headMExpr);
 	}
 
 	template <typename T>
-	Expr getID(T* mexpr)
+	Expr getID(std::shared_ptr<T> mexpr)
 	{
 		return Expr(mexpr->getID());
 	}
 
 	template <typename T>
-	Expr hasHead(T* mexpr, Expr headExpr)
+	Expr hasHead(std::shared_ptr<T> mexpr, Expr headExpr)
 	{
 		bool res = false;
 		auto headMExprOpt = headExpr.as<std::shared_ptr<MExpr>>();
@@ -120,13 +150,25 @@ namespace MethodInterface
 	}
 
 	template <typename T>
-	Expr length(T* mexpr)
+	Expr length(std::shared_ptr<T> mexpr)
 	{
 		return Expr(mexpr->length());
 	}
 
 	template <typename T>
-	Expr sameQ(T* mexpr, Expr other)
+	Expr literalQ(std::shared_ptr<T> mexpr)
+	{
+		return toExpr(mexpr->literalQ());
+	}
+
+	template <typename T>
+	Expr normalQ(std::shared_ptr<T> mexpr)
+	{
+		return toExpr(mexpr->normalQ());
+	}
+
+	template <typename T>
+	Expr sameQ(std::shared_ptr<T> mexpr, Expr other)
 	{
 		bool res = false;
 		auto otherOpt = other.as<std::shared_ptr<MExpr>>();
@@ -138,7 +180,25 @@ namespace MethodInterface
 	}
 
 	template <typename T>
-	Expr toString(T* mexpr)
+	Expr symbolQ(std::shared_ptr<T> mexpr)
+	{
+		return toExpr(mexpr->symbolQ());
+	}
+
+	template <typename T>
+	Expr toHeldExpr(std::shared_ptr<T> mexpr)
+	{
+		return mexpr->toHeldExpr();
+	}
+
+	template <typename T>
+	Expr toHeldFormExpr(std::shared_ptr<T> mexpr)
+	{
+		return mexpr->toHeldFormExpr();
+	}
+
+	template <typename T>
+	Expr toString(std::shared_ptr<T> mexpr)
 	{
 		return Expr(mexpr->toString());
 	}
@@ -148,12 +208,18 @@ template <typename T>
 void MExpr::initializeEmbedMethodsCommon(const char* embedName)
 {
 	using SharedT = std::shared_ptr<T>;
-	RegisterMethod<SharedT, MethodInterface::getHead<T>>(embedName, "getHead");
 	RegisterMethod<SharedT, MethodInterface::getID<T>>(embedName, "getID");
 	RegisterMethod<SharedT, MethodInterface::hasHead<T>>(embedName, "hasHead");
+	RegisterMethod<SharedT, MethodInterface::getHead<T>>(embedName, "head");
 	RegisterMethod<SharedT, MethodInterface::length<T>>(embedName, "length");
-	RegisterMethod<SharedT, MethodInterface::toString<T>>(embedName, "toString");
+	RegisterMethod<SharedT, MethodInterface::literalQ<T>>(embedName, "literalQ");
+	RegisterMethod<SharedT, MethodInterface::normalQ<T>>(embedName, "normalQ");
 	RegisterMethod<SharedT, MethodInterface::sameQ<T>>(embedName, "sameQ");
+	RegisterMethod<SharedT, MethodInterface::symbolQ<T>>(embedName, "symbolQ");
+	RegisterMethod<SharedT, MethodInterface::getExpr<T>>(embedName, "toExpr");
+	RegisterMethod<SharedT, MethodInterface::toHeldExpr<T>>(embedName, "toHeldExpr");
+	RegisterMethod<SharedT, MethodInterface::toHeldFormExpr<T>>(embedName, "toHeldFormExpr");
+	RegisterMethod<SharedT, MethodInterface::toString<T>>(embedName, "toString");
 }
 
 // Explicit instantiations:

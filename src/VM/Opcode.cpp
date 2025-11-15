@@ -9,42 +9,46 @@ const char* opcodeName(Opcode op)
 {
 	switch (op)
 	{
-		case Opcode::MOVE:
-			return "MOVE";
-        case Opcode::MATCH_HEAD:
-            return "MATCH_HEAD";
-		case Opcode::LOAD_IMM:
-			return "LOAD_IMM";
-		case Opcode::LOAD_INPUT:
-			return "LOAD_INPUT";
-		case Opcode::GET_HEAD:
-			return "GET_HEAD";
-		case Opcode::GET_PART:
-			return "GET_PART";
-		case Opcode::TEST_LENGTH:
-			return "TEST_LENGTH";
-		case Opcode::SAMEQ:
-			return "SAMEQ";
-		case Opcode::NOT:
-			return "NOT";
-		case Opcode::BIND_VAR:
-			return "BIND_VAR";
-		case Opcode::GET_VAR:
-			return "GET_VAR";
-		case Opcode::PATTERN_TEST:
-			return "PATTERN_TEST";
-		case Opcode::JUMP:
-			return "JUMP";
-		case Opcode::JUMP_IF_FALSE:
-			return "JUMP_IF_FALSE";
-		case Opcode::HALT:
-			return "HALT";
 		case Opcode::BEGIN_BLOCK:
 			return "BEGIN_BLOCK";
-		case Opcode::END_BLOCK:
-			return "END_BLOCK";
+		case Opcode::BIND_VAR:
+			return "BIND_VAR";
+		case Opcode::BRANCH_FALSE:
+			return "BRANCH_FALSE";
+		case Opcode::CUT:
+			return "CUT";
 		case Opcode::DEBUG_PRINT:
 			return "DEBUG_PRINT";
+		case Opcode::END_BLOCK:
+			return "END_BLOCK";
+		case Opcode::EXPORT_BINDINGS:
+			return "EXPORT_BINDINGS";
+		case Opcode::FAIL:
+			return "FAIL";
+		case Opcode::GET_PART:
+			return "GET_PART";
+		case Opcode::HALT:
+			return "HALT";
+		case Opcode::JUMP:
+			return "JUMP";
+		case Opcode::LOAD_IMM:
+			return "LOAD_IMM";
+		case Opcode::MATCH_HEAD:
+			return "MATCH_HEAD";
+		case Opcode::MATCH_LENGTH:
+			return "MATCH_LENGTH";
+		case Opcode::MATCH_LITERAL:
+			return "MATCH_LITERAL";
+		case Opcode::MOVE:
+			return "MOVE";
+		case Opcode::RETRY:
+			return "RETRY";
+		case Opcode::SAMEQ:
+			return "SAMEQ";
+		case Opcode::TRUST:
+			return "TRUST";
+		case Opcode::TRY:
+			return "TRY";
 		default:
 			return "OP_UNKNOWN";
 	}
@@ -62,16 +66,16 @@ std::string operandToString(const Operand& op)
 	}
 	if (std::holds_alternative<LabelOp>(op))
 	{
-		return "L" + std::to_string(std::get<LabelOp>(op).v);
+		return "Label[" + std::to_string(std::get<LabelOp>(op).v) + "]";
 	}
 	if (std::holds_alternative<Ident>(op))
 	{
-		return "id:`" + std::get<Ident>(op) + "`";
+		return "Symbol[\"" + std::get<Ident>(op) + "\"]";
 	}
 	if (std::holds_alternative<ImmExpr>(op))
 	{
 		auto expr = std::get<ImmExpr>(op);
-		return "Expr(\"" + expr.toInputFormString() + "\")";
+		return "Expr[" + expr.toInputFormString() + "]";
 	}
 	if (std::holds_alternative<ImmMint>(op))
 	{

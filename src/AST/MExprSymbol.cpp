@@ -8,37 +8,20 @@
 
 namespace PatternMatcher
 {
-// Get the symbol context, e.g. "System`" or "Global`"
-// Returns empty string on failure (caller should handle)
-static std::string getSymbolContext(const Expr& e)
-{
-	auto contextExpr = Expr::construct("Context", e).eval();
-	auto contextOpt = contextExpr.as<std::string>();
-	if (!contextOpt)
-	{
-		PM_ERROR("getSymbolContext failed for: ", e);
-		return "";
-	}
-	return *contextOpt;
-}
-
-// Return whether the symbol has the Protected attribute.
-// If something goes wrong, default to false.
-static bool isProtectedSymbol(const Expr& e)
-{
-	auto attrExpr = Expr::construct("Attributes", e).eval();
-	auto res = Expr::construct("MemberQ", attrExpr, Expr::ToExpression("Protected")).eval();
-	return res.as<bool>().value_or(false);
-}
-
 std::shared_ptr<MExpr> MExprSymbol::create(const Expr& e)
 {
-	std::string context = getSymbolContext(e);
-	std::string sourceName = e.toString(); // TODO: Get the name of the symbol without the context
+	std::string context = e.context().value();
+	std::string sourceName = e.symbolName().value();
 	bool isSystem = context == "System`";
-	bool isProtected = isProtectedSymbol(e);
+	bool isProtected = e.protectedQ().value();
 	MExprEnvironment* env = &MExprEnvironment::instance();
 	return env->getOrCreateSymbol(e, context, sourceName, isSystem && isProtected);
+}
+
+Expr MExprSymbol::getExpr() const
+{
+	const auto& lex_name = getLexicalName();
+	return Expr::ToExpression(lex_name.c_str());
 }
 
 std::shared_ptr<MExpr> MExprSymbol::getHead() const
@@ -46,30 +29,76 @@ std::shared_ptr<MExpr> MExprSymbol::getHead() const
 	return MExprSymbol::create(Expr::ToExpression("Symbol"));
 }
 
+std::string MExprSymbol::getLexicalName() const
+{
+	return getContext() + getName();
+}
+
+bool MExprSymbol::updateName(const std::string& newName)
+{
+	if (!system_protected)
+		name = newName;
+	return !system_protected;
+}
+
 bool MExprSymbol::sameQ(std::shared_ptr<MExpr> other) const
 {
 	if (other->getKind() != Kind::Symbol)
 		return false;
 	auto o = std::static_pointer_cast<MExprSymbol>(other);
-	return _expr.sameQ(o->_expr) && name == o->name && context == o->context;
+	if (getID() == o->getID())
+	{
+		return true;
+	}
+	return _expr.sameQ(o->_expr) && name == o->name;
 }
 
 namespace MExprSymbolInterface
 {
+	Expr getContext(std::shared_ptr<MExprSymbol> obj)
+	{
+		return Expr(obj->getContext());
+	}
 	Expr getLexicalName(std::shared_ptr<MExprSymbol> obj)
 	{
 		return Expr(obj->getLexicalName());
 	}
+	Expr getName(std::shared_ptr<MExprSymbol> obj)
+	{
+		return Expr(obj->getName());
+	}
+	Expr getSourceName(std::shared_ptr<MExprSymbol> obj)
+	{
+		return Expr(obj->getSourceName());
+	}
+	Expr isSystemProtected(std::shared_ptr<MExprSymbol> obj)
+	{
+		return toExpr(obj->isSystemProtected());
+	}
 	Expr toBoxes(Expr objExpr, Expr fmt)
 	{
 		return Expr::construct("DanielS`PatternMatcher`AST`Private`toMExprSymbolBoxes", objExpr, fmt).eval();
+	}
+	Expr updateName(std::shared_ptr<MExprSymbol> obj, Expr newName)
+	{
+		auto nameOpt = newName.as<std::string>();
+		if (!nameOpt.has_value())
+		{
+			return Expr::throwError("updateName: newName must be a string");
+		}
+		return toExpr(obj->updateName(nameOpt.value()));
 	}
 }; // namespace MExprSymbolInterface
 
 void MExprSymbol::initializeEmbedMethods(const char* embedName)
 {
 	initializeEmbedMethodsCommon<MExprSymbol>(embedName);
+	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::getContext>(embedName, "getContext");
 	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::getLexicalName>(embedName, "getLexicalName");
+	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::getName>(embedName, "getName");
+	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::getSourceName>(embedName, "getSourceName");
+	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::isSystemProtected>(embedName, "isSystemProtected");
 	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::toBoxes>(embedName, "toBoxes");
+	RegisterMethod<std::shared_ptr<MExprSymbol>, MExprSymbolInterface::updateName>(embedName, "updateName");
 }
 }; // namespace PatternMatcher

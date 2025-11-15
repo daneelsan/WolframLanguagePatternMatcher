@@ -1,5 +1,6 @@
 BeginPackage["DanielS`PatternMatcher`AST`"]
 
+
 $MExprEnvironment::usage =
 	"$MExprEnvironment is a global MExpr environment.";
 
@@ -8,6 +9,18 @@ ConstructMExpr::usage =
 
 CreateMExprEnvironment::usage =
 	"CreateMExprEnvironment[] creates a new MExpr environment.";
+
+MExprQ::usage =
+	"MExprQ[mexpr] returns True if mexpr is a MExpr object.";
+
+MExprSymbolQ::usage =
+	"MExprSymbolQ[mexpr] returns True if mexpr is a MExpr symbol.";
+
+MExprLiteralQ::usage =
+	"MExprLiteralQ[mexpr] returns True if mexpr is a MExpr literal.";
+
+MExprNormalQ::usage =
+	"MExprNormalQ[mexpr] returns True if mexpr is a MExpr normal.";
 
 
 Begin["`Private`"]
@@ -53,7 +66,35 @@ DeleteObject[MExprEnvironment[...]]
 SetAttributes[ConstructMExpr, HoldAllComplete];
 
 ConstructMExpr[expr_] :=
-	$MExprEnvironment["constructMExpr", expr];
+	$MExprEnvironment["constructMExpr", HoldComplete[expr]];
+
+
+(*=============================================================================
+	MExpr predicates
+=============================================================================*)
+MExprQ[mexpr_] :=
+	MExprSymbolQ[mexpr] || MExprLiteralQ[mexpr] || MExprNormalQ[mexpr];
+
+
+MExprSymbolQ[mexpr_?Compile`Utilities`Class`Impl`ObjectInstanceQ] :=
+	Head[mexpr] === PatternMatcherLibrary`AST`MExprSymbol;
+
+MExprSymbolQ[_] :=
+	False;
+
+
+MExprLiteralQ[mexpr_?Compile`Utilities`Class`Impl`ObjectInstanceQ] :=
+	Head[mexpr] === PatternMatcherLibrary`AST`MExprLiteral;
+
+MExprLiteralQ[_] :=
+	False;
+
+
+MExprNormalQ[mexpr_?Compile`Utilities`Class`Impl`ObjectInstanceQ] :=
+	Head[mexpr] === PatternMatcherLibrary`AST`MExprNormal;
+
+MExprNormalQ[_] :=
+	False;
 
 
 (*=============================================================================
@@ -67,9 +108,11 @@ toMExprLiteralBoxes[mexpr_, fmt_] :=
 		"",
 		{
 			BoxForm`SummaryItem[{"id: ", mexpr["getID"]}],
-			BoxForm`SummaryItem[{"value: ", ToString[mexpr["toString"], InputForm]}]
+			BoxForm`SummaryItem[{"expr: ", mexpr["toExpr"]}]
 		},
-		{},
+		{
+			BoxForm`SummaryItem[{"head: ", mexpr["head"]["toHeldFormExpr"]}]
+		},
 		fmt
 	];
 
@@ -79,16 +122,23 @@ toMExprLiteralBoxes[mexpr_, fmt_] :=
 =============================================================================*)
 
 toMExprSymbolBoxes[mexpr_, fmt_] :=
-	BoxForm`ArrangeSummaryBox[
-		"MExprSymbol",
-		mexpr,
-		"",
-		{
-			BoxForm`SummaryItem[{"id: ", mexpr["getID"]}],
-			BoxForm`SummaryItem[{"lexical name: ", mexpr["getLexicalName"]}]
-		},
-		{},
-		fmt
+	Module[{isSystemProtected},
+		isSystemProtected = mexpr["isSystemProtected"];
+		BoxForm`ArrangeSummaryBox[
+			"MExprSymbol",
+			mexpr,
+			"",
+			Flatten @ {
+				BoxForm`SummaryItem[{"id: ", mexpr["getID"]}],
+				BoxForm`SummaryItem[{"source name: ", mexpr["getSourceName"]}],
+				BoxForm`SummaryItem[{"context: ", mexpr["getContext"]}]
+			},
+			{
+				BoxForm`SummaryItem[{"cached: ", isSystemProtected}],
+				BoxForm`SummaryItem[{"lexical name: ", mexpr["getLexicalName"]}]
+			},
+			fmt
+		]
 	];
 
 
@@ -103,9 +153,12 @@ toMExprNormalBoxes[mexpr_, fmt_] :=
 		"",
 		{
 			BoxForm`SummaryItem[{"id: ", mexpr["getID"]}],
-			BoxForm`SummaryItem[{"value: ", mexpr["toString"]}]
+			BoxForm`SummaryItem[{"expr: ", ClickToCopy[mexpr["toHeldFormExpr"], mexpr["toHeldExpr"]]}]
 		},
-		{},
+		{
+			BoxForm`SummaryItem[{"head: ", mexpr["head"]["toHeldFormExpr"]}],
+			BoxForm`SummaryItem[{"arguments: ", #["toHeldFormExpr"] & /@ mexpr["arguments"]}]
+		},
 		fmt
 	];
 

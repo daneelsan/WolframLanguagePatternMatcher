@@ -18,8 +18,9 @@ PacletObject[
         "Context" -> {"DanielS`PatternMatcher`"},
         "Symbols" -> {
           "DanielS`PatternMatcher`CompilePatternToBytecode",
-          "DanielS`PatternMatcher`CompilePatternToFunction",
+          "DanielS`PatternMatcher`PatternToMatchFunction",
           "DanielS`PatternMatcher`PatternBytecode",
+          "DanielS`PatternMatcher`PatternBytecodeQ",
           "DanielS`PatternMatcher`PatternMatcherVirtualMachine",
           "DanielS`PatternMatcher`CreatePatternMatcherVirtualMachine",
           "DanielS`PatternMatcher`ResetPatternMatcherVirtualMachine",

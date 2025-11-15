@@ -1,10 +1,6 @@
 BeginPackage["DanielS`PatternMatcher`BackEnd`PatternBytecode`"]
 
 
-PatternBytecodeQ::usage =
-	"PatternBytecodeQ[x] returns True if x is a valid PatternBytecode[...] object, and False otherwise.";
-
-
 PatternBytecodeDissasembly::usage =
 	"PatternBytecodeDissasembly[bytecodeObj] returns a dissasembly of the bytecodeObj.";
 
@@ -56,7 +52,7 @@ toBoxes[obj_, fmt_] :=
 			obj,
 			None,
 			{
-				BoxForm`SummaryItem[{"Pattern: ", pattern}],
+				BoxForm`SummaryItem[{"Pattern: ", ClickToCopy[pattern["toHeldFormExpr"], pattern["toHeldExpr"]]}],
 				BoxForm`SummaryItem[{"Number of Expr registers: ", exprRegisterCount}],
 				BoxForm`SummaryItem[{"Number of Bool registers: ", boolRegisterCount}]
 			},

@@ -1,4 +1,4 @@
-BeginPackage["DanielS`PatternMatcher`MExprUtilities`"];
+BeginPackage["DanielS`PatternMatcher`AST`MExprUtilities`"];
 
 
 MExprIsBlank::usage =
@@ -41,7 +41,7 @@ MExprIsLiteral::usage =
 Begin["`Private`"];
 
 
-Needs["CompileAST`Create`Construct`"] (* for CreateMExpr *)
+Needs["DanielS`PatternMatcher`AST`"]
 
 
 MExprIsBlank[patt_] :=
@@ -89,7 +89,7 @@ MExprIsPatternSequence[patt_] :=
 
 
 MExprIsLiteral[patt_] :=
-	Internal`PatternFreeQ[patt["toHeldExpression"]];
+	Internal`PatternFreeQ[patt["toHeldExpr"]];
 
 
 End[];

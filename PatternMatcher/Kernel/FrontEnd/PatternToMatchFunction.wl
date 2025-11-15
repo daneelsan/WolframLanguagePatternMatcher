@@ -1,32 +1,27 @@
-BeginPackage["DanielS`PatternMatcher`FrontEnd`CompilePatternToFunction`"];
+BeginPackage["DanielS`PatternMatcher`FrontEnd`PatternToMatchFunction`"];
 
 
 Begin["`Private`"];
 
 
-Needs["DanielS`PatternMatcher`"] (* for PatternToFunction *)
+Needs["DanielS`PatternMatcher`"]
 Needs["DanielS`PatternMatcher`ErrorHandling`"]
-Needs["DanielS`PatternMatcher`MExprUtilities`"]
-
-Needs["CompileAST`Create`Construct`"] (* for CreateMExpr *)
+Needs["DanielS`PatternMatcher`AST`"]
+Needs["DanielS`PatternMatcher`AST`MExprUtilities`"]
 
 
 (*=============================================================================
-	PatternToFunction
+	PatternToMatchFunction
 =============================================================================*)
-(*
-	TODO: Consider renaming to PatternToMatchQFunction.
-*)
-
-Options[CompilePatternToFunction] = {
+Options[PatternToMatchFunction] = {
 	"ApplyOptimizations" -> True
 }
 
-CompilePatternToFunction::unsup =
+PatternToMatchFunction::unsup =
 	"The pattern expression `1` is currently not supported.";
 
-CompilePatternToFunction[patt_, opts:OptionsPattern[]] :=
-	Module[{state},
+PatternToMatchFunction[patt_, opts:OptionsPattern[]] :=
+	CatchFailure @ Module[{state},
 		state = <|
 			"VariableCounter" -> CreateDataStructure["Counter", 1],
 			"Input" :> patt,
@@ -39,17 +34,17 @@ CompilePatternToFunction[patt_, opts:OptionsPattern[]] :=
 			"AssignedVariablesStack" -> CreateDataStructure["Stack"],
 			"ApplyOptimizations" -> TrueQ[OptionValue["ApplyOptimizations"]]
 		|>;
-		visitPattern[state, CreateMExpr[patt]];
+		visitPattern[state, ConstructMExpr[patt]];
 		With[{
 				moduleVars = getAssignmentVariables[state],
 				moduleBody = getFullCondition[state]
 			},
 			If[state["ApplyOptimizations"] && moduleVars["length"] === 0,
-				CreateMExpr @ Function[vm`expr$, moduleBody]
+				ConstructMExpr @ Function[vm`expr$, moduleBody]
 				,
-				CreateMExpr @ Function[vm`expr$, Module[moduleVars, moduleBody]]
+				ConstructMExpr @ Function[vm`expr$, Module[moduleVars, moduleBody]]
 			]
-		]["toExpression"]
+		]["toExpr"]
 	]
 
 
@@ -102,18 +97,22 @@ visitPattern[state_, mexpr_] :=
 			]
 		,
 		True,
-			(* TODO: Improve error handling *)
-			Throw[$Failed]
+			ThrowFailure[
+				"PatternToMatchFunction",
+				"Cannot compile the expression `1`.",
+				{mexpr["toHeldFormExpr"]},
+				<|"Input" -> mexpr["toHeldExpr"]|>
+			]
 	];
 
 
 throwUnsupportedPattern[mexpr_] := (
-	Message[CompilePatternToBytecode::unsup, mexpr["HoldFormExpression"]];
+	Message[PatternToMatchFunction::unsup, mexpr["toHeldFormExpr"]];
 	ThrowFailure[
-		"CompilePatternToBytecode",
-		CompilePatternToBytecode::unsup,
-		{mexpr["HoldFormExpression"]},
-		<|"Input" -> mexpr["toHeldExpression"]|>
+		"PatternToMatchFunction",
+		PatternToMatchFunction::unsup,
+		{mexpr["toHeldFormExpr"]},
+		<|"Input" -> mexpr["toHeldExpr"]|>
 	]
 );
 
@@ -137,7 +136,7 @@ processPattern[state_, mexpr_] :=
 
 processPatternWork[state_, boundSym_, currentExpr_] :=
 	Module[{lexicalName, symData},
-		lexicalName = boundSym["lexicalName"];
+		lexicalName = boundSym["getLexicalName"];
 		state["BoundVariables"]["Insert", lexicalName];
 		symData = state["BoundVariablesMap"]["Lookup", lexicalName, Null &];
 		If[symData === Null,
@@ -148,6 +147,7 @@ processPatternWork[state_, boundSym_, currentExpr_] :=
 		]
 	]
 
+
 (*======================================
 	processBlank
 ======================================*)
@@ -156,10 +156,10 @@ processPatternWork[state_, boundSym_, currentExpr_] :=
 *)
 processBlank[state_, mexpr_] :=
 	If[mexpr["length"] === 0,
-		addTest[state, CreateMExpr[True]]
+		addTest[state, ConstructMExpr[True]]
 		,
 		With[{var = state["CurrentVariable"]["Get"], head = mexpr["part", 1]},
-			addTest[state, CreateMExpr[Head[var] === head]]
+			addTest[state, ConstructMExpr[Head[var] === head]]
 		]
 	]
 
@@ -178,7 +178,7 @@ processPatternTest[state_, mexpr_] :=
 		var = state["CurrentVariable"]["Get"]
 	},
 		visitPattern[state, patt];
-		addTest[state, CreateMExpr[TrueQ[test[var]]]]
+		addTest[state, ConstructMExpr[TrueQ[test[var]]]]
 	]
 
 
@@ -254,9 +254,9 @@ addStateElement[state_, index_, pattMExpr_] :=
 	With[{newVar = newVariable[state], currentVar = state["CurrentVariable"]["Get"]},
 		state["Evaluations"]["Append",
 			If[index === 0,
-				CreateMExpr[newVar = Head[currentVar]]
+				ConstructMExpr[newVar = Head[currentVar]]
 				,
-				CreateMExpr[newVar = Part[currentVar, index]]
+				ConstructMExpr[newVar = Part[currentVar, index]]
 			]
 		];
 		state["CurrentVariable"]["Set", newVar];
@@ -271,13 +271,13 @@ addStateElement[state_, index_, pattMExpr_] :=
 getFullCondition[state_] :=
 	Module[{condList},
 		condList = Function[{tests},
-			If[Length[tests] === 1, tests[[1]], Apply[CreateMExpr[CompoundExpression[##]] &][tests]]
+			If[Length[tests] === 1, tests[[1]], Apply[ConstructMExpr[CompoundExpression[##]] &][tests]]
 		] /@ state["TestsList"]["Elements"];
 		state["TestsList"]["DropAll"];
 		If[state["ApplyOptimizations"] && Length[condList] === 1,
 			condList[[1]]
 			,
-			Apply[CreateMExpr[And[##]] &][condList]
+			Apply[ConstructMExpr[And[##]] &][condList]
 		]
 	]
 
@@ -287,7 +287,7 @@ getFullCondition[state_] :=
 ======================================*)
 addLengthTest[state_, len_] :=
 	With[{var = state["CurrentVariable"]["Get"]},
-		addTest[state, CreateMExpr[Length[var] === len]]
+		addTest[state, ConstructMExpr[Length[var] === len]]
 	]
 
 
@@ -295,7 +295,7 @@ addLengthTest[state_, len_] :=
 	addSameQTest
 ======================================*)
 addSameQTest[state_, lhs_, rhs_] :=
-	addTest[state, CreateMExpr[lhs === rhs]]
+	addTest[state, ConstructMExpr[lhs === rhs]]
 
 
 (*======================================
@@ -327,7 +327,7 @@ popTests[state_, head_, args_List] :=
 		oldTests = state["TestsStack"]["Pop"];
 		Assert[state["TestsList"]["Length"] === 0];
 		state["TestsList"]["JoinBack", oldTests];
-		currentTest = Apply[CreateMExpr[head[##]] &, args];
+		currentTest = Apply[ConstructMExpr[head[##]] &, args];
 		state["TestsList"]["Append", currentTest];
 	]
 
@@ -337,7 +337,7 @@ popTests[state_, head_, args_List] :=
 ======================================*)
 getAssignmentVariables[state_] :=
 	With[{vars = state["AssignedVariablesStack"]["Elements"][[All, "Variable"]]},
-		CreateMExpr[vars]
+		ConstructMExpr[vars]
 	]
 
 
@@ -366,7 +366,9 @@ addAssignment[state_, var_, val_] :=
 	makeVariable
 ======================================*)
 makeVariable[state_] :=
-	CreateMExprSymbolEval[Symbol["var" <> ToString[state["VariableCounter"]["Increment"]]]]
+	With[{s = Symbol["var" <> ToString[state["VariableCounter"]["Increment"]]]},
+		ConstructMExpr[s]
+	]
 
 
 End[];
