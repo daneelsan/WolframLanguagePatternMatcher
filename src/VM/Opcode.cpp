@@ -9,87 +9,46 @@ const char* opcodeName(Opcode op)
 {
 	switch (op)
 	{
-		// Register operations
-		case Opcode::LOAD_IMM:
-			return "LOAD_IMM";
-		case Opcode::LOAD_INPUT:
-			return "LOAD_INPUT";
-		case Opcode::MOVE:
-			return "MOVE";
-
-		// MatchOp
-		// MATCH_XXXX EXPR_REG EXPR_IMM LBL
-		case Opcode::MATCH_HEAD:
-			return "MATCH_HEAD";
-		case Opcode::MATCH_LITERAL:
-			return "MATCH_LITERAL";
-		case Opcode::MATCH_LENGTH:
-			return "MATCH_LENGTH";
-
-		// Introspection
-		case Opcode::GET_HEAD:
-			return "GET_HEAD";
-		case Opcode::GET_PART:
-			return "GET_PART";
-
-		// Tests
-		case Opcode::TEST_LENGTH:
-			return "TEST_LENGTH";
-		case Opcode::SAMEQ:
-			return "SAMEQ";
-
-		// Pattern Primitives
-		case Opcode::BIND_VAR:
-			return "BIND_VAR";
-		case Opcode::GET_VAR:
-			return "GET_VAR";
-		case Opcode::PATTERN_TEST:
-			return "PATTERN_TEST";
-
-		// Control Flow
-		case Opcode::JUMP:
-			return "JUMP";
-		case Opcode::FAIL_JUMP:
-			return "FAIL_JUMP";
-		case Opcode::JUMP_IF_FALSE:
-			return "JUMP_IF_FALSE";
-		case Opcode::HALT:
-			return "HALT";
-
-		// Scope Management
 		case Opcode::BEGIN_BLOCK:
 			return "BEGIN_BLOCK";
-		case Opcode::END_BLOCK:
-			return "END_BLOCK";
-		case Opcode::SAVE_BINDINGS:
-			return "SAVE_BINDINGS";
-
-		// Backtracking operations
-		case Opcode::TRY:
-			return "TRY";
-		case Opcode::RETRY:
-			return "RETRY";
-		case Opcode::TRUST:
-			return "TRUST";
-		case Opcode::CHOICE_POINT:
-			return "CHOICE_POINT";
+		case Opcode::BIND_VAR:
+			return "BIND_VAR";
+		case Opcode::BRANCH_FALSE:
+			return "BRANCH_FALSE";
 		case Opcode::CUT:
 			return "CUT";
-		case Opcode::FAIL:
-			return "FAIL";
-		case Opcode::TRAIL_BIND:
-			return "TRAIL_BIND";
-		case Opcode::SAVE_STATE:
-			return "SAVE_STATE";
-		case Opcode::RESTORE_STATE:
-			return "RESTORE_STATE";
-
-		// Debug / Helper
-		case Opcode::NOP:
-			return "NOP";
 		case Opcode::DEBUG_PRINT:
 			return "DEBUG_PRINT";
-
+		case Opcode::END_BLOCK:
+			return "END_BLOCK";
+		case Opcode::EXPORT_BINDINGS:
+			return "EXPORT_BINDINGS";
+		case Opcode::FAIL:
+			return "FAIL";
+		case Opcode::GET_PART:
+			return "GET_PART";
+		case Opcode::HALT:
+			return "HALT";
+		case Opcode::JUMP:
+			return "JUMP";
+		case Opcode::LOAD_IMM:
+			return "LOAD_IMM";
+		case Opcode::MATCH_HEAD:
+			return "MATCH_HEAD";
+		case Opcode::MATCH_LENGTH:
+			return "MATCH_LENGTH";
+		case Opcode::MATCH_LITERAL:
+			return "MATCH_LITERAL";
+		case Opcode::MOVE:
+			return "MOVE";
+		case Opcode::RETRY:
+			return "RETRY";
+		case Opcode::SAMEQ:
+			return "SAMEQ";
+		case Opcode::TRUST:
+			return "TRUST";
+		case Opcode::TRY:
+			return "TRY";
 		default:
 			return "OP_UNKNOWN";
 	}

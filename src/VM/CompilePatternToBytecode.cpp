@@ -261,7 +261,7 @@ innerFail:
 
 Example bytecode for second x in f[x_, x_]:
   SAMEQ %b1, %e3, %e0                   ; Compare with first x
-  JUMP_IF_FALSE %b1, outerFail          ; Must match!
+  BRANCH_FALSE %b1, outerFail          ; Must match!
   [continue with subpattern]
 ---------------------------------------------------------------------------*/
 static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, Label successLabel, Label outerFail,
@@ -297,7 +297,7 @@ static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr
 		st.emit(Opcode::SAMEQ, { OpBoolReg(b), OpExprReg(storedReg), OpExprReg(0) });
 
 		// If not equal, pattern fails
-		st.emit(Opcode::JUMP_IF_FALSE, { OpBoolReg(b), OpLabel(outerFail) });
+		st.emit(Opcode::BRANCH_FALSE, { OpBoolReg(b), OpLabel(outerFail) });
 
 		// If equal, still need to check the subpattern constraint
 		// Example: In f[x_Integer, x_Real], even if both x's are equal,
@@ -696,12 +696,12 @@ Generated structure:
 
   L2 (success):
 	DEBUG_PRINT "Pattern succeeded"
-	SAVE_BINDINGS    ; Capture all variable bindings to result
+	EXPORT_BINDINGS    ; Capture all variable bindings to result
 	LOAD_IMM %b0, true
 	HALT
 
 The entry block creates a frame for all pattern bindings.
-SAVE_BINDINGS at the end extracts bindings (e.g., x→5) for return.
+EXPORT_BINDINGS at the end extracts bindings (e.g., x→5) for return.
 
 Returns: Shared pointer to PatternBytecode ready for execution
 ---------------------------------------------------------------------------*/
@@ -745,7 +745,7 @@ std::shared_ptr<PatternBytecode> CompilePatternToBytecode(const Expr& patternExp
 
 	// Save all variable bindings from the current frame
 	// This extracts bindings like {x→5, y→10} for the caller
-	st.emit(Opcode::SAVE_BINDINGS, {});
+	st.emit(Opcode::EXPORT_BINDINGS, {});
 
 	st.emit(Opcode::LOAD_IMM, { OpBoolReg(0), OpImm(true) });
 	st.emit(Opcode::HALT, {});

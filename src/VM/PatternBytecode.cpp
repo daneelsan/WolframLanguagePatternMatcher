@@ -97,11 +97,11 @@ void PatternBytecode::optimize()
 {
 	// TODO: split in multiple passes for different optimizations
 
-	// Pass 1: Remove JUMP_IF_FALSE with always-true conditions
+	// Pass 1: Remove BRANCH_FALSE with always-true conditions
 	for (size_t i = 0; i + 1 < instrs.size();)
 	{
-		// Pattern: LOAD_IMM %b, 1 followed by JUMP_IF_FALSE %b, L
-		if (instrs[i].opcode == Opcode::LOAD_IMM && instrs[i + 1].opcode == Opcode::JUMP_IF_FALSE)
+		// Pattern: LOAD_IMM %b, 1 followed by BRANCH_FALSE %b, L
+		if (instrs[i].opcode == Opcode::LOAD_IMM && instrs[i + 1].opcode == Opcode::BRANCH_FALSE)
 		{
 			auto dstBool = std::get_if<BoolRegOp>(&instrs[i].ops[0]);
 			auto immMint = std::get_if<ImmMint>(&instrs[i].ops[1]);

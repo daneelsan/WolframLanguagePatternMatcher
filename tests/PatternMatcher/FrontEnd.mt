@@ -43,7 +43,7 @@ L1:
 
 L2:
  7    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
- 8    SAVE_BINDINGS   
+ 8    EXPORT_BINDINGS 
  9    LOAD_IMM        %b0, 1
 10    HALT            
 
@@ -84,7 +84,7 @@ L1:
 
 L2:
  7    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
- 8    SAVE_BINDINGS   
+ 8    EXPORT_BINDINGS 
  9    LOAD_IMM        %b0, 1
 10    HALT            
 
@@ -129,7 +129,7 @@ L1:
 
 L2:
  7    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
- 8    SAVE_BINDINGS   
+ 8    EXPORT_BINDINGS 
  9    LOAD_IMM        %b0, 1
 10    HALT            
 
@@ -181,7 +181,7 @@ L1:
 
 L2:
 12    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-13    SAVE_BINDINGS   
+13    EXPORT_BINDINGS 
 14    LOAD_IMM        %b0, 1
 15    HALT            
 
@@ -242,7 +242,7 @@ L1:
 
 L2:
 24    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-25    SAVE_BINDINGS   
+25    EXPORT_BINDINGS 
 26    LOAD_IMM        %b0, 1
 27    HALT            
 
@@ -315,7 +315,7 @@ L1:
 
 L2:
 30    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-31    SAVE_BINDINGS   
+31    EXPORT_BINDINGS 
 32    LOAD_IMM        %b0, 1
 33    HALT            
 
@@ -355,7 +355,7 @@ L1:
 
 L2:
 6    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-7    SAVE_BINDINGS   
+7    EXPORT_BINDINGS 
 8    LOAD_IMM        %b0, 1
 9    HALT            
 
@@ -393,7 +393,7 @@ L1:
 
 L2:
  7    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
- 8    SAVE_BINDINGS   
+ 8    EXPORT_BINDINGS 
  9    LOAD_IMM        %b0, 1
 10    HALT            
 
@@ -440,7 +440,7 @@ L1:
 
 L2:
  9    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-10    SAVE_BINDINGS   
+10    EXPORT_BINDINGS 
 11    LOAD_IMM        %b0, 1
 12    HALT            
 
@@ -490,7 +490,7 @@ L1:
 
 L2:
 10    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-11    SAVE_BINDINGS   
+11    EXPORT_BINDINGS 
 12    LOAD_IMM        %b0, 1
 13    HALT            
 
@@ -555,7 +555,7 @@ L1:
 
 L2:
 19    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-20    SAVE_BINDINGS   
+20    EXPORT_BINDINGS 
 21    LOAD_IMM        %b0, 1
 22    HALT            
 
@@ -631,7 +631,7 @@ L1:
 
 L2:
 26    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-27    SAVE_BINDINGS   
+27    EXPORT_BINDINGS 
 28    LOAD_IMM        %b0, 1
 29    HALT            
 
@@ -688,7 +688,7 @@ L6:
 16    GET_PART        %e5, %e0, 3
 17    MOVE            %e0, %e5
 18    SAMEQ           %b1, %e3, %e0
-19    JUMP_IF_FALSE   %b1, Label[4]
+19    BRANCH_FALSE    %b1, Label[4]
 20    MOVE            %e0, %e1
 21    END_BLOCK       Label[3]
 22    JUMP            Label[2]
@@ -706,7 +706,7 @@ L1:
 
 L2:
 28    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-29    SAVE_BINDINGS   
+29    EXPORT_BINDINGS 
 30    LOAD_IMM        %b0, 1
 31    HALT            
 
@@ -772,7 +772,7 @@ L1:
 
 L2:
 20    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-21    SAVE_BINDINGS   
+21    EXPORT_BINDINGS 
 22    LOAD_IMM        %b0, 1
 23    HALT            
 
@@ -825,7 +825,7 @@ L6:
 13    GET_PART        %e4, %e0, 2
 14    MOVE            %e0, %e4
 15    SAMEQ           %b1, %e3, %e0
-16    JUMP_IF_FALSE   %b1, Label[4]
+16    BRANCH_FALSE    %b1, Label[4]
 17    MOVE            %e0, %e1
 18    END_BLOCK       Label[3]
 19    JUMP            Label[2]
@@ -843,7 +843,7 @@ L1:
 
 L2:
 25    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-26    SAVE_BINDINGS   
+26    EXPORT_BINDINGS 
 27    LOAD_IMM        %b0, 1
 28    HALT            
 
@@ -896,7 +896,7 @@ L6:
 13    GET_PART        %e4, %e0, 2
 14    MOVE            %e0, %e4
 15    SAMEQ           %b1, %e3, %e0
-16    JUMP_IF_FALSE   %b1, Label[4]
+16    BRANCH_FALSE    %b1, Label[4]
 17    MATCH_HEAD      %e0, Expr[Real], Label[4]
 18    MOVE            %e0, %e1
 19    END_BLOCK       Label[3]
@@ -915,7 +915,7 @@ L1:
 
 L2:
 26    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-27    SAVE_BINDINGS   
+27    EXPORT_BINDINGS 
 28    LOAD_IMM        %b0, 1
 29    HALT            
 
@@ -974,7 +974,7 @@ L7:
 17    GET_PART        %e6, %e0, 0
 18    MOVE            %e0, %e6
 19    SAMEQ           %b1, %e3, %e0
-20    JUMP_IF_FALSE   %b1, Label[8]
+20    BRANCH_FALSE    %b1, Label[8]
 21    MOVE            %e0, %e5
 22    GET_PART        %e7, %e0, 1
 23    MOVE            %e0, %e7
@@ -1004,7 +1004,7 @@ L1:
 
 L2:
 37    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-38    SAVE_BINDINGS   
+38    EXPORT_BINDINGS 
 39    LOAD_IMM        %b0, 1
 40    HALT            
 
@@ -1056,7 +1056,7 @@ L1:
 
 L2:
 10    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-11    SAVE_BINDINGS   
+11    EXPORT_BINDINGS 
 12    LOAD_IMM        %b0, 1
 13    HALT            
 
@@ -1108,7 +1108,7 @@ L1:
 
 L2:
 12    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-13    SAVE_BINDINGS   
+13    EXPORT_BINDINGS 
 14    LOAD_IMM        %b0, 1
 15    HALT            
 
@@ -1176,7 +1176,7 @@ L1:
 
 L2:
 22    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-23    SAVE_BINDINGS   
+23    EXPORT_BINDINGS 
 24    LOAD_IMM        %b0, 1
 25    HALT            
 
@@ -1256,7 +1256,7 @@ L1:
 
 L2:
 28    DEBUG_PRINT     Expr[\"Pattern succeeded\"]
-29    SAVE_BINDINGS   
+29    EXPORT_BINDINGS 
 30    LOAD_IMM        %b0, 1
 31    HALT            
 

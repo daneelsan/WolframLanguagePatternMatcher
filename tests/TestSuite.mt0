@@ -14,6 +14,8 @@ TestSuite[
 		,
 		"PatternMatcher/PatternToMatchFunction.mt"
 		,
+		"PatternMatcher/FrontEnd.mt"
+		,
 		"PatternMatcher/BackEnd.mt"
 		,
 		"PatternMatcher/PatternMatcherExecute.mt"
