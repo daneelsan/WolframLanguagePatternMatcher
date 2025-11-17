@@ -132,6 +132,258 @@ This paper makes the following contributions:
     
     \item A structured backtracking protocol based on the Warren Abstract Machine enabling independent exploration of alternatives
     
+    \item A systematic evaluation demonstrating full semantic equivalence with Wolfram Language's \texttt{MatchQ} function for all supported pattern constructs.
+    
+    \item A complete Wolfram Language paclet providing a high-level API for compiling, executing, and inspecting compiled patterns.
+\end{enumerate}
+
+\subsection{Scope}
+
+This work focuses on core pattern matching features that represent the essential building blocks of pattern-based computation. Our goal is to demonstrate that a minimal, well-designed virtual machine can correctly implement these fundamental operations with explicit backtracking control.
+
+\subsubsection{Supported Pattern Types}
+
+The system fully supports the following pattern constructs:
+
+\textbf{Literal patterns} (\texttt{5}, \texttt{"hello"}, \texttt{Pi}): Match expressions that are structurally identical to the given constant. These form the base case for pattern matching and demonstrate the fused test-and-branch instruction design.
+
+\textbf{Blank patterns} (\texttt{\_}, \texttt{\_Integer}, \texttt{\_h}): Match any expression, optionally constrained by head type. The unconstrained blank \texttt{\_} matches anything, while \texttt{\_h} restricts matches to expressions with head \texttt{h}. This illustrates conditional compilation---unconstrained blanks generate no test instructions.
+
+\textbf{Named patterns} (\texttt{x\_}, \texttt{x\_Integer}): Capture matched values in named variables. These demonstrate the variable binding mechanism and integration with the frame stack for lexical scoping.
+
+\textbf{Repeated variables} (\texttt{f[x\_, x\_]}, \texttt{g[y\_, h[y\_]]}): Multiple occurrences of the same variable name within a pattern. The first occurrence binds the variable; subsequent occurrences verify equality with the bound value. This showcases the compile-time lexical environment that tracks variable usage across pattern structure.
+
+\textbf{Alternatives} (\texttt{p1 | p2 | p3}): Non-deterministic choice between multiple patterns. The system tries each alternative in sequence until one succeeds or all fail. This is the primary motivation for the backtracking mechanism, demonstrating the TRY/RETRY/TRUST protocol adapted from the Warren Abstract Machine.
+
+\textbf{Structured patterns} (\texttt{f[x\_, y\_]}, \texttt{\{a\_, b\_, c\_\}}): Patterns that decompose compound expressions, matching both the head and each argument recursively. These demonstrate the interplay between data movement instructions (\texttt{GET\_PART}, \texttt{MOVE}) and recursive pattern compilation.
+
+\textbf{Pattern tests} (\texttt{\_?EvenQ}, \texttt{x\_Integer?Positive}): Apply arbitrary predicates to matched values. The pattern matches only if the test function returns \texttt{True}. This shows integration with the host language evaluation system through the \texttt{APPLY\_TEST} instruction.
+
+Together, these features cover the most commonly used pattern matching operations in Wolfram Language programs and provide sufficient expressiveness for realistic applications.
+
+\subsubsection{Excluded Features}
+
+Several advanced pattern features are beyond the scope of this work:
+
+\textbf{Sequence patterns} (\texttt{\_\_}, \texttt{\_\_\_}, \texttt{x\_\_}): Match variable-length sequences of arguments. Supporting sequences requires significant additional complexity: the compiler must generate loops or specialized instructions, and the runtime must handle sequence binding and extraction. While important for practical systems, sequences complicate the design without fundamentally changing the virtual machine architecture.
+
+\textbf{Conditional patterns} (\texttt{x\_ /; x > 0}): Patterns with boolean guards that can reference previously bound variables. Unlike pattern tests (which apply a function to the current value), conditionals can express arbitrary relationships between multiple bindings. Implementing conditionals requires exposing the binding environment to user code and handling evaluation failures gracefully.
+
+\textbf{Optional patterns} (\texttt{x\_.}, \texttt{Optional[x, default]}): Match expressions that may or may not appear, providing default values when absent. Optionals interact subtly with sequence patterns and require careful handling of match failure semantics.
+
+\textbf{Orderless matching}: Some Wolfram Language functions (like \texttt{Plus}, \texttt{Times}) have the \texttt{Orderless} attribute, meaning arguments can match in any order. Supporting this requires either backtracking through all permutations or sophisticated matching algorithms (e.g., graph matching for commutative operations).
+
+\textbf{Attributes and special forms}: \texttt{Verbatim}, \texttt{HoldPattern}, \texttt{Literal}, and other pattern modifiers that alter evaluation or matching semantics.
+
+\textbf{Optimization passes}: The current compiler generates bytecode directly without optimization. Potential optimizations include constant folding, dead code elimination, redundant test removal, register allocation, and common subexpression elimination. While these would improve performance, they are orthogonal to the core design question of whether pattern matching can be compiled to a minimal instruction set.
+
+\subsubsection{Design Goals vs. Performance Goals}
+
+Our primary goal is \textbf{demonstrating feasibility and correctness} rather than achieving performance parity with Wolfram Language's highly optimized native \texttt{MatchQ} implementation. The native implementation has been refined over decades and includes:
+\begin{itemize}
+    \item Highly optimized C/C++ code with hand-tuned fast paths
+    \item Inline pattern matching for common cases
+    \item Specialized algorithms for specific pattern types
+    \item Integration with the kernel's expression caching
+\end{itemize}
+
+Instead, we focus on:
+\begin{itemize}
+    \item \textbf{Instruction set minimality}: Can we express pattern matching with ~20 opcodes?
+    \item \textbf{Architectural clarity}: Does the register-based design make control flow explicit?
+    \item \textbf{Correctness}: Do we achieve 100\% semantic equivalence with \texttt{MatchQ}?
+    \item \textbf{Observability}: Can we expose execution metrics for analysis?
+    \item \textbf{Extensibility}: Does the design support adding new pattern types?
+\end{itemize}
+
+The system successfully demonstrates that pattern compilation is feasible with a clean, minimal design. Performance optimization remains important future work but is not the primary contribution of this research.
+
+% ============================================================================
+% 2. BACKGROUND
+% ============================================================================
+\section{Background: Pattern Matching in Wolfram Language}
+\label{sec:background}
+
+To motivate our design and establish the semantic foundation for our virtual machine, we review Wolfram Language's pattern matching system, its core constructs, and how patterns are used in practice.
+
+\subsection{Expression Structure}
+
+In Wolfram Language, everything is an expression with the form \texttt{head[arg1, arg2, ...]}. For example:
+\begin{itemize}
+    \item \texttt{f[x, y]} has head \texttt{f} and two arguments
+    \item \texttt{5} is equivalent to \texttt{Integer[5]}
+    \item \texttt{\{a, b\}} is equivalent to \texttt{List[a, b]}
+\end{itemize}
+
+Patterns describe classes of expressions by specifying constraints on heads, arguments, and structure.
+
+\subsection{Core Pattern Constructs}
+
+\textbf{Literal patterns} match expressions by structural equality:
+\begin{mmaCell}{Input}
+MatchQ[5, 5]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+True
+\end{mmaCell}
+
+\textbf{Blank} (\texttt{\_}) matches any single expression:
+\begin{mmaCell}{Input}
+MatchQ[42, _]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+True
+\end{mmaCell}
+
+\textbf{Blank with head constraint} (\texttt{\_h}) matches expressions with specific head:
+\begin{mmaCell}{Input}
+MatchQ[5, _Integer]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+True
+\end{mmaCell}
+\begin{mmaCell}{Input}
+MatchQ["hello", _Integer]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+False
+\end{mmaCell}
+
+\textbf{Named patterns} (\texttt{x\_}) bind matched values to variables:
+\begin{mmaCell}{Input}
+Replace[3, x_ :> x^2]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+9
+\end{mmaCell}
+
+\textbf{Repeated variables} enforce equality constraints:
+\begin{mmaCell}{Input}
+MatchQ[f[5, 5], f[x_, x_]]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+True
+\end{mmaCell}
+\begin{mmaCell}{Input}
+MatchQ[f[5, 6], f[x_, x_]]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+False
+\end{mmaCell}
+
+\textbf{Alternatives} (\texttt{|}) express choice:
+\begin{mmaCell}{Input}
+MatchQ[5, _Integer | _Real]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+True
+\end{mmaCell}
+
+\textbf{Pattern tests} (\texttt{?}) apply predicates:
+\begin{mmaCell}{Input}
+MatchQ[4, _Integer?EvenQ]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+True
+\end{mmaCell}
+
+\textbf{Sequence patterns} (\texttt{\_\_}) match variable-length sequences (not supported in this work):
+\begin{mmaCell}{Input}
+MatchQ[\{1, 2, 3\}, {__}]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+True
+\end{mmaCell}
+
+\subsection{Pattern Matching Functions}
+
+Wolfram Language provides several built-in functions that use pattern matching:
+
+\textbf{MatchQ} tests whether an expression matches a pattern:
+\begin{mmaCell}{Input}
+MatchQ[\{1, 2, 3\}, \{_, _, _\}]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+True
+\end{mmaCell}
+
+\textbf{Replace} applies transformation rules:
+\begin{mmaCell}{Input}
+Replace[\{1, 2, 3\}, \{x_, y_, z_\} :> \{z, y, x\}]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+\{3, 2, 1\}
+\end{mmaCell}
+
+\textbf{Cases} filters expressions by pattern:
+\begin{mmaCell}{Input}
+Cases[\{1, "x", 2, "y"\}, _Integer]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+\{1, 2\}
+\end{mmaCell}
+
+\textbf{ReplaceAll} applies rules throughout an expression:
+\begin{mmaCell}{Input}
+\{f[1], f[2]\} /. f[x_] :> g[x]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+\{g[1], g[2]\}
+\end{mmaCell}
+
+\subsection{Pattern-Based Function Definitions}
+
+Patterns define function behavior based on argument structure:
+\begin{mmaCell}{Input}
+fac[0] := 1
+fac[n_] := n * fac[n - 1]
+fac[5]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+120
+\end{mmaCell}
+
+Multiple definitions with patterns enable dispatch by structure:
+\begin{mmaCell}{Input}
+process[_Integer] := "number"
+process[_String] := "text"
+process[_List] := "list"
+\end{mmaCell}
+
+\subsection{Why Compilation Matters}
+
+The current interpretive implementation of pattern matching has several limitations:
+
+\textbf{Repeated evaluation cost}: Each pattern match traverses the pattern structure recursively, even for patterns used repeatedly. In a function called thousands of times, this overhead accumulates.
+
+\textbf{Opaque control flow}: The backtracking behavior when alternatives fail is implicit in the recursive evaluation, making it difficult to trace, debug, or optimize.
+
+\textbf{Limited observability}: Users cannot inspect how a pattern is being evaluated, what alternatives were tried, or where time is spent.
+
+\textbf{No optimization opportunity}: Because patterns are evaluated directly, there is no opportunity to apply optimizations like redundant test elimination or constant folding.
+
+Our virtual machine addresses these issues by:
+\begin{itemize}
+    \item Compiling patterns once to bytecode that can be executed many times
+    \item Making backtracking explicit through the TRY/RETRY/TRUST protocol
+    \item Exposing execution metrics (instruction count, cycles, backtrack events)
+    \item Creating an intermediate representation amenable to optimization passes
+\end{itemize}
+
+% ============================================================================
+% 3. DESIGN
+% ============================================================================
+\section{Design}
+
+\subsection{Design Principles}
+
+\begin{enumerate}
+    \item A minimal instruction set (20 opcodes) designed specifically for pattern matching with fused test-and-branch operations
+
+    \item A register-based execution model with explicit data flow, eliminating stack-management overhead.
+    
+    \item A structured backtracking protocol based on the Warren Abstract Machine enabling independent exploration of alternatives
+    
     \item A systematic evaluation demonstrating full semantic equivalence with Wolfram Language’s \texttt{MatchQ} function for all supported pattern constructs.
     
     \item A complete Wolfram Language paclet providing a high-level API for compiling, executing, and inspecting compiled patterns.
@@ -199,7 +451,7 @@ Instead, we focus on:
 The system successfully demonstrates that pattern compilation is feasible with a clean, minimal design. Performance optimization remains important future work but is not the primary contribution of this research.
 
 % ============================================================================
-% 2. DESIGN
+% 3. DESIGN
 % ============================================================================
 \section{Design}
 
@@ -339,7 +591,7 @@ The backtracking protocol is based on the Warren Abstract Machine (WAM)\cite{ait
 \end{enumerate}
 
 % ============================================================================
-% 3. COMPILATION
+% 4. COMPILATION
 % ============================================================================
 \section{Compilation Strategy}
 
@@ -477,7 +729,7 @@ The base pattern is compiled first, then the test is applied.
 \textbf{Unlimited registers} simplify compilation by avoiding register allocation conflicts, at the cost of potentially allocating more registers than necessary.
 
 % ============================================================================
-% 4. API AND USAGE
+% 5. API AND USAGE
 % ============================================================================
 \section{API and Usage}
 
@@ -613,7 +865,7 @@ PatternMatcherExecute[f[x_,y_], f[1,2]]["Bindings"]
 \end{lstlisting}
 
 % ============================================================================
-% 5. EVALUATION
+% 6. EVALUATION
 % ============================================================================
 \section{Evaluation}
 
@@ -734,7 +986,7 @@ Compilation overhead is approximately 1--5ms per pattern. Break-even analysis:
 \end{itemize}
 
 % ============================================================================
-% 6. IMPLEMENTATION
+% 7. IMPLEMENTATION
 % ============================================================================
 \section{Implementation}
 
@@ -772,7 +1024,7 @@ The system follows a layered design:
 \textbf{Fused match operations:} Combines testing and conditional jumps in single instructions.
 
 % ============================================================================
-% 7. RELATED WORK
+% 8. RELATED WORK
 % ============================================================================
 \section{Related Work}
 
@@ -789,7 +1041,7 @@ The system follows a layered design:
 \textbf{OCaml pattern matching:} OCaml compiles patterns to efficient decision trees with sharing. Our system focuses on explicit backtracking rather than optimization.
 
 % ============================================================================
-% 8. CONCLUSION
+% 9. CONCLUSION
 % ============================================================================
 \section{Conclusion}
 

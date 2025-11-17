@@ -3,6 +3,8 @@ tmp/
 
 LibraryResources/
 
+resources/
+
 # Compiled Object files
 *.slo
 *.lo
