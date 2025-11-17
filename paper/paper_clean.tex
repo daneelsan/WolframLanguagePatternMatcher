@@ -137,66 +137,6 @@ This paper makes the following contributions:
     \item A complete Wolfram Language paclet providing a high-level API for compiling, executing, and inspecting compiled patterns.
 \end{enumerate}
 
-\subsection{Scope}
-
-This work focuses on core pattern matching features that represent the essential building blocks of pattern-based computation. Our goal is to demonstrate that a minimal, well-designed virtual machine can correctly implement these fundamental operations with explicit backtracking control.
-
-\subsubsection{Supported Pattern Types}
-
-The system fully supports the following pattern constructs:
-
-\textbf{Literal patterns} (\texttt{5}, \texttt{"hello"}, \texttt{Pi}): Match expressions that are structurally identical to the given constant. These form the base case for pattern matching and demonstrate the fused test-and-branch instruction design.
-
-\textbf{Blank patterns} (\texttt{\_}, \texttt{\_Integer}, \texttt{\_h}): Match any expression, optionally constrained by head type. The unconstrained blank \texttt{\_} matches anything, while \texttt{\_h} restricts matches to expressions with head \texttt{h}. This illustrates conditional compilation---unconstrained blanks generate no test instructions.
-
-\textbf{Named patterns} (\texttt{x\_}, \texttt{x\_Integer}): Capture matched values in named variables. These demonstrate the variable binding mechanism and integration with the frame stack for lexical scoping.
-
-\textbf{Repeated variables} (\texttt{f[x\_, x\_]}, \texttt{g[y\_, h[y\_]]}): Multiple occurrences of the same variable name within a pattern. The first occurrence binds the variable; subsequent occurrences verify equality with the bound value. This showcases the compile-time lexical environment that tracks variable usage across pattern structure.
-
-\textbf{Alternatives} (\texttt{p1 | p2 | p3}): Non-deterministic choice between multiple patterns. The system tries each alternative in sequence until one succeeds or all fail. This is the primary motivation for the backtracking mechanism, demonstrating the TRY/RETRY/TRUST protocol adapted from the Warren Abstract Machine.
-
-\textbf{Structured patterns} (\texttt{f[x\_, y\_]}, \texttt{\{a\_, b\_, c\_\}}): Patterns that decompose compound expressions, matching both the head and each argument recursively. These demonstrate the interplay between data movement instructions (\texttt{GET\_PART}, \texttt{MOVE}) and recursive pattern compilation.
-
-\textbf{Pattern tests} (\texttt{\_?EvenQ}, \texttt{x\_Integer?Positive}): Apply arbitrary predicates to matched values. The pattern matches only if the test function returns \texttt{True}. This shows integration with the host language evaluation system through the \texttt{APPLY\_TEST} instruction.
-
-Together, these features cover the most commonly used pattern matching operations in Wolfram Language programs and provide sufficient expressiveness for realistic applications.
-
-\subsubsection{Excluded Features}
-
-Several advanced pattern features are beyond the scope of this work:
-
-\textbf{Sequence patterns} (\texttt{\_\_}, \texttt{\_\_\_}, \texttt{x\_\_}): Match variable-length sequences of arguments. Supporting sequences requires significant additional complexity: the compiler must generate loops or specialized instructions, and the runtime must handle sequence binding and extraction. While important for practical systems, sequences complicate the design without fundamentally changing the virtual machine architecture.
-
-\textbf{Conditional patterns} (\texttt{x\_ /; x > 0}): Patterns with boolean guards that can reference previously bound variables. Unlike pattern tests (which apply a function to the current value), conditionals can express arbitrary relationships between multiple bindings. Implementing conditionals requires exposing the binding environment to user code and handling evaluation failures gracefully.
-
-\textbf{Optional patterns} (\texttt{x\_.}, \texttt{Optional[x, default]}): Match expressions that may or may not appear, providing default values when absent. Optionals interact subtly with sequence patterns and require careful handling of match failure semantics.
-
-\textbf{Orderless matching}: Some Wolfram Language functions (like \texttt{Plus}, \texttt{Times}) have the \texttt{Orderless} attribute, meaning arguments can match in any order. Supporting this requires either backtracking through all permutations or sophisticated matching algorithms (e.g., graph matching for commutative operations).
-
-\textbf{Attributes and special forms}: \texttt{Verbatim}, \texttt{HoldPattern}, \texttt{Literal}, and other pattern modifiers that alter evaluation or matching semantics.
-
-\textbf{Optimization passes}: The current compiler generates bytecode directly without optimization. Potential optimizations include constant folding, dead code elimination, redundant test removal, register allocation, and common subexpression elimination. While these would improve performance, they are orthogonal to the core design question of whether pattern matching can be compiled to a minimal instruction set.
-
-\subsubsection{Design Goals vs. Performance Goals}
-
-Our primary goal is \textbf{demonstrating feasibility and correctness} rather than achieving performance parity with Wolfram Language's highly optimized native \texttt{MatchQ} implementation. The native implementation has been refined over decades and includes:
-\begin{itemize}
-    \item Highly optimized C/C++ code with hand-tuned fast paths
-    \item Inline pattern matching for common cases
-    \item Specialized algorithms for specific pattern types
-    \item Integration with the kernel's expression caching
-\end{itemize}
-
-Instead, we focus on:
-\begin{itemize}
-    \item \textbf{Instruction set minimality}: Can we express pattern matching with small set of opcodes?
-    \item \textbf{Architectural clarity}: Does the register-based design make control flow explicit?
-    \item \textbf{Correctness}: Do we achieve 100\% semantic equivalence with \texttt{MatchQ}?
-    \item \textbf{Observability}: Can we expose execution metrics for analysis?
-    \item \textbf{Extensibility}: Does the design support adding new pattern types?
-\end{itemize}
-
-The system successfully demonstrates that pattern compilation is feasible with a clean, minimal design. Performance optimization remains important future work but is not the primary contribution of this research.
 
 % ============================================================================
 % 2. BACKGROUND
@@ -526,22 +466,6 @@ Instead, we focus on:
 \end{itemize}
 
 The system successfully demonstrates that pattern compilation is feasible with a clean, minimal design. Performance optimization remains important future work but is not the primary contribution of this research.
-
-% ============================================================================
-% 3. DESIGN
-% ============================================================================
-\section{Design}
-
-\subsection{Design Principles}
-
-The VM design follows these principles:
-
-\begin{enumerate}
-    \item \textbf{Minimality}: Smallest instruction set sufficient for pattern matching
-    \item \textbf{Clarity}: Explicit control flow and data movement  
-    \item \textbf{Orthogonality}: Each instruction does one thing well
-    \item \textbf{Observability}: Expose execution state for debugging and analysis
-\end{enumerate}
 
 \subsection{Register Model}
 
