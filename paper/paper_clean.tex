@@ -264,9 +264,11 @@ Note that while atoms like \texttt{5} have a head (\texttt{Integer}), their full
 
 This uniform structure makes pattern matching natural: patterns can specify constraints on any part of an expression (head, argument count, argument values) using the same matching primitives.
 
-Patterns describe classes of expressions by specifying constraints on heads, arguments, and structure.
+Patterns describe classes of expressions by specifying constraints on heads, arguments, and structure. The primary pattern matching function is \texttt{MatchQ[expr, pattern]}, which tests whether an expression matches a pattern, returning \texttt{True} if the expression satisfies all the pattern's constraints and \texttt{False} otherwise.
 
 \subsection{Core Pattern Constructs}
+
+A pattern construct is a syntactic element that describes what kinds of expressions are acceptable in a match. Wolfram Language provides several fundamental constructs that can be combined to express complex matching requirements.
 
 \textbf{Literal patterns} match expressions by structural equality:
 \begin{mmaCell}{Input}
@@ -382,7 +384,9 @@ Cases[\{1, "x", 2, "y"\}, _Integer]
 
 \subsection{Pattern-Based Function Definitions}
 
-Patterns define function behavior based on argument structure:
+One of the most powerful applications of pattern matching is defining functions that dispatch on the structure of their arguments. Unlike traditional function definitions that match only by argument count, pattern-based definitions can inspect argument types, values, and structure.
+
+\textbf{Basic pattern dispatch:} Functions can have multiple definitions with different patterns. The system selects the first definition whose pattern matches the input:
 \begin{mmaCell}{Input}
 fac[0] := 1
 fac[n_] := n * fac[n - 1]
@@ -392,12 +396,36 @@ fac[5]
 120
 \end{mmaCell}
 
-Multiple definitions with patterns enable dispatch by structure:
+When \texttt{fac[5]} is called, the first definition (\texttt{fac[0]}) fails because \texttt{5 ≠ 0}, so the second definition matches with \texttt{n} bound to \texttt{5}.
+
+\textbf{Type-based dispatch:} Patterns can discriminate by head type, enabling different behavior for different data types:
 \begin{mmaCell}{Input}
 process[_Integer] := "number"
 process[_String] := "text"
 process[_List] := "list"
 \end{mmaCell}
+
+\begin{mmaCell}{Input}
+\{process[42], process["hello"], process[\{1,2\}]\}
+\end{mmaCell}
+\begin{mmaCell}{Output}
+\{"number", "text", "list"\}
+\end{mmaCell}
+
+\textbf{Structural constraints:} Patterns can match specific structures, enabling dispatch based on shape:
+\begin{mmaCell}{Input}
+distance[\{x_, y_\}] := Sqrt[x^2 + y^2]
+distance[\{x_, y_, z_\}] := Sqrt[x^2 + y^2 + z^2]
+\end{mmaCell}
+
+\begin{mmaCell}{Input}
+\{distance[\{3, 4\}], distance[\{1, 2, 2\}]\}
+\end{mmaCell}
+\begin{mmaCell}{Output}
+\{5, 3\}
+\end{mmaCell}
+
+Pattern-based definitions are evaluated repeatedly whenever the function is called. For frequently invoked functions, the overhead of interpreting pattern structures on every call becomes significant, motivating the need for pattern compilation.
 
 \subsection{Why Compilation Matters}
 
