@@ -189,7 +189,7 @@ Our primary goal is \textbf{demonstrating feasibility and correctness} rather th
 
 Instead, we focus on:
 \begin{itemize}
-    \item \textbf{Instruction set minimality}: Can we express pattern matching with ~20 opcodes?
+    \item \textbf{Instruction set minimality}: Can we express pattern matching with small set of opcodes?
     \item \textbf{Architectural clarity}: Does the register-based design make control flow explicit?
     \item \textbf{Correctness}: Do we achieve 100\% semantic equivalence with \texttt{MatchQ}?
     \item \textbf{Observability}: Can we expose execution metrics for analysis?
@@ -208,12 +208,61 @@ To motivate our design and establish the semantic foundation for our virtual mac
 
 \subsection{Expression Structure}
 
-In Wolfram Language, everything is an expression with the form \texttt{head[arg1, arg2, ...]}. For example:
+In Wolfram Language, everything is an expression. Every expression has the uniform structure \texttt{head[arg1, arg2, ..., argN]}, where the head determines the type or meaning of the expression, and the arguments provide the data.
+
+This uniform representation applies to all Wolfram Language constructs:
+
+\textbf{Function calls} like \texttt{f[x, y]} have head \texttt{f} and arguments \texttt{x}, \texttt{y}.
+
+\textbf{Lists} like \texttt{\{a, b, c\}} have head \texttt{List}. The expression \texttt{\{a, b, c\}} is syntactic sugar for \texttt{List[a, b, c]}.
+
+\textbf{Atoms} (numbers, strings, symbols) are expressions without arguments but still have heads:
 \begin{itemize}
-    \item \texttt{f[x, y]} has head \texttt{f} and two arguments
-    \item \texttt{5} is equivalent to \texttt{Integer[5]}
-    \item \texttt{\{a, b\}} is equivalent to \texttt{List[a, b]}
+    \item The integer \texttt{5} has head \texttt{Integer}
+    \item The string \texttt{"hello"} has head \texttt{String}
+    \item The symbol \texttt{x} has head \texttt{Symbol}
 \end{itemize}
+
+The \texttt{Head} function extracts an expression's head:
+\begin{mmaCell}{Input}
+Head[f[x, y]]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+f
+\end{mmaCell}
+
+\begin{mmaCell}{Input}
+Head[\{a, b\}]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+List
+\end{mmaCell}
+
+\begin{mmaCell}{Input}
+Head[5]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+Integer
+\end{mmaCell}
+
+The \texttt{FullForm} function reveals the internal representation:
+\begin{mmaCell}{Input}
+FullForm[\{a, b, c\}]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+List[a, b, c]
+\end{mmaCell}
+
+\begin{mmaCell}{Input}
+FullForm[x + y]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+Plus[x, y]
+\end{mmaCell}
+
+Note that while atoms like \texttt{5} have a head (\texttt{Integer}), their full form is not \texttt{Integer[5]}---they remain atomic values. The head describes their type, but the representation is still the atom itself.
+
+This uniform structure makes pattern matching natural: patterns can specify constraints on any part of an expression (head, argument count, argument values) using the same matching primitives.
 
 Patterns describe classes of expressions by specifying constraints on heads, arguments, and structure.
 
