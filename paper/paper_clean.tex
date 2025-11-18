@@ -18,6 +18,9 @@
 \usepackage{booktabs}
 \usepackage{geometry}
 \usepackage{mmacells}
+\usepackage{tikz}
+\usetikzlibrary{trees, positioning, shapes}
+\usepackage{forest}
 \geometry{left=2cm,right=2cm,top=2.5cm,bottom=2.5cm}
 
 % ============================================================================
@@ -84,8 +87,16 @@ Pontificia Universidad Católica del Perú (PUCP)\\
 % ABSTRACT
 % ============================================================================
 \begin{abstract}
-Pattern matching is fundamental to symbolic computation in the Wolfram Language, yet its current implementation—based on recursive interpretive evaluation—introduces significant limitations for complex patterns. Patterns involving alternatives, deep nesting, and semantic tests incur not only high runtime cost under repeated evaluation but also opaque control flow and backtracking behavior, which hinder analysis, debugging, and optimization.
+Pattern matching is fundamental to symbolic computation in the Wolfram Language, yet its current implementation—based on recursive interpretive evaluation—introduces significant limitations for complex patterns. Patterns involving alternatives, deep nesting, and user-defined predicates incur not only high runtime cost under repeated evaluation but also opaque control flow and backtracking behavior, which hinder analysis, debugging, and optimization.
 This paper presents a register-based virtual machine that compiles Wolfram Language patterns into bytecode for efficient and predictable execution. The design employs a compact instruction set of 21 opcodes tailored to pattern-matching primitives and a structured backtracking mechanism. We describe the design rationale, instruction-set architecture, compilation strategy, and paclet interface, and show that complex patterns can be compiled into a small, analyzable bytecode with explicit backtracking control. The implementation preserves full semantic equivalence with the native \texttt{MatchQ} evaluator for all supported pattern constructs.
+\end{abstract}
+
+\begin{abstract}
+Pattern matching is fundamental to symbolic computation in the Wolfram Language, yet its current implementation—based on recursive interpretive evaluation—limits the performance and analyzability of complex patterns. Alternatives, deep nesting, and user-defined predicates introduce high overhead under repeated evaluation and lead to opaque control flow and backtracking behavior.
+
+This paper presents a register-based virtual machine that compiles Wolfram Language patterns into bytecode for efficient, predictable execution. The design uses a compact 21-opcode instruction set tailored to pattern-matching primitives and an explicit, structured backtracking mechanism. We outline the design rationale, instruction-set architecture, compilation strategy, and paclet interface, and show that complex patterns compile into small, analyzable programs with transparent control flow. The implementation preserves full semantic equivalence with the native `MatchQ` evaluator for all supported constructs.
+
+
 \end{abstract}
 
 % ============================================================================
@@ -106,33 +117,43 @@ True (* with x bound to 5 *)
 This single operation encodes structural decomposition (checking head and argument count), variable binding (capturing the first argument), and constraint checking (verifying both arguments are equal). While simple cases execute efficiently, Wolfram Language's pattern matcher—implemented through recursive, interpreter-driven evaluation—becomes costly for complex patterns involving alternatives, deep nesting, or predicates. Moreover, its implicit control flow and backtracking semantics make execution difficult to trace, reason about, or optimize, especially in performance-critical workloads.
 
 \subsection{Motivation}
-The key observation is that \textbf{patterns are programs}: they describe computations that determine whether an input satisfies a structural and semantic specification. Like other programs, patterns benefit from being compiled rather than interpreted.
+
+The key observation is that \textbf{patterns are programs}: they describe computations that determine whether an input satisfies a structural or semantic specification. As with other programs, patterns benefit from being compiled rather than interpreted.
+
 \begin{itemize}
     \item \textbf{Amortized cost}: compile once and execute efficiently across many inputs.
     \item \textbf{Explicit control flow}: replace implicit recursive traversal with direct jumps and structured backtracking.
     \item \textbf{Observability}: provide a transparent execution model that supports profiling, tracing, and instrumentation.
-    \item \textbf{Portability}: compiled bytecode can be cached, serialized, inspected, or reused.
-    \item \textbf{Optimizable representation}: once compiled, patterns can undergo separate optimization passes independent of their source form.
+    \item \textbf{Portability}: compiled bytecode can be cached, serialized, inspected, or reused across sessions.
+    \item \textbf{Optimizable representation}: compiled patterns enable separate optimization passes (e.g., dead-branch elimination, common-subpattern factoring) independent of their surface syntax.
 \end{itemize}
+
 Pattern compilation is especially advantageous in workloads such as:
 \begin{itemize}
-    \item repeated rule-based transformations,
-    \item frequently invoked pattern-based function definitions,
-    \item pattern search across large collections of symbolic expressions.
+    \item repeated rule-based transformations applied to large data streams or expression sets,
+    \item frequently invoked pattern-based function definitions in performance-sensitive code,
+    \item large-scale pattern search, filtering, or classification across symbolic expression collections,
+    \item program-analysis or code-generation tools that synthesize and evaluate patterns automatically,
+    \item workloads where pattern matching constitutes a significant fraction of steady-state execution time.
 \end{itemize}
+
 
 \subsection{Contributions}
 
 This paper makes the following contributions:
 
 \begin{enumerate}
-    \item A minimal instruction set (20 opcodes) designed specifically for pattern matching with fused test-and-branch operations
+    \item A minimal instruction set (~20 opcodes) tailored to pattern-matching primitives in the Wolfram Language.
 
-    \item A register-based execution model with explicit data flow, eliminating stack-management overhead.
+    \item A register-based execution model with explicit data flow that eliminates stack-management overhead.
     
-    \item A structured backtracking protocol based on the Warren Abstract Machine enabling independent exploration of alternatives
+    \item A structured backtracking protocol that enables independent exploration of alternatives.
     
-    \item A systematic evaluation demonstrating full semantic equivalence with Wolfram Language's \texttt{MatchQ} function for all supported pattern constructs.
+    \item An evaluation demonstrating full semantic equivalence with Wolfram Language's \texttt{MatchQ} for all supported pattern constructs.
+    
+    \item (\emph{In progress}) A suite of optimization passes over compiled patterns, including control-flow simplification and elimination of redundant tests.
+    
+    \item (\emph{In progress}) Integrated debugging and tracing facilities for visualizing and instrumenting pattern execution at the bytecode level.
     
     \item A complete Wolfram Language paclet providing a high-level API for compiling, executing, and inspecting compiled patterns.
 \end{enumerate}
@@ -144,73 +165,137 @@ This paper makes the following contributions:
 \section{Background: Pattern Matching in Wolfram Language}
 \label{sec:background}
 
-To motivate our design and establish the semantic foundation for our virtual machine, we review Wolfram Language's pattern matching system, its core constructs, and how patterns are used in practice.
+To motivate our design and establish the semantic foundation for our virtual machine, we review the structure of Wolfram Language expressions and the core pattern matching constructs that operate on them.
 
-\subsection{Expression Structure}
+\subsection{Wolfram Language Expressions}
 
-In Wolfram Language, everything is an expression. Every expression has the uniform structure \texttt{head[arg1, arg2, ..., argN]}, where the head determines the type or meaning of the expression, and the arguments provide the data.
+In the Wolfram Language, \emph{everything is an expression}. Every expression has the
+uniform structural form \texttt{head[arg1, arg2, \ldots, argN]}, where the head determines
+the expression's type or role and the arguments supply its data. This uniformity applies to
+functions, lists, operators, and even atomic values.
 
-This uniform representation applies to all Wolfram Language constructs:
+Function calls such as \texttt{f[x, y]} have head \texttt{f} and two arguments \texttt{x}
+and \texttt{y}. Lists such as \texttt{\{a, b, c\}} are syntactic sugar for
+\texttt{List[a, b, c]}. Even atoms---numbers, strings, and symbols---have heads despite
+having no arguments:
 
-\textbf{Function calls} like \texttt{f[x, y]} have head \texttt{f} and arguments \texttt{x}, \texttt{y}.
-
-\textbf{Lists} like \texttt{\{a, b, c\}} have head \texttt{List}. The expression \texttt{\{a, b, c\}} is syntactic sugar for \texttt{List[a, b, c]}.
-
-\textbf{Atoms} (numbers, strings, symbols) are expressions without arguments but still have heads:
 \begin{itemize}
-    \item The integer \texttt{5} has head \texttt{Integer}
-    \item The string \texttt{"hello"} has head \texttt{String}
-    \item The symbol \texttt{x} has head \texttt{Symbol}
+    \item The integer \texttt{5} has head \texttt{Integer}.
+    \item The string \texttt{"hello"} has head \texttt{String}.
+    \item The symbol \texttt{x} has head \texttt{Symbol}.
 \end{itemize}
 
-The \texttt{Head} function extracts an expression's head:
-\begin{mmaCell}{Input}
-Head[f[x, y]]
-\end{mmaCell}
-\begin{mmaCell}{Output}
-f
-\end{mmaCell}
+The \texttt{Head} function extracts an expression's head, while \texttt{FullForm} reveals
+the internal representation used by the evaluator. Representative examples are shown in
+Table~\ref{tab:expr-structure}.
 
-\begin{mmaCell}{Input}
-Head[\{a, b\}]
-\end{mmaCell}
-\begin{mmaCell}{Output}
-List
-\end{mmaCell}
+\begin{table}[h]
+\centering
+\begin{tabular}{l l l l}
+\toprule
+\textbf{Expression} & \textbf{FullForm} & \textbf{Head} & \textbf{Arguments} \\
+\midrule
+\texttt{x + y}      & \texttt{Plus[x, y]}        & \texttt{Plus}      & \texttt{x, y} \\
+\texttt{\{a, b, c\}}  & \texttt{List[a, b, c]}  & \texttt{List}   & \texttt{a, b, c} \\
+\texttt{5}            & \texttt{5}              & \texttt{Integer}& none \\
+\texttt{"hi"}         & \texttt{"hi"}           & \texttt{String} & none \\
+\bottomrule
+\end{tabular}
+\caption{Examples of Wolfram Language expressions and their internal structure.}
+\label{tab:expr-structure}
+\end{table}
 
-\begin{mmaCell}{Input}
-Head[5]
-\end{mmaCell}
-\begin{mmaCell}{Output}
-Integer
-\end{mmaCell}
+Although atoms possess heads, they remain indivisible values: their \texttt{FullForm} does
+not expand into constructs such as \texttt{Integer[5]} or \texttt{String["hi"]}. The head
+encodes semantic type information without altering the underlying representation.
 
-The \texttt{FullForm} function reveals the internal representation:
-\begin{mmaCell}{Input}
-FullForm[\{a, b, c\}]
-\end{mmaCell}
-\begin{mmaCell}{Output}
-List[a, b, c]
-\end{mmaCell}
+Because every expression---atomic or compound---ultimately forms a tree, it is useful to
+make that structure explicit. Figure~\ref{fig:syntax-tree} illustrates the
+\texttt{FullForm} structure of the expression \texttt{a*2 + b} and its corresponding syntax
+tree.
 
-\begin{mmaCell}{Input}
-FullForm[x + y]
-\end{mmaCell}
-\begin{mmaCell}{Output}
-Plus[x, y]
-\end{mmaCell}
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  level distance=12mm,
+  every node/.style={font=\small},
+  level 1/.style={sibling distance=28mm},
+  level 2/.style={sibling distance=15mm},
+  edge from parent/.style={draw, -latex}
+]
+\node {Plus}
+  child { node {Times}
+    child { node {a} }
+    child { node {2} }
+  }
+  child { node {b} };
+\end{tikzpicture}
+\caption{Syntax tree (FullForm) of the expression \texttt{a*2 + b}, represented internally
+as \texttt{Plus[Times[a, 2], b]}.}
+\label{fig:syntax-tree}
+\end{figure}
 
-Note that while atoms like \texttt{5} have a head (\texttt{Integer}), their full form is not \texttt{Integer[5]}---they remain atomic values. The head describes their type, but the representation is still the atom itself.
+This uniform expression model is fundamental to pattern matching. Patterns specify
+constraints on heads, argument shapes, and subexpressions, and \texttt{MatchQ} determines
+whether a tree satisfies those constraints. Because the representation is homogeneous, these
+constraints apply uniformly across all expression types.
 
-This uniform structure makes pattern matching natural: patterns can specify constraints on any part of an expression (head, argument count, argument values) using the same matching primitives.
+\paragraph{Implications for VM Design.}
+The regularity of the \texttt{head[args]} representation directly informs the architecture
+of our virtual machine. Since every expression conforms to the same structural template,
+only a small instruction set is required for inspecting heads, navigating argument lists,
+and testing structural properties. No special-case handling is needed for different
+expression categories, and backtracking behavior can be implemented uniformly. This enables
+a compact, analyzable, and semantically faithful bytecode representation of pattern
+matching.
 
-Patterns describe classes of expressions by specifying constraints on heads, arguments, and structure. The primary pattern matching function is \texttt{MatchQ[expr, pattern]}, which tests whether an expression matches a pattern, returning \texttt{True} if the expression satisfies all the pattern's constraints and \texttt{False} otherwise.
 
 \subsection{Core Pattern Constructs}
 
-A pattern construct is a syntactic element that describes what kinds of expressions are acceptable in a match. Wolfram Language provides several fundamental constructs that can be combined to express complex matching requirements.
+Pattern constructs specify structural and semantic constraints that an expression must
+satisfy in order to match. The Wolfram Language provides a small set of primitive forms
+that compose to express rich matching behaviors. Table~\ref{tab:pattern-core} summarizes
+the constructs relevant to this work.
 
-\textbf{Literal patterns} match expressions by structural equality:
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{0.28\linewidth} p{0.62\linewidth}}
+\toprule
+\textbf{Construct} & \textbf{Meaning} \\
+\midrule
+\texttt{expr} &
+Literal structural match \\
+\texttt{\_} &
+Match any expression \\
+\texttt{\_h} &
+Match expressions whose head is \texttt{h} \\
+\texttt{x\_} &
+Named pattern that binds the matched expression \\
+\texttt{x\_ \dots x\_} &
+Repeated named pattern enforcing structural equality across occurrences \\
+\texttt{p\,|\,q} &
+Alternative: match either pattern \\
+\texttt{p?test} &
+Pattern test: predicate must evaluate to \texttt{True} \\
+\texttt{\_,\ \_\_,\ \_\_\_} &
+Sequence patterns (variable-length argument sequences; not supported in this VM) \\
+\bottomrule
+\end{tabular}
+\caption{Core pattern constructs considered in this work.}
+\label{tab:pattern-core}
+\end{table}
+
+
+A note on notation: a bare symbol such as \texttt{x} is \emph{not} a placeholder---it is
+a literal expression that matches only itself. Placeholders require explicit blank
+notation (\texttt{\_}, \texttt{x\_}). Additionally, pattern matching operates on the raw
+syntactic structure of expressions (``\texttt{HoldComplete} semantics''), so the VM must
+expose expressions without evaluation unless a construct explicitly invokes it (e.g.\ a
+predicate in \texttt{?}).
+
+\paragraph{Structural equality.}
+Literal patterns match expressions by exact structural identity:
 \begin{mmaCell}{Input}
 MatchQ[5, 5]
 \end{mmaCell}
@@ -218,29 +303,34 @@ MatchQ[5, 5]
 True
 \end{mmaCell}
 
-\textbf{Blank} (\texttt{\_}) matches any single expression:
+In contrast, a bare symbol does not act as a pattern:
 \begin{mmaCell}{Input}
-MatchQ[42, _]
-\end{mmaCell}
-\begin{mmaCell}{Output}
-True
-\end{mmaCell}
-
-\textbf{Blank with head constraint} (\texttt{\_h}) matches expressions with specific head:
-\begin{mmaCell}{Input}
-MatchQ[5, _Integer]
-\end{mmaCell}
-\begin{mmaCell}{Output}
-True
-\end{mmaCell}
-\begin{mmaCell}{Input}
-MatchQ["hello", _Integer]
+MatchQ[5, x]
 \end{mmaCell}
 \begin{mmaCell}{Output}
 False
 \end{mmaCell}
 
-\textbf{Named patterns} (\texttt{x\_}) bind matched values to variables:
+\paragraph{Blanks.}
+A blank (\texttt{\_}) matches any single expression; a typed blank (\texttt{\_h}) matches
+only those expressions whose head is \texttt{h}:
+\begin{mmaCell}{Input}
+\{MatchQ[42, _], MatchQ["hello", _]\}
+\end{mmaCell}
+\begin{mmaCell}{Output}
+\{True, True\}
+\end{mmaCell}
+
+\begin{mmaCell}{Input}
+MatchQ[f[3], _List]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+False
+\end{mmaCell}
+
+\paragraph{Named patterns and variable binding.}
+A named pattern \texttt{x\_} binds the matched expression:
+
 \begin{mmaCell}{Input}
 Replace[3, x_ :> x^2]
 \end{mmaCell}
@@ -248,21 +338,23 @@ Replace[3, x_ :> x^2]
 9
 \end{mmaCell}
 
-\textbf{Repeated variables} enforce equality constraints:
+Repeated occurrences of the same named pattern enforce a structural consistency constraint:
 \begin{mmaCell}{Input}
 MatchQ[f[5, 5], f[x_, x_]]
 \end{mmaCell}
 \begin{mmaCell}{Output}
 True
 \end{mmaCell}
+
 \begin{mmaCell}{Input}
-MatchQ[f[5, 6], f[x_, x_]]
+MatchQ[f[5, 42], f[x_, x_]]
 \end{mmaCell}
 \begin{mmaCell}{Output}
 False
 \end{mmaCell}
 
-\textbf{Alternatives} (\texttt{|}) express choice:
+\paragraph{Alternatives.}
+The infix construct \texttt{|} expresses choice among patterns:
 \begin{mmaCell}{Input}
 MatchQ[5, _Integer | _Real]
 \end{mmaCell}
@@ -270,7 +362,18 @@ MatchQ[5, _Integer | _Real]
 True
 \end{mmaCell}
 
-\textbf{Pattern tests} (\texttt{?}) apply predicates:
+A non-matching case illustrates the boundary:
+\begin{mmaCell}{Input}
+MatchQ["hi", _Integer | _Real]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+False
+\end{mmaCell}
+
+\paragraph{Pattern tests.}
+The operator \texttt{?} attaches a predicate that must evaluate to \texttt{True} on the
+candidate. Predicates are evaluated dynamically in the current environment:
+
 \begin{mmaCell}{Input}
 MatchQ[4, _Integer?EvenQ]
 \end{mmaCell}
@@ -278,13 +381,31 @@ MatchQ[4, _Integer?EvenQ]
 True
 \end{mmaCell}
 
-\textbf{Sequence patterns} (\texttt{\_\_}) match variable-length sequences (not supported in this work):
 \begin{mmaCell}{Input}
-MatchQ[\{1, 2, 3\}, {__}]
+MatchQ[5, _Integer?EvenQ]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+False
+\end{mmaCell}
+
+\paragraph{Sequence patterns.}
+The constructs \texttt{\_\,\_, \_\_, \_\_\_} match variable-length sequences of arguments.
+These are part of the full Wolfram Language but not supported by the virtual machine
+presented in this work:
+\begin{mmaCell}{Input}
+MatchQ[\{1,2,3\}, \{__\}]
 \end{mmaCell}
 \begin{mmaCell}{Output}
 True
 \end{mmaCell}
+
+\medskip
+Together these constructs form the semantic surface that our virtual machine must
+preserve. Although each rule appears small and orthogonal, their interaction---especially
+alternatives, repeated variables, and dynamically evaluated pattern tests---generates rich
+backtracking behavior. The VM described in this paper compiles these constructs into an
+explicit, analyzable instruction set with structured control flow.
+
 
 \subsection{Pattern Matching Functions}
 
@@ -322,6 +443,43 @@ Cases[\{1, "x", 2, "y"\}, _Integer]
 \{g[1], g[2]\}
 \end{mmaCell}
 
+\subsection{Pattern Matching Functions}
+
+Wolfram Language provides several built-in functions that rely on pattern matching. Our virtual machine models the core matching semantics required by these functions.
+
+\paragraph{MatchQ.} Tests whether an expression matches a pattern:
+\begin{mmaCell}{Input}
+MatchQ[\{1, 2, 3\}, {_, _, _}]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+True
+\end{mmaCell}
+
+\paragraph{Replace.} Applies transformation rules by matching patterns and substituting bound values:
+\begin{mmaCell}{Input}
+Replace[\{1, 2, 3\}, {x_, y_, z_} :> {z, y, x}]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+\{3, 2, 1\}
+\end{mmaCell}
+
+\paragraph{Cases.} Filters expressions by pattern:
+\begin{mmaCell}{Input}
+Cases[\{1, "x", 2, "y"\}, _Integer]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+\{1, 2\}
+\end{mmaCell}
+
+\paragraph{ReplaceAll (/.)} Applies rules recursively throughout an expression:
+\begin{mmaCell}{Input}
+\{f[1], f[2]\} /. f[x_] :> g[x]
+\end{mmaCell}
+\begin{mmaCell}{Output}
+\{g[1], g[2]\}
+\end{mmaCell}
+
+
 \subsection{Pattern-Based Function Definitions}
 
 One of the most powerful applications of pattern matching is defining functions that dispatch on the structure of their arguments. Unlike traditional function definitions that match only by argument count, pattern-based definitions can inspect argument types, values, and structure.
@@ -336,7 +494,7 @@ fac[5]
 120
 \end{mmaCell}
 
-When \texttt{fac[5]} is called, the first definition (\texttt{fac[0]}) fails because \texttt{5 ≠ 0}, so the second definition matches with \texttt{n} bound to \texttt{5}.
+When \texttt{fac[5]} is called, the first definition (\texttt{fac[0]}) fails because \texttt{5 != 0}, so the second definition matches with \texttt{n} bound to \texttt{5}.
 
 \textbf{Type-based dispatch:} Patterns can discriminate by head type, enabling different behavior for different data types:
 \begin{mmaCell}{Input}
