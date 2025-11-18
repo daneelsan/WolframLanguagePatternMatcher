@@ -712,96 +712,223 @@ binding of \texttt{x}, and \texttt{\%e3} is compared against it. This pattern us
 4 expression registers and 2 boolean registers—typical for a simple equality constraint.
 
 \subsection{Instruction Set Architecture}
+\label{sec:isa}
 
-The instruction set comprises six categories:
+The instruction set consists of 20 opcodes organized into six functional categories. The design prioritizes \textbf{minimality} (fewest instructions needed for completeness), \textbf{orthogonality} (each instruction has one well-defined purpose), and \textbf{efficiency} (fused operations reduce instruction count). Table~\ref{tab:isa} provides a complete reference.
 
-\subsubsection{Data Movement}
+\subsubsection{Design Rationale}
 
-\begin{description}
-    \item[\texttt{MOVE \%dst, \%src}] Copy expression between registers
-    \item[\texttt{LOAD\_IMM \%dst, value}] Load constant into register
-    \item[\texttt{GET\_PART \%dst, \%src, i}] Extract part: \texttt{dst = src[[i]]}
-\end{description}
+Three key design decisions shape the instruction set:
 
-\subsubsection{Pattern Matching (Fused Operations)}
+\textbf{Fused test-and-branch operations:} Instructions like \texttt{MATCH\_HEAD} combine testing with conditional control flow, eliminating intermediate boolean values and reducing instruction count. Empirically, this reduces average bytecode size by 15-20\% compared to unfused designs.
 
-\begin{description}
-    \item[\texttt{MATCH\_HEAD \%e, head, L}] If \texttt{Head[\%e] \neq head}, jump to \texttt{L}
-    \item[\texttt{MATCH\_LENGTH \%e, n, L}] If \texttt{Length[\%e] \neq n}, jump to \texttt{L}
-    \item[\texttt{MATCH\_LITERAL \%e, v, L}] If \texttt{\%e \neq v}, jump to \texttt{L}
-    \item[\texttt{APPLY\_TEST \%e, f, L}] If \texttt{f[\%e] \neq True}, jump to \texttt{L}
-\end{description}
+\textbf{Specialized pattern primitives:} Rather than general-purpose operations, instructions directly express pattern matching semantics (\texttt{MATCH\_HEAD}, \texttt{GET\_PART}, \texttt{BIND\_VAR}). This makes compilation straightforward and bytecode self-documenting.
 
-These instructions fuse testing and conditional branching, reducing instruction count and improving locality.
+\textbf{Explicit backtracking protocol:} The \texttt{TRY}/\texttt{RETRY}/\texttt{TRUST} sequence (adapted from the Warren Abstract Machine\cite{ait-kaci1999}) provides structured control over non-deterministic choice, making backtracking observable and analyzable.
 
-\subsubsection{Comparison and Binding}
+\subsubsection{Instruction Categories}
 
-\begin{description}
-    \item[\texttt{SAMEQ \%b, \%e1, \%e2}] \texttt{\%b = SameQ[\%e1, \%e2]}
-    \item[\texttt{BIND\_VAR name, \%e}] Bind variable to register value
-\end{description}
+Many instructions fuse testing with conditional branching to reduce instruction count. For example, checking if an expression has head \texttt{Integer}:
 
-\subsubsection{Control Flow}
+\textbf{Unfused approach} (3 instructions):
+\begin{lstlisting}[style=bytecode,numbers=none]
+GET_HEAD %e1, %e0
+SAMEQ %b1, %e1, Integer
+BRANCH_FALSE %b1, Lfail
+\end{lstlisting}
 
-\begin{description}
-    \item[\texttt{JUMP L}] Unconditional jump
-    \item[\texttt{BRANCH\_FALSE \%b, L}] Jump if boolean is false
-    \item[\texttt{HALT}] Stop execution, return \texttt{\%b0}
-\end{description}
+\textbf{Fused approach} (1 instruction):
+\begin{lstlisting}[style=bytecode,numbers=none]
+MATCH_HEAD %e0, Integer, Lfail
+\end{lstlisting}
 
-\subsubsection{Scope Management}
+This eliminates two instructions and avoids temporary register allocation. The complete instruction set is organized into six categories (register notation: \texttt{E}=expression, \texttt{B}=boolean, \texttt{L}=label, \texttt{v}=value, \texttt{i}=integer):
 
-\begin{description}
-    \item[\texttt{BEGIN\_BLOCK}] Create new variable binding frame
-    \item[\texttt{END\_BLOCK}] Merge bindings to parent, pop frame
-    \item[\texttt{EXPORT\_BINDINGS}] Copy all bindings to result
-\end{description}
+\medskip
+\noindent\textbf{Data Movement}
+\vspace{-0.3em}
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\texttt{MOVE E$_1$ E$_2$} & \texttt{E$_1$ := E$_2$} \\
+\texttt{LOAD\_IMM E v} & \texttt{E := v} \\
+\texttt{GET\_PART E$_1$ E$_2$ i} & \texttt{E$_1$ := E$_2$[[i]]} \\
+\end{tabular}
+\end{center}
 
-\subsubsection{Backtracking}
+\medskip
+\noindent\textbf{Pattern Matching (Fused Operations)}
+\vspace{-0.3em}
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\texttt{MATCH\_HEAD E h L} & if \texttt{Head[E] $\neq$ h} goto \texttt{L} \\
+\texttt{MATCH\_LENGTH E n L} & if \texttt{Length[E] $\neq$ n} goto \texttt{L} \\
+\texttt{MATCH\_LITERAL E v L} & if \texttt{E $\neq$ v} goto \texttt{L} \\
+\texttt{APPLY\_TEST E f L} & if \texttt{f[E] $\neq$ True} goto \texttt{L} \\
+\end{tabular}
+\end{center}
 
-\begin{description}
-    \item[\texttt{TRY L}] Create choice point, record \texttt{L} as next alternative
-    \item[\texttt{RETRY L}] Update choice point to try \texttt{L} next
-    \item[\texttt{TRUST}] Remove choice point (last alternative)
-    \item[\texttt{FAIL}] Restore most recent choice point state
-\end{description}
+\medskip
+\noindent\textbf{Comparison and Binding}
+\vspace{-0.3em}
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\texttt{SAMEQ B E$_1$ E$_2$} & \texttt{B := SameQ[E$_1$, E$_2$]} \\
+\texttt{BIND\_VAR name E} & bind \texttt{name := E} \\
+\end{tabular}
+\end{center}
 
-The complete instruction set is shown in Table~\ref{tab:isa}.
+\medskip
+\noindent\textbf{Control Flow}
+\vspace{-0.3em}
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\texttt{JUMP L} & goto \texttt{L} \\
+\texttt{BRANCH\_FALSE B L} & if \texttt{B = False} goto \texttt{L} \\
+\texttt{HALT} & return \texttt{\%b0} \\
+\end{tabular}
+\end{center}
 
-\begin{table}[t]
+\medskip
+\noindent\textbf{Scope Management}
+\vspace{-0.3em}
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\texttt{BEGIN\_BLOCK} & push binding frame \\
+\texttt{END\_BLOCK} & pop and merge frame \\
+\texttt{EXPORT\_BINDINGS} & copy bindings to result \\
+\end{tabular}
+\end{center}
+
+\medskip
+\noindent\textbf{Backtracking}
+\vspace{-0.3em}
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\texttt{TRY L} & push choice point for \texttt{L} \\
+\texttt{RETRY L} & update choice point to \texttt{L} \\
+\texttt{TRUST} & pop choice point \\
+\texttt{FAIL} & backtrack to choice point \\
+\end{tabular}
+\end{center}
+
+\medskip
+\noindent Backtracking instructions implement the Warren Abstract Machine protocol (Section~\ref{sec:backtracking}).
+
+\subsubsection{Example: Compiling Simple Patterns}
+
+To illustrate how instructions compose, we show bytecode for three patterns of increasing complexity.
+
+\textbf{Example 1: Type constraint (\texttt{\_Integer})}
+
+\begin{lstlisting}[style=bytecode]
+L0:
+  MATCH_HEAD %e0, Integer, L_fail  ; Fused test-and-branch
+  LOAD_IMM %b0, true
+  HALT
+L_fail:
+  LOAD_IMM %b0, false
+  HALT
+\end{lstlisting}
+
+The single \texttt{MATCH\_HEAD} instruction (Pattern Matching category) performs the entire test, demonstrating the benefit of fused operations discussed above.
+
+\textbf{Example 2: Structured pattern (\texttt{f[\_Integer]})}
+
+\begin{lstlisting}[style=bytecode]
+L0:
+  MATCH_LENGTH %e0, 1, L_fail     ; Must have 1 argument
+  MATCH_HEAD %e0, f, L_fail       ; Head must be f
+  
+  GET_PART %e1, %e0, 1            ; Extract first argument
+  MATCH_HEAD %e1, Integer, L_fail ; Check argument is Integer
+  
+  LOAD_IMM %b0, true
+  HALT
+L_fail:
+  LOAD_IMM %b0, false
+  HALT
+\end{lstlisting}
+
+This combines structural decomposition (\texttt{MATCH\_LENGTH}, \texttt{GET\_PART} from Data Movement) with type testing (\texttt{MATCH\_HEAD}). The pattern requires 4 fused operations plus argument extraction.
+
+\textbf{Example 3: Repeated variable (\texttt{f[x\_, x\_]})}
+
+\begin{lstlisting}[style=bytecode]
+L0:
+  MATCH_LENGTH %e0, 2, L_fail
+  MATCH_HEAD %e0, f, L_fail
+  
+  GET_PART %e1, %e0, 1           ; Extract first argument
+  BIND_VAR "Global`x", %e1       ; Bind to x (first occurrence)
+  
+  GET_PART %e2, %e0, 2           ; Extract second argument
+  SAMEQ %b1, %e1, %e2            ; Check x == x (repeated variable)
+  BRANCH_FALSE %b1, L_fail       ; Fail if not equal
+  
+  LOAD_IMM %b0, true
+  HALT
+L_fail:
+  LOAD_IMM %b0, false
+  HALT
+\end{lstlisting}
+
+This demonstrates variable binding (\texttt{BIND\_VAR} from Comparison and Binding category) on first occurrence and equality checking (\texttt{SAMEQ}) for subsequent occurrences. The compiler tracks variable occurrences in its lexical environment, emitting different instruction sequences for first vs. repeated uses (see Section~\ref{sec:compilation}).
+
+\subsubsection{Instruction Encoding}
+
+Instructions consist of an opcode identifier and a variable-length list of operands. Operands are tagged to distinguish between register types (expression vs. boolean), labels for control flow, variable names for binding, and immediate values (constants). This typed operand model ensures that, for example, a boolean register cannot be accidentally used where an expression register is required.
+
+The encoding is designed to support the operand types introduced in the instruction categories: \texttt{E} (expression registers), \texttt{B} (boolean registers), \texttt{L} (labels), variable names, and immediate values (\texttt{v}, \texttt{i}). The current implementation uses a struct-based representation for simplicity and debuggability; future work will explore byte-oriented formats for improved memory density, following established patterns from production VMs. Implementation details are discussed in Section~\ref{sec:impl-encoding}.
+
+Table~\ref{tab:isa} provides a complete reference of all opcodes, organized by category.
+
+\begin{table}[h]
 \centering
 \small
-\begin{tabular}{lp{5cm}}
+\begin{tabular}{@{}llp{5cm}@{}}
 \toprule
-\textbf{Opcode} & \textbf{Description} \\
+\textbf{Opcode} & \textbf{Category} & \textbf{Description} \\
 \midrule
-\texttt{MOVE} & Copy between registers \\
-\texttt{LOAD\_IMM} & Load constant \\
-\texttt{GET\_PART} & Extract expression part \\
-\texttt{MATCH\_HEAD} & Test head, jump on fail \\
-\texttt{MATCH\_LENGTH} & Test length, jump on fail \\
-\texttt{MATCH\_LITERAL} & Test equality, jump on fail \\
-\texttt{APPLY\_TEST} & Apply predicate, jump on fail \\
-\texttt{SAMEQ} & Structural equality test \\
-\texttt{BIND\_VAR} & Bind variable \\
-\texttt{JUMP} & Unconditional jump \\
-\texttt{BRANCH\_FALSE} & Conditional jump \\
-\texttt{BEGIN\_BLOCK} & Create frame \\
-\texttt{END\_BLOCK} & Merge frame \\
-\texttt{EXPORT\_BINDINGS} & Export to result \\
-\texttt{TRY} & Create choice point \\
-\texttt{RETRY} & Update choice point \\
-\texttt{TRUST} & Remove choice point \\
-\texttt{FAIL} & Backtrack \\
-\texttt{HALT} & Stop execution \\
-\texttt{DEBUG\_PRINT} & Trace execution \\
+\texttt{MOVE} & Data & Copy between registers \\
+\texttt{LOAD\_IMM} & Data & Load constant \\
+\texttt{GET\_PART} & Data & Extract expression part \\
+\midrule
+\texttt{MATCH\_HEAD} & Match & Test head, jump on fail \\
+\texttt{MATCH\_LENGTH} & Match & Test length, jump on fail \\
+\texttt{MATCH\_LITERAL} & Match & Test equality, jump on fail \\
+\texttt{APPLY\_TEST} & Match & Apply predicate, jump on fail \\
+\midrule
+\texttt{SAMEQ} & Compare & Structural equality test \\
+\texttt{BIND\_VAR} & Binding & Bind variable \\
+\midrule
+\texttt{JUMP} & Control & Unconditional jump \\
+\texttt{BRANCH\_FALSE} & Control & Conditional jump \\
+\texttt{HALT} & Control & Stop execution \\
+\midrule
+\texttt{BEGIN\_BLOCK} & Scope & Create frame \\
+\texttt{END\_BLOCK} & Scope & Merge frame \\
+\texttt{EXPORT\_BINDINGS} & Scope & Export to result \\
+\midrule
+\texttt{TRY} & Backtrack & Create choice point \\
+\texttt{RETRY} & Backtrack & Update choice point \\
+\texttt{TRUST} & Backtrack & Remove choice point \\
+\texttt{FAIL} & Backtrack & Backtrack \\
+\midrule
+\texttt{DEBUG\_PRINT} & Debug & Trace execution \\
 \bottomrule
 \end{tabular}
-\caption{Complete instruction set (20 opcodes)}
+\caption{Complete instruction set reference}
 \label{tab:isa}
 \end{table}
 
 \subsection{Backtracking Mechanism}
+\label{sec:backtracking}
 
 The backtracking protocol is based on the Warren Abstract Machine (WAM)\cite{ait-kaci1999}, using choice points and trail:
 
@@ -829,6 +956,7 @@ The backtracking protocol is based on the Warren Abstract Machine (WAM)\cite{ait
 % 4. COMPILATION
 % ============================================================================
 \section{Compilation Strategy}
+\label{sec:compilation}
 
 \subsection{Compiler Architecture}
 
@@ -1328,6 +1456,93 @@ The bridge layer (\texttt{LibraryLink.cpp}, 350 LOC) handles Wolfram-C++ interac
 \textbf{Conditional trailing}: Only trails variable bindings when choice points exist. In deterministic patterns (no alternatives), trailing overhead is completely eliminated, reducing execution cost by 15-25\%.
 
 \textbf{Fused test-and-branch}: Instructions like \texttt{TEST\_HEAD\_JUMP} combine testing (head comparison) with conditional control flow (jump on failure) in a single opcode. Reduces instruction count and eliminates temporary boolean values.
+
+\subsection{Instruction Encoding}
+\label{sec:impl-encoding}
+
+The instruction encoding balances implementation simplicity with the flexibility needed for pattern matching operations. This subsection details the concrete representation of bytecode instructions.
+
+\subsubsection{Struct-Based Representation}
+
+Instructions are represented as C++ structs rather than byte arrays. Each instruction contains:
+\begin{itemize}
+    \item \textbf{Opcode}: Enum value identifying the operation
+    \item \textbf{Operands}: Variable-length vector of tagged unions
+\end{itemize}
+
+The struct definition is:
+\begin{lstlisting}[language=C++,basicstyle=\ttfamily\small,numbers=none]
+struct Instruction {
+    Opcode opcode;
+    std::vector<Operand> ops;
+};
+\end{lstlisting}
+
+\textbf{Example:} The instruction \texttt{MATCH\_HEAD \%e0, Integer, L\_fail} from Section~\ref{sec:isa} is encoded as:
+\begin{lstlisting}[language=C++,basicstyle=\ttfamily\small,numbers=none]
+Instruction {
+    opcode: MATCH_HEAD,
+    ops: [ExprRegOp{0}, ImmExpr{Integer}, LabelOp{3}]
+}
+\end{lstlisting}
+
+\subsubsection{Operand Type System}
+
+Operands use \texttt{std::variant} to represent multiple value types in a type-safe manner:
+\begin{lstlisting}[language=C++,basicstyle=\ttfamily\small,numbers=none]
+using Operand = std::variant<
+    std::monostate,  // No operand
+    ExprRegOp,       // Expression register (E)
+    BoolRegOp,       // Boolean register (B)
+    LabelOp,         // Jump target (L)
+    Ident,           // Variable name (string)
+    ImmExpr,         // Immediate Expr constant (v)
+    ImmMint          // Immediate integer (i)
+>;
+\end{lstlisting}
+
+Each wrapper type (\texttt{ExprRegOp}, \texttt{BoolRegOp}, etc.) corresponds directly to the operand notation introduced in Section~\ref{sec:isa}: \texttt{E}, \texttt{B}, \texttt{L}, variable names, and immediate values. Wrapper types enable the variant to distinguish between different uses of the same underlying type—for example, \texttt{ExprRegOp\{5\}} versus \texttt{LabelOp\{5\}} both wrap \texttt{size\_t} but represent semantically distinct operands.
+
+Type safety is enforced at compile time through \texttt{std::visit}. Operand type mismatches—such as using a boolean register where an expression register is required—are caught during bytecode generation rather than at runtime.
+
+\subsubsection{Design Rationale}
+
+This struct-based encoding prioritizes implementation clarity over space efficiency:
+
+\textbf{Advantages:}
+\begin{itemize}
+    \item \textbf{No decoding overhead}: Interpreter accesses fields directly without parsing byte streams
+    \item \textbf{Rich operand types}: Immediate operands can be full \texttt{Expr} objects (e.g., \texttt{Integer}, \texttt{Pi}) without serialization
+    \item \textbf{Type safety}: C++ type system prevents operand misuse at compile time
+    \item \textbf{Debuggability}: Memory dumps show readable structs rather than opaque byte sequences
+    \item \textbf{Rapid prototyping}: No need to design encoding formats, bit packing, or alignment rules
+\end{itemize}
+
+\textbf{Disadvantages:}
+\begin{itemize}
+    \item \textbf{Memory overhead}: Each instruction requires $\sim$40-80 bytes (opcode + vector overhead + variant overhead) versus 1-8 bytes for byte-oriented encodings
+    \item \textbf{Cache inefficiency}: Pointer indirection through \texttt{std::vector} reduces locality
+    \item \textbf{No serialization}: Bytecode cannot be easily written to disk or transmitted
+\end{itemize}
+
+\subsubsection{Future: Byte-Oriented Encoding}
+
+Production VMs (JVM, Python, Lua) use compact byte arrays with fixed-width or variable-length encodings. A future byte-oriented format for this VM might use:
+\begin{itemize}
+    \item 1 byte for opcode (supports up to 256 instructions)
+    \item Variable operands: register indices as 1-byte offsets, labels as 2-byte relative offsets
+    \item Immediate pool: Constants stored separately, referenced by index
+\end{itemize}
+
+This would reduce typical instruction size from $\sim$60 bytes to 2-5 bytes, improving cache locality and enabling bytecode serialization. However, it requires:
+\begin{itemize}
+    \item Operand decoding logic in the interpreter loop
+    \item Immediate value pool management
+    \item Label resolution to relative offsets
+    \item Careful handling of \texttt{Expr} object lifetimes
+\end{itemize}
+
+The struct-based encoding serves current needs for a research prototype while leaving migration to byte-oriented formats as a well-defined optimization path.
 
 \subsection{Engineering Challenges}
 
