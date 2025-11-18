@@ -714,7 +714,7 @@ binding of \texttt{x}, and \texttt{\%e3} is compared against it. This pattern us
 \subsection{Instruction Set Architecture}
 \label{sec:isa}
 
-The instruction set consists of 20 opcodes organized into six functional categories. The design prioritizes \textbf{minimality} (fewest instructions needed for completeness), \textbf{orthogonality} (each instruction has one well-defined purpose), and \textbf{efficiency} (fused operations reduce instruction count). Table~\ref{tab:isa} provides a complete reference.
+The instruction set consists of 20 opcodes organized into six functional categories. The design prioritizes \textbf{minimality} (fewest instructions needed for completeness), \textbf{orthogonality} (each instruction has one well-defined purpose), and \textbf{efficiency} (fused operations reduce instruction count).
 
 \subsubsection{Design Rationale}
 
@@ -831,6 +831,7 @@ L0:
   MATCH_HEAD %e0, Integer, L_fail  ; Fused test-and-branch
   LOAD_IMM %b0, true
   HALT
+
 L_fail:
   LOAD_IMM %b0, false
   HALT
@@ -850,6 +851,7 @@ L0:
   
   LOAD_IMM %b0, true
   HALT
+
 L_fail:
   LOAD_IMM %b0, false
   HALT
@@ -873,6 +875,7 @@ L0:
   
   LOAD_IMM %b0, true
   HALT
+
 L_fail:
   LOAD_IMM %b0, false
   HALT
@@ -930,27 +933,121 @@ Table~\ref{tab:isa} provides a complete reference of all opcodes, organized by c
 \subsection{Backtracking Mechanism}
 \label{sec:backtracking}
 
-The backtracking protocol is based on the Warren Abstract Machine (WAM)\cite{ait-kaci1999}, using choice points and trail:
+Alternatives in pattern matching (\texttt{p1 | p2 | p3}) require non-deterministic exploration: when one alternative fails, the system must "undo" its effects and try the next. This section describes how the VM implements backtracking, adapting the Warren Abstract Machine (WAM)\cite{ait-kaci1999} protocol to pattern matching.
 
-\textbf{Choice points} save execution state when entering alternatives. Each choice point records:
+\subsubsection{Motivating Example}
+
+Consider matching the pattern \texttt{x\_Integer | x\_Real} against the input \texttt{3.14}. The execution proceeds:
+
+\begin{enumerate}
+    \item Try first alternative (\texttt{x\_Integer}):
+    \begin{itemize}
+        \item Check head: Is \texttt{3.14} an \texttt{Integer}? → \textbf{No, fails}
+        \item Need to try second alternative
+    \end{itemize}
+    
+    \item Before trying second alternative, restore state:
+    \begin{itemize}
+        \item Any variable bindings from first attempt must be cleared
+        \item Any temporary values in registers must be reset
+    \end{itemize}
+    
+    \item Try second alternative (\texttt{x\_Real}):
+    \begin{itemize}
+        \item Check head: Is \texttt{3.14} a \texttt{Real}? → \textbf{Yes, succeeds}
+        \item Bind \texttt{x} to \texttt{3.14}
+        \item Return \texttt{True}
+    \end{itemize}
+\end{enumerate}
+
+The key challenge: when the first alternative fails, how does the VM know what state to restore? The answer: \textbf{save a snapshot before trying each alternative}.
+
+\subsubsection{The TRY/RETRY/TRUST Protocol}
+
+The VM uses three instructions to manage these snapshots, called \textbf{choice points}:
+
 \begin{itemize}
-    \item Next alternative label
-    \item Register values (expressions and booleans)
-    \item Trail mark (for unwinding variable bindings)
-    \item Frame depth (for scope restoration)
+    \item \texttt{TRY L}: "Save current state. If this alternative fails, try the code at label L instead."
+    \item \texttt{RETRY L'}: "Update the saved state to point to label L' as the next fallback."
+    \item \texttt{TRUST}: "This is the last alternative—no more fallback positions. Remove the saved state."
 \end{itemize}
 
-\textbf{Trail} records variable bindings for reversal on backtrack. Bindings are only trailed when choice points exist, optimizing deterministic execution.
+For \texttt{\_Integer | \_Real | \_String}, the compiled bytecode looks like:
 
-\textbf{Protocol lifecycle:}
+\begin{lstlisting}[style=bytecode,numbers=none]
+  TRY L_alt2              ; Save state, fallback = L_alt2
+L_alt1:
+  MATCH_HEAD %e0, Integer, L_alt1_fail
+  JUMP L_success
+L_alt1_fail:
+  FAIL                    ; Restore state, jump to L_alt2
+
+L_alt2:
+  RETRY L_alt3            ; Update fallback = L_alt3
+  MATCH_HEAD %e0, Real, L_alt2_fail
+  JUMP L_success
+L_alt2_fail:
+  FAIL                    ; Restore state, jump to L_alt3
+
+L_alt3:
+  TRUST                   ; Last alternative, remove saved state
+  MATCH_HEAD %e0, String, L_fail
+  JUMP L_success
+\end{lstlisting}
+
+When \texttt{FAIL} executes, it restores the saved state and jumps to the recorded fallback label. The choice point remains on the stack—\texttt{RETRY} updates it, \texttt{TRUST} removes it.
+
+\subsubsection{What Gets Saved in a Choice Point}
+
+Each choice point is a snapshot containing:
+\begin{itemize}
+    \item \textbf{Fallback label}: Where to jump on \texttt{FAIL}
+    \item \textbf{Registers}: Copies of all expression (\texttt{\%e0}, \texttt{\%e1}, ...) and boolean (\texttt{\%b0}, \texttt{\%b1}, ...) registers
+    \item \textbf{Trail mark}: Position in the trail (explained below)
+    \item \textbf{Frame depth}: How many scope frames were active
+\end{itemize}
+
+Choice points are pushed onto a stack. When \texttt{FAIL} triggers, the VM pops the topmost choice point and restores its saved values.
+
+\subsubsection{The Trail: Undoing Variable Bindings}
+
+Consider the pattern \texttt{f[x\_] | g[x\_]} matching against \texttt{f[5]}. During the first alternative:
 \begin{enumerate}
-    \item \texttt{TRY L}: Create choice point, record \texttt{L} as next alternative
-    \item Execute first alternative
-    \item On failure: \texttt{FAIL} restores state, jumps to \texttt{L}
-    \item \texttt{RETRY L'}: Update next alternative to \texttt{L'}
-    \item Execute next alternative
-    \item \texttt{TRUST}: Remove choice point (last alternative)
+    \item Match succeeds, variable \texttt{x} is bound to \texttt{5}
+    \item Suppose a later test fails, triggering \texttt{FAIL}
+    \item Before trying the second alternative, \texttt{x} must be unbound
 \end{enumerate}
+
+The \textbf{trail} records every variable binding made during pattern matching. Each entry stores:
+\begin{itemize}
+    \item Variable name (e.g., \texttt{"Global`x"})
+    \item Frame index (which scope the binding belongs to)
+\end{itemize}
+
+When backtracking, the VM unwinds the trail in reverse order (LIFO), erasing bindings back to the position saved in the choice point. This ensures each alternative starts with a clean variable environment.
+
+\textbf{Optimization}: The trail is only used when choice points exist. In deterministic patterns (no alternatives), \texttt{BIND\_VAR} skips trailing entirely, eliminating 15-25\% overhead. The instruction checks if the choice point stack is empty before deciding whether to record bindings.
+
+\subsubsection{Frames: Lexical Scoping}
+
+Frames manage variable bindings in nested scopes. Each \texttt{BEGIN\_BLOCK} creates a frame, and \texttt{END\_BLOCK} removes it. When backtracking restores "frame depth," it ensures the scope stack returns to the state it had when the choice point was created. This prevents bindings from leaking between alternatives or pattern substructure.
+
+\subsubsection{Execution Example}
+
+Matching \texttt{\_Integer | \_Real | \_String} against input \texttt{3.14} (head = \texttt{Real}):
+
+\begin{enumerate}
+    \item Execute \texttt{TRY L\_alt2}: Save state (registers, trail position, frame depth), record fallback = L\_alt2
+    \item Try first alternative: \texttt{MATCH\_HEAD \%e0, Integer, L\_alt1\_fail}
+    \item Head is \texttt{Real} ≠ \texttt{Integer} → Jump to L\_alt1\_fail
+    \item Execute \texttt{FAIL}: Restore saved state, jump to L\_alt2
+    \item Execute \texttt{RETRY L\_alt3}: Update fallback to L\_alt3
+    \item Try second alternative: \texttt{MATCH\_HEAD \%e0, Real, L\_alt2\_fail}
+    \item Head is \texttt{Real} = \texttt{Real} → \textbf{Success!}
+    \item Jump to L\_success, match returns \texttt{True}
+\end{enumerate}
+
+The choice point created by \texttt{TRY} enabled recovery from the first failure. See Section~\ref{sec:compilation} for how the compiler generates this bytecode from alternatives.
 
 % ============================================================================
 % 4. COMPILATION
