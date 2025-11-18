@@ -87,11 +87,6 @@ Pontificia Universidad Católica del Perú (PUCP)\\
 % ABSTRACT
 % ============================================================================
 \begin{abstract}
-Pattern matching is fundamental to symbolic computation in the Wolfram Language, yet its current implementation—based on recursive interpretive evaluation—introduces significant limitations for complex patterns. Patterns involving alternatives, deep nesting, and user-defined predicates incur not only high runtime cost under repeated evaluation but also opaque control flow and backtracking behavior, which hinder analysis, debugging, and optimization.
-This paper presents a register-based virtual machine that compiles Wolfram Language patterns into bytecode for efficient and predictable execution. The design employs a compact instruction set of 21 opcodes tailored to pattern-matching primitives and a structured backtracking mechanism. We describe the design rationale, instruction-set architecture, compilation strategy, and paclet interface, and show that complex patterns can be compiled into a small, analyzable bytecode with explicit backtracking control. The implementation preserves full semantic equivalence with the native \texttt{MatchQ} evaluator for all supported pattern constructs.
-\end{abstract}
-
-\begin{abstract}
 Pattern matching is fundamental to symbolic computation in the Wolfram Language, yet its current implementation—based on recursive interpretive evaluation—limits the performance and analyzability of complex patterns. Alternatives, deep nesting, and user-defined predicates introduce high overhead under repeated evaluation and lead to opaque control flow and backtracking behavior.
 
 This paper presents a register-based virtual machine that compiles Wolfram Language patterns into bytecode for efficient, predictable execution. The design uses a compact 21-opcode instruction set tailored to pattern-matching primitives and an explicit, structured backtracking mechanism. We outline the design rationale, instruction-set architecture, compilation strategy, and paclet interface, and show that complex patterns compile into small, analyzable programs with transparent control flow. The implementation preserves full semantic equivalence with the native `MatchQ` evaluator for all supported constructs.
@@ -406,42 +401,6 @@ alternatives, repeated variables, and dynamically evaluated pattern tests---gene
 backtracking behavior. The VM described in this paper compiles these constructs into an
 explicit, analyzable instruction set with structured control flow.
 
-
-\subsection{Pattern Matching Functions}
-
-Wolfram Language provides several built-in functions that use pattern matching:
-
-\textbf{MatchQ} tests whether an expression matches a pattern:
-\begin{mmaCell}{Input}
-MatchQ[\{1, 2, 3\}, \{_, _, _\}]
-\end{mmaCell}
-\begin{mmaCell}{Output}
-True
-\end{mmaCell}
-
-\textbf{Replace} applies transformation rules:
-\begin{mmaCell}{Input}
-Replace[\{1, 2, 3\}, \{x_, y_, z_\} :> \{z, y, x\}]
-\end{mmaCell}
-\begin{mmaCell}{Output}
-\{3, 2, 1\}
-\end{mmaCell}
-
-\textbf{Cases} filters expressions by pattern:
-\begin{mmaCell}{Input}
-Cases[\{1, "x", 2, "y"\}, _Integer]
-\end{mmaCell}
-\begin{mmaCell}{Output}
-\{1, 2\}
-\end{mmaCell}
-
-\textbf{ReplaceAll} applies rules throughout an expression:
-\begin{mmaCell}{Input}
-\{f[1], f[2]\} /. f[x_] :> g[x]
-\end{mmaCell}
-\begin{mmaCell}{Output}
-\{g[1], g[2]\}
-\end{mmaCell}
 
 \subsection{Pattern Matching Functions}
 
