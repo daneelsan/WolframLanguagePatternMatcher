@@ -622,13 +622,94 @@ components of the virtual machine.
 
 \subsection{Register Model}
 
-The VM uses a register-based architecture with two register types:
+The VM uses a register-based architecture with two distinct register types, chosen for explicit data flow and simplified instruction encoding.
 
-\textbf{Expression registers} (\texttt{\%e0}, \texttt{\%e1}, ...): Hold Wolfram \texttt{Expr} values. By convention, \texttt{\%e0} always contains the current value being matched.
+\subsubsection{Register Types}
 
-\textbf{Boolean registers} (\texttt{\%b0}, \texttt{\%b1}, ...): Hold comparison results. By convention, \texttt{\%b0} contains the final match result.
+\textbf{Expression registers} (\texttt{\%e0}, \texttt{\%e1}, \texttt{\%e2}, ...): 
+Hold Wolfram \texttt{Expr} values representing expressions being matched or decomposed. 
+By convention, \texttt{\%e0} always contains the current match target - the expression 
+being tested against the pattern.
 
-Separate register types prevent confusion between expressions and booleans, catching type errors at compile time.
+\textbf{Boolean registers} (\texttt{\%b0}, \texttt{\%b1}, \texttt{\%b2}, ...): 
+Hold comparison results from \texttt{SAMEQ} and other boolean operations. 
+By convention, \texttt{\%b0} contains the final match result.
+
+Separate register types provide \textbf{static type safety}: the instruction set enforces 
+that expression operations (e.g., \texttt{GET\_PART}) operate only on expression registers, 
+while boolean operations (e.g., \texttt{BRANCH\_FALSE}) operate only on boolean registers. 
+This catches type errors at compile time rather than runtime.
+
+\subsubsection{Register Allocation Model}
+
+The compiler uses an \textbf{unlimited register model}: each distinct value is allocated 
+a fresh register without reuse or spilling. While this may allocate more registers 
+than strictly necessary, it:
+
+\begin{itemize}
+    \item \textbf{Simplifies compilation}: No register allocation conflicts or 
+    interference analysis required
+    
+    \item \textbf{Preserves values}: Intermediate results remain available throughout 
+    pattern matching, useful for backtracking
+    
+    \item \textbf{Makes data flow explicit}: Each register has a clear semantic role 
+    (e.g., \texttt{\%e1} = first argument, \texttt{\%e2} = second argument)
+\end{itemize}
+
+Future work includes register coalescing optimizations to reduce register pressure.
+
+\subsubsection{Register Conventions}
+
+The following conventions govern register usage:
+
+\begin{itemize}
+    \item \texttt{\%e0}: Always holds the current expression being matched against the 
+    pattern. Instructions like \texttt{MATCH\_HEAD} (Section~\ref{sec:isa}) implicitly operate on \texttt{\%e0}.
+    
+    \item \texttt{\%b0}: Always holds the final match result (\texttt{True} or \texttt{False}). 
+    The \texttt{HALT} instruction returns this value.
+    
+    \item \texttt{\%e1, \%e2, ...}: Allocated sequentially during compilation for 
+    subexpressions, arguments, and captured variables.
+    
+    \item \texttt{\%b1, \%b2, ...}: Allocated for intermediate comparison results, 
+    especially in patterns with multiple equality constraints.
+\end{itemize}
+
+\subsubsection{Register-Based vs. Stack-Based}
+
+The register-based design contrasts with traditional stack-based VMs (e.g., JVM, Python bytecode)The register-based design contrasts with traditional stack-based VMs (e.g., JVM, Python bytecode)\cite{fang2016}. 
+Advantages include:
+
+\begin{itemize}
+    \item \textbf{Fewer instructions}: No explicit \texttt{PUSH}/\texttt{POP} operations. 
+    Operations directly specify source and destination registers. For example, 
+    comparing two subexpressions requires 5 stack operations (\texttt{PUSH}, \texttt{PUSH}, 
+    \texttt{EQ}, \texttt{POP}, \texttt{POP}) but only 1 register operation 
+    (\texttt{SAMEQ \%b1, \%e2, \%e3}).
+    
+    \item \textbf{Explicit data flow}: Register names make bytecode more readable - 
+    you can see where values come from and go to.
+    
+    \item \textbf{Simpler backtracking}: Choice points can save register snapshots 
+    directly without managing stack frames.
+\end{itemize}
+
+\textbf{Example:} Matching \texttt{f[x\_, x\_]} against \texttt{f[5, 5]} uses registers as follows:
+
+\begin{lstlisting}[style=bytecode,numbers=none]
+%e0 = f[5, 5]          ; Input expression
+%e1 = f[5, 5]          ; Saved copy
+%e2 = 5                ; First argument (x)
+%e3 = 5                ; Second argument
+%b1 = (%e2 == %e3)     ; Equality check
+%b0 = True             ; Final result
+\end{lstlisting}
+
+The register assignments make data flow transparent: \texttt{\%e2} holds the first 
+binding of \texttt{x}, and \texttt{\%e3} is compared against it. This pattern uses 
+4 expression registers and 2 boolean registers—typical for a simple equality constraint.
 
 \subsection{Instruction Set Architecture}
 
@@ -645,10 +726,10 @@ The instruction set comprises six categories:
 \subsubsection{Pattern Matching (Fused Operations)}
 
 \begin{description}
-    \item[\texttt{MATCH\_HEAD \%e, head, L}] If \texttt{Head[\%e] ≠ head}, jump to \texttt{L}
-    \item[\texttt{MATCH\_LENGTH \%e, n, L}] If \texttt{Length[\%e] ≠ n}, jump to \texttt{L}
-    \item[\texttt{MATCH\_LITERAL \%e, v, L}] If \texttt{\%e ≠ v}, jump to \texttt{L}
-    \item[\texttt{APPLY\_TEST \%e, f, L}] If \texttt{f[\%e] ≠ True}, jump to \texttt{L}
+    \item[\texttt{MATCH\_HEAD \%e, head, L}] If \texttt{Head[\%e] \neq head}, jump to \texttt{L}
+    \item[\texttt{MATCH\_LENGTH \%e, n, L}] If \texttt{Length[\%e] \neq n}, jump to \texttt{L}
+    \item[\texttt{MATCH\_LITERAL \%e, v, L}] If \texttt{\%e \neq v}, jump to \texttt{L}
+    \item[\texttt{APPLY\_TEST \%e, f, L}] If \texttt{f[\%e] \neq True}, jump to \texttt{L}
 \end{description}
 
 These instructions fuse testing and conditional branching, reducing instruction count and improving locality.
@@ -1336,6 +1417,11 @@ We thank the reviewers for their insightful comments and suggestions. This work 
 Hassan Aït-Kaci.
 \textit{Warren's Abstract Machine: A Tutorial Reconstruction}.
 MIT Press, 1999.
+
+\bibitem{fang2016}
+Ruijie Fang, Siqi Liu.
+A Performance Survey on Stack-based and Register-based Virtual Machines.
+\textit{arXiv preprint arXiv:1611.00467}, 2016.
 
 \bibitem{ierusalimschy2005}
 Roberto Ierusalimschy, Luiz Henrique de Figueiredo, Waldemar Celes.
