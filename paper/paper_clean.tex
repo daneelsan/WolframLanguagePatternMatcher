@@ -516,15 +516,15 @@ Our virtual machine addresses these issues by:
 The virtual machine design follows these principles:
 
 \begin{enumerate}
-    \item \textbf{Minimality}: Use the smallest instruction set sufficient for pattern matching, avoiding feature creep and maintaining conceptual clarity.
+    \item \textbf{Minimality}: Use the smallest instruction set sufficient for pattern matching, avoiding feature creep and maintaining conceptual clarity. The VM requires only 21 opcodes compared to 200+ in the JVM or 100+ in Python bytecode.
     
-    \item \textbf{Explicit control flow}: Replace implicit recursive traversal with direct jumps and structured backtracking, making execution observable.
+    \item \textbf{Explicit control flow}: Replace implicit recursive traversal with direct jumps and structured backtracking, making execution observable. Every control transfer uses explicit labels rather than hidden function calls or stack unwinding.
     
-    \item \textbf{Orthogonality}: Each instruction performs one well-defined operation; complexity emerges from composition, not individual instruction semantics.
+    \item \textbf{Orthogonality}: Each instruction performs one well-defined operation; complexity emerges from composition, not individual instruction semantics. For example, \texttt{MATCH\_HEAD} only tests heads—it does not also bind variables or extract subexpressions.
     
-    \item \textbf{Correctness over performance}: Prioritize semantic equivalence with native \texttt{MatchQ} over speed optimizations.
+    \item \textbf{Correctness over performance}: Prioritize semantic equivalence with native \texttt{MatchQ} over speed optimizations. The struct-based instruction encoding (Section~\ref{sec:impl-encoding}) trades memory efficiency for implementation clarity.
     
-    \item \textbf{Observability}: Expose execution state (registers, bytecode, metrics) for debugging, analysis, and education.
+    \item \textbf{Observability}: Expose execution state (registers, bytecode, metrics) for debugging, analysis, and education. Every aspect of VM state can be inspected, traced, or instrumented.
 \end{enumerate}
 
 \subsection{Scope}
@@ -533,92 +533,35 @@ This work focuses on core pattern matching features that represent the essential
 
 \subsubsection{Supported Pattern Constructs}
 
-The system supports the core pattern matching constructs described in 
-Section~\ref{sec:background}:
+The system supports seven core pattern constructs (described in Section~\ref{sec:background}):
 
 \begin{itemize}
-    \item \textbf{Literal patterns} (\texttt{5}, \texttt{Pi}) - 
-    exact structural matching
-    
-    \item \textbf{Blank patterns} (\texttt{\_}, \texttt{\_Integer}) - 
-    wildcards with optional head constraints
-    
-    \item \textbf{Named patterns} (\texttt{x\_}) - 
-    variable binding and capture
-    
-    \item \textbf{Repeated variables} (\texttt{f[x\_, x\_]}) - 
-    equality constraints across positions
-    
-    \item \textbf{Alternatives} (\texttt{p1 | p2}) - 
-    non-deterministic choice (primary motivation for backtracking)
-    
-    \item \textbf{Structured patterns} (\texttt{f[x\_, y\_]}) - 
-    compound expression decomposition
-    
-    \item \textbf{Pattern tests} (\texttt{\_?EvenQ}) - 
-    predicate application
+    \item \textbf{Literal patterns} (\texttt{5}, \texttt{Pi}) - exact structural matching
+    \item \textbf{Blank patterns} (\texttt{\_}, \texttt{\_Integer}) - wildcards with optional head constraints
+    \item \textbf{Named patterns} (\texttt{x\_}) - variable binding and capture
+    \item \textbf{Repeated variables} (\texttt{f[x\_, x\_]}) - equality constraints across positions
+    \item \textbf{Alternatives} (\texttt{p1 | p2}) - non-deterministic choice (primary motivation for backtracking)
+    \item \textbf{Structured patterns} (\texttt{f[x\_, y\_]}) - compound expression decomposition
+    \item \textbf{Pattern tests} (\texttt{\_?EvenQ}) - predicate application
 \end{itemize}
 
-These constructs cover the most commonly used pattern matching operations 
-and demonstrate all key aspects of the VM architecture.
+These constructs cover the most commonly used pattern matching operations and demonstrate all key aspects of the VM architecture: structural decomposition, variable binding, equality testing, alternatives with backtracking, and dynamic predicate evaluation.
 
-\subsubsection{Excluded Features}
+\subsubsection{Design Goals}
 
-Several advanced pattern features are beyond the scope of this work:
+Our primary goal is \textbf{demonstrating feasibility and correctness} rather than achieving performance parity with Wolfram Language's highly optimized native \texttt{MatchQ} implementation. We focus on five key questions:
 
-\textbf{Sequence patterns} (\texttt{\_\_}, \texttt{\_\_\_}, \texttt{x\_\_}): 
-Match variable-length argument sequences. Supporting sequences requires 
-loop generation and sequence binding mechanisms—significant complexity 
-orthogonal to the core VM design.
+\begin{enumerate}
+    \item Can we express pattern matching with $\sim$20 opcodes? (Minimality)
+    \item Does the register-based design make control flow explicit? (Clarity)
+    \item Do we achieve 100\% semantic equivalence with \texttt{MatchQ}? (Correctness)
+    \item Can we expose execution metrics for analysis? (Observability)
+    \item Does the design support adding new pattern types? (Extensibility)
+\end{enumerate}
 
-\textbf{Conditional patterns} (\texttt{x\_ /; x > 0}): 
-Guards that can reference previously bound variables. Unlike pattern tests, 
-conditionals require exposing the full binding environment to user code.
+Section~\ref{sec:evaluation} demonstrates affirmative answers to all five questions. The system conclusively shows that pattern compilation is feasible with a clean, minimal design. While raw execution speed is not our primary concern, compilation provides inherent advantages: amortization across repeated uses, bytecode caching, and a foundation for optimization passes.
 
-\textbf{Optional patterns} (\texttt{x\_.}): 
-Patterns with default values when matches fail. These interact subtly with 
-sequence patterns and require specialized failure handling.
-
-\textbf{Orderless matching}: 
-Patterns matching arguments in any order (e.g., for \texttt{Plus}, \texttt{Times}). 
-Requires either permutation backtracking or graph-based matching algorithms.
-
-\textbf{Pattern modifiers}: 
-\texttt{Verbatim}, \texttt{HoldPattern}, \texttt{Literal}, and other constructs 
-that alter evaluation or matching semantics.
-
-\textbf{Optimization passes:} The current compiler generates unoptimized 
-bytecode. Promising optimizations include constant folding, dead code 
-elimination, redundant test removal, and register coalescing. These would 
-improve performance without changing the core architecture. (\emph{In progress}) 
-
-\subsubsection{Design Goals vs. Performance Goals}
-
-Our primary goal is \textbf{demonstrating feasibility and correctness} rather 
-than achieving performance parity with Wolfram Language's highly optimized 
-native \texttt{MatchQ} implementation, which has been refined over decades with 
-extensive low-level optimizations, specialized algorithms, and deep kernel 
-integration.
-
-Instead, we focus on answering five key questions:
-\begin{itemize}
-    \item \textbf{Instruction set minimality}: Can we express pattern matching with $\sim$20 opcodes?
-    \item \textbf{Architectural clarity}: Does the register-based design make control flow explicit?
-    \item \textbf{Correctness}: Do we achieve 100\% semantic equivalence with \texttt{MatchQ}, or Wolfram Language's pattern matcher in general?
-    \item \textbf{Observability}: Can we expose execution metrics for analysis?
-    \item \textbf{Extensibility}: Does the design support adding new pattern types?
-\end{itemize}
-
-Section~\ref{sec:evaluation} demonstrates affirmative answers to all five questions.
-
-The system conclusively demonstrates that pattern compilation is feasible 
-with a clean, minimal design. While raw execution speed is not our primary 
-concern, compilation provides inherent advantages: amortization across 
-repeated uses, bytecode caching, and a foundation for future optimization 
-passes (Section~\ref{sec:future}).
-
-With the scope established, we now describe the core architectural 
-components of the virtual machine.
+Advanced features such as sequence patterns (\texttt{\_\_}, \texttt{\_\_\_}), conditional patterns (\texttt{/;}), optional patterns (\texttt{x\_.}), orderless matching, and pattern modifiers are discussed in Section~\ref{sec:future} as natural extensions of the core architecture.
 
 \subsection{Register Model}
 
@@ -626,14 +569,31 @@ The VM uses a register-based architecture with two distinct register types, chos
 
 \subsubsection{Register Types}
 
+The VM maintains two separate register files:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lp{3.5cm}@{}}
+\toprule
+\textbf{Type} & \textbf{Purpose} \\
+\midrule
+\texttt{\%e0} & Current match target \\
+\texttt{\%e1, \%e2, ...} & Subexpressions, temps \\
+\midrule
+\texttt{\%b0} & Final result (True/False) \\
+\texttt{\%b1, \%b2, ...} & Intermediate comparisons \\
+\bottomrule
+\end{tabular}
+\end{center}
+
 \textbf{Expression registers} (\texttt{\%e0}, \texttt{\%e1}, \texttt{\%e2}, ...): 
 Hold Wolfram \texttt{Expr} values representing expressions being matched or decomposed. 
-By convention, \texttt{\%e0} always contains the current match target - the expression 
+By convention, \texttt{\%e0} always contains the current match target—the expression 
 being tested against the pattern.
 
 \textbf{Boolean registers} (\texttt{\%b0}, \texttt{\%b1}, \texttt{\%b2}, ...): 
 Hold comparison results from \texttt{SAMEQ} and other boolean operations. 
-By convention, \texttt{\%b0} contains the final match result.
+By convention, \texttt{\%b0} contains the final match result returned by the \texttt{HALT} operation.
 
 Separate register types provide \textbf{static type safety}: the instruction set enforces 
 that expression operations (e.g., \texttt{GET\_PART}) operate only on expression registers, 
@@ -657,43 +617,25 @@ than strictly necessary, it:
     (e.g., \texttt{\%e1} = first argument, \texttt{\%e2} = second argument)
 \end{itemize}
 
+This register-based design contrasts with traditional stack-based VMs (JVM, Python)\cite{fang2016}. 
+Advantages include: (1) fewer instructions—no explicit \texttt{PUSH}/\texttt{POP} operations, 
+(2) explicit data flow—register names show where values come from and go to, 
+and (3) simpler backtracking—choice points save register snapshots directly without managing stack frames. For example, comparing two subexpressions requires 5 stack operations but only 1 register operation (\texttt{SAMEQ \%b1, \%e2, \%e3}).
+
 Future work includes register coalescing optimizations to reduce register pressure.
 
 \subsubsection{Register Conventions}
 
-The following conventions govern register usage:
+Register usage follows strict conventions to ensure predictable compilation:
 
 \begin{itemize}
-    \item \texttt{\%e0}: Always holds the current expression being matched against the 
-    pattern. Instructions like \texttt{MATCH\_HEAD} (Section~\ref{sec:isa}) implicitly operate on \texttt{\%e0}.
+    \item \texttt{\%e0}: Always holds the current expression being matched. Instructions like \texttt{MATCH\_HEAD} implicitly operate on \texttt{\%e0}.
     
-    \item \texttt{\%b0}: Always holds the final match result (\texttt{True} or \texttt{False}). 
-    The \texttt{HALT} instruction returns this value.
+    \item \texttt{\%b0}: Always holds the final match result. The \texttt{HALT} instruction returns this value.
     
-    \item \texttt{\%e1, \%e2, ...}: Allocated sequentially during compilation for 
-    subexpressions, arguments, and captured variables.
+    \item \texttt{\%e1, \%e2, ...}: Allocated sequentially for subexpressions, arguments, and captured variables.
     
-    \item \texttt{\%b1, \%b2, ...}: Allocated for intermediate comparison results, 
-    especially in patterns with multiple equality constraints.
-\end{itemize}
-
-\subsubsection{Register-Based vs. Stack-Based}
-
-The register-based design contrasts with traditional stack-based VMs (e.g., JVM, Python bytecode)The register-based design contrasts with traditional stack-based VMs (e.g., JVM, Python bytecode)\cite{fang2016}. 
-Advantages include:
-
-\begin{itemize}
-    \item \textbf{Fewer instructions}: No explicit \texttt{PUSH}/\texttt{POP} operations. 
-    Operations directly specify source and destination registers. For example, 
-    comparing two subexpressions requires 5 stack operations (\texttt{PUSH}, \texttt{PUSH}, 
-    \texttt{EQ}, \texttt{POP}, \texttt{POP}) but only 1 register operation 
-    (\texttt{SAMEQ \%b1, \%e2, \%e3}).
-    
-    \item \textbf{Explicit data flow}: Register names make bytecode more readable - 
-    you can see where values come from and go to.
-    
-    \item \textbf{Simpler backtracking}: Choice points can save register snapshots 
-    directly without managing stack frames.
+    \item \texttt{\%b1, \%b2, ...}: Allocated for intermediate comparison results in patterns with multiple equality constraints.
 \end{itemize}
 
 \textbf{Example:} Matching \texttt{f[x\_, x\_]} against \texttt{f[5, 5]} uses registers as follows:
@@ -714,7 +656,7 @@ binding of \texttt{x}, and \texttt{\%e3} is compared against it. This pattern us
 \subsection{Instruction Set Architecture}
 \label{sec:isa}
 
-The instruction set consists of 20 opcodes organized into six functional categories. The design prioritizes \textbf{minimality} (fewest instructions needed for completeness), \textbf{orthogonality} (each instruction has one well-defined purpose), and \textbf{efficiency} (fused operations reduce instruction count).
+The instruction set consists of 21 opcodes organized into six functional categories: Data Movement, Pattern Matching, Comparison and Binding, Control Flow, Scope Management, and Backtracking. The design prioritizes \textbf{minimality} (fewest instructions needed for completeness), \textbf{orthogonality} (each instruction has one well-defined purpose), and \textbf{efficiency} (fused operations reduce instruction count).
 
 \subsubsection{Design Rationale}
 
@@ -929,6 +871,8 @@ Table~\ref{tab:isa} provides a complete reference of all opcodes, organized by c
 \caption{Complete instruction set reference}
 \label{tab:isa}
 \end{table}
+
+Four of the 20 instructions (\texttt{TRY}, \texttt{RETRY}, \texttt{TRUST}, \texttt{FAIL}) implement the backtracking protocol. This protocol is the VM's most sophisticated mechanism, enabling non-deterministic pattern matching through structured state management.
 
 \subsection{Backtracking Mechanism}
 \label{sec:backtracking}
@@ -1673,11 +1617,11 @@ The struct-based encoding serves current needs for a research prototype while le
 % ============================================================================
 \section{Conclusion}
 
-We have presented a register-based virtual machine for compiling and executing Wolfram Language patterns. The system demonstrates that pattern matching can be compiled to a minimal, well-structured instruction set (20 opcodes) with explicit backtracking control based on the Warren Abstract Machine.
+We have presented a register-based virtual machine for compiling and executing Wolfram Language patterns. The system demonstrates that pattern matching can be compiled to a minimal, well-structured instruction set (21 opcodes) with explicit backtracking control based on the Warren Abstract Machine.
 
 Key achievements:
 \begin{itemize}
-    \item \textbf{Minimal instruction set}: 20 opcodes covering all core pattern types
+    \item \textbf{Minimal instruction set}: 21 opcodes covering all core pattern types
     \item \textbf{Structured backtracking}: WAM-inspired protocol with choice points and trail
     \item \textbf{Semantic equivalence}: 100\% compatibility with native \texttt{MatchQ}
     \item \textbf{Practical API}: Complete paclet integration for Wolfram Language
