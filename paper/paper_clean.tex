@@ -1497,17 +1497,47 @@ Perhaps the most important challenge was debugging bytecode execution. The initi
 % ============================================================================
 \section{Related Work}
 
-\textbf{Warren Abstract Machine (WAM):} The WAM\cite{ait-kaci1999} pioneered structured backtracking for logic programming via choice points and trail. Our backtracking mechanism adapts WAM's TRY/RETRY/TRUST protocol to pattern matching.
+Having described the VM's design, compilation strategy, evaluation results, and 
+implementation details, we now position this work within the broader landscape 
+of virtual machines, backtracking systems, and pattern matching compilers. The pattern matching VM draws on established techniques from logic programming, virtual machine design, and pattern matching compilation, while making novel adaptations for Wolfram Language's symbolic computation model. We organize related work into three categories: backtracking mechanisms from logic programming, virtual machine architectures, and pattern matching compilation strategies.
 
-\textbf{Lua VM:} The Lua virtual machine\cite{ierusalimschy2005} demonstrates the effectiveness of register-based architectures, influencing our decision to use explicit registers rather than a stack.
+\subsection{Backtracking in Logic Programming}
 
-\textbf{TinyLisp:} Bendersky's TinyLisp shows how minimal instruction sets can express rich semantics, inspiring our focus on instruction set minimality.
+The Warren Abstract Machine (WAM)~\cite{ait-kaci1999} pioneered structured backtracking for Prolog through choice points and trail-based state restoration. When executing a Prolog query with multiple clauses, the WAM creates a choice point before trying the first clause, recording the program counter and variable bindings. If the clause fails, the system backtracks to the choice point, restores saved state, and tries the next clause. The TRY/RETRY/TRUST protocol sequences choice point operations: TRY creates a choice point for the first alternative, RETRY updates it for middle alternatives, and TRUST removes it before the final alternative (no further backtracking needed).
 
-\textbf{Wolfram Compiler:} The Wolfram Compiler\cite{wolfram-compiler} compiles high-level Wolfram Language to optimized native code, demonstrating the value of compilation in symbolic systems.
+Our backtracking mechanism adapts this protocol directly to pattern matching alternatives (\texttt{p1 | p2 | p3}). The key difference lies in what gets saved: WAM saves Prolog variable bindings and program state, while our VM saves pattern variable bindings (e.g., \texttt{x} in \texttt{x\_Integer}) and expression registers. The fundamental insight transfers cleanly—backtracking requires three pieces of state (continuation address, bindings, trail checkpoint) regardless of whether the computation is logic programming or pattern matching.
 
-\textbf{Pattern matching compilation:} Maranget\cite{maranget2008} introduced decision tree compilation for pattern matching. We take a simpler direct compilation approach, prioritizing clarity over optimization.
+The WAM's trail mechanism also inspired our approach to conditional trailing. In Prolog, the trail records variable assignments during clause exploration so they can be undone on backtracking. We apply the same principle to pattern matching: when testing alternatives, variable bindings from failed alternatives must not pollute subsequent attempts. However, we add an optimization the WAM lacks: when no choice points exist (deterministic patterns like \texttt{f[x\_, y\_]}), trailing is completely disabled since no backtracking can occur. This optimization is possible because pattern matching's backtracking structure is known at compile time, unlike Prolog where backtracking depends on runtime unification.
 
-\textbf{OCaml pattern matching:} OCaml compiles patterns to efficient decision trees with sharing. Our system focuses on explicit backtracking rather than optimization.
+\subsection{Virtual Machine Architectures}
+
+The choice between stack-based and register-based VM architectures has been extensively studied~\cite{fang2016}. Stack-based VMs (Java, Python, WebAssembly) use an operand stack for intermediate values, leading to compact bytecode but requiring explicit stack manipulation instructions (PUSH, POP, DUP). Register-based VMs (Lua, Dalvik) use named registers for data flow, producing larger bytecode but eliminating stack management overhead.
+
+The Lua VM~\cite{ierusalimschy2005} demonstrated that register-based architectures can outperform stack-based designs through reduced instruction count and better cache locality. Lua's design influenced our decision to use explicit registers: instructions like \texttt{MATCH\_HEAD \%e0, Integer, Lfail} specify operands directly rather than relying on implicit stack positions. This makes data flow explicit in the bytecode—reading the instruction sequence shows exactly which registers hold which values, supporting the observability design principle.
+
+However, our register model differs from Lua's in important ways. Lua uses a fixed register window per function call, requiring register allocation to fit within the window. We use unlimited registers, trading memory efficiency for compilation simplicity. This choice prioritizes clarity over optimization: each distinct value gets its own register, avoiding complex register interference analysis during compilation. The trade-off is acceptable for a research prototype demonstrating feasibility.
+
+\subsection{Pattern Matching Compilation}
+
+Maranget~\cite{maranget2008} introduced decision tree compilation for pattern matching in functional languages. His algorithm analyzes a set of patterns and builds a decision tree that minimizes redundant tests: if multiple patterns test the same condition, the test appears once in the tree with branches for different outcomes. This optimization reduces execution time through test sharing and intelligent reordering.
+
+OCaml's pattern compiler implements Maranget's approach, generating efficient code for complex pattern matches. For example, matching against multiple list patterns reorders tests to check the list's length once, then branches based on that result. The decision tree representation enables sophisticated optimizations like detecting unreachable patterns (those shadowed by earlier, more general patterns) and identifying non-exhaustive matches (missing cases).
+
+Our compilation strategy takes a fundamentally different approach: direct compilation through recursive descent, generating bytecode instruction sequences without intermediate decision trees. We prioritize implementation simplicity and explicit control flow over optimization. This choice aligns with our design goals—demonstrating that pattern matching *can* be compiled to a minimal instruction set, not that it can be compiled *optimally*. The direct approach makes the compiler easier to understand and modify, at the cost of potentially redundant tests in the generated bytecode.
+
+For example, the pattern \texttt{f[x\_, x\_] | g[y\_]} compiles to two separate instruction sequences (one for each alternative) connected by backtracking instructions. Maranget's approach would recognize that both alternatives test the head and might reorder operations to share that test. Our approach treats each alternative independently, making backtracking explicit but potentially duplicating work. This trade-off favors transparency—the bytecode structure directly reflects the pattern's syntactic structure.
+
+\subsection{Compilation in Symbolic Systems}
+
+The Wolfram Compiler~\cite{wolfram-compiler} compiles high-level Wolfram Language to optimized LLVM IR and native code, demonstrating that symbolic computation can benefit from compilation. However, its target is general Wolfram Language programs, not specifically pattern matching. Our work complements this by showing that pattern matching—a fundamental operation in symbolic computation—can be compiled to a specialized bytecode representation suitable for interpretation or further compilation.
+
+The key difference lies in abstraction level and compilation target. Wolfram Compiler targets native machine code for maximum performance across all language features. Our VM targets a pattern-specific bytecode instruction set for explicitness and analyzability. These goals are compatible: compiled patterns could serve as input to Wolfram Compiler for native code generation, or pattern bytecode could be interpreted for rapid development and debugging.
+
+\subsection{Positioning This Work}
+
+This work occupies a unique position in the design space: applying compilation techniques from logic programming and functional languages to symbolic pattern matching, while prioritizing minimality and observability over optimization. Unlike WAM (designed for logic programming), we target pattern matching specifically. Unlike Maranget and OCaml (optimization-focused), we prioritize explicit backtracking and transparent bytecode. Unlike Wolfram Compiler (general-purpose), we provide a specialized representation for pattern matching operations.
+
+The result is a system that demonstrates *feasibility* (pattern matching compiles to 21 opcodes with full semantic equivalence) and *clarity* (explicit backtracking, observable execution) rather than maximum performance. This foundation enables future work on optimization while maintaining the benefits of an explicit, analyzable representation.
 
 % ============================================================================
 % 8. CONCLUSION
