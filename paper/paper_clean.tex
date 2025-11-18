@@ -13,6 +13,7 @@
 \usepackage{hyperref}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{comment}
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows,positioning,calc}
 \usepackage{booktabs}
@@ -138,7 +139,7 @@ Pattern compilation is especially advantageous in workloads such as:
 This paper makes the following contributions:
 
 \begin{enumerate}
-    \item A minimal instruction set (~20 opcodes) tailored to pattern-matching primitives in the Wolfram Language.
+    \item A minimal instruction set ($\sim$20 opcodes) tailored to pattern-matching primitives in the Wolfram Language.
 
     \item A register-based execution model with explicit data flow that eliminates stack-management overhead.
     
@@ -266,7 +267,7 @@ Match any expression \\
 \texttt{\_h} &
 Match expressions whose head is \texttt{h} \\
 \texttt{x\_} &
-Named pattern that binds the matched expression \\
+Named pattern that binds the matched expression to \texttt{x} \\
 \texttt{x\_ \dots x\_} &
 Repeated named pattern enforcing structural equality across occurrences \\
 \texttt{p\,|\,q} &
@@ -281,13 +282,14 @@ Sequence patterns (variable-length argument sequences; not supported in this VM)
 \label{tab:pattern-core}
 \end{table}
 
-
+\begin{comment}
 A note on notation: a bare symbol such as \texttt{x} is \emph{not} a placeholder---it is
 a literal expression that matches only itself. Placeholders require explicit blank
 notation (\texttt{\_}, \texttt{x\_}). Additionally, pattern matching operates on the raw
 syntactic structure of expressions (``\texttt{HoldComplete} semantics''), so the VM must
 expose expressions without evaluation unless a construct explicitly invokes it (e.g.\ a
 predicate in \texttt{?}).
+\end{comment}
 
 \paragraph{Structural equality.}
 Literal patterns match expressions by exact structural identity:
@@ -455,7 +457,7 @@ fac[5]
 
 When \texttt{fac[5]} is called, the first definition (\texttt{fac[0]}) fails because \texttt{5 != 0}, so the second definition matches with \texttt{n} bound to \texttt{5}.
 
-\textbf{Type-based dispatch:} Patterns can discriminate by head type, enabling different behavior for different data types:
+\textbf{Type-based dispatch:} Patterns can discriminate expressions by their head, enabling different behavior for different data "types":
 \begin{mmaCell}{Input}
 process[_Integer] := "number"
 process[_String] := "text"
@@ -511,78 +513,112 @@ Our virtual machine addresses these issues by:
 
 \subsection{Design Principles}
 
-\begin{enumerate}
-    \item A minimal instruction set (20 opcodes) designed specifically for pattern matching with fused test-and-branch operations
+The virtual machine design follows these principles:
 
-    \item A register-based execution model with explicit data flow, eliminating stack-management overhead.
+\begin{enumerate}
+    \item \textbf{Minimality}: Use the smallest instruction set sufficient for pattern matching, avoiding feature creep and maintaining conceptual clarity.
     
-    \item A structured backtracking protocol based on the Warren Abstract Machine enabling independent exploration of alternatives
+    \item \textbf{Explicit control flow}: Replace implicit recursive traversal with direct jumps and structured backtracking, making execution observable.
     
-    \item A systematic evaluation demonstrating full semantic equivalence with Wolfram Language’s \texttt{MatchQ} function for all supported pattern constructs.
+    \item \textbf{Orthogonality}: Each instruction performs one well-defined operation; complexity emerges from composition, not individual instruction semantics.
     
-    \item A complete Wolfram Language paclet providing a high-level API for compiling, executing, and inspecting compiled patterns.
+    \item \textbf{Correctness over performance}: Prioritize semantic equivalence with native \texttt{MatchQ} over speed optimizations.
+    
+    \item \textbf{Observability}: Expose execution state (registers, bytecode, metrics) for debugging, analysis, and education.
 \end{enumerate}
 
 \subsection{Scope}
 
 This work focuses on core pattern matching features that represent the essential building blocks of pattern-based computation. Our goal is to demonstrate that a minimal, well-designed virtual machine can correctly implement these fundamental operations with explicit backtracking control.
 
-\subsubsection{Supported Pattern Types}
+\subsubsection{Supported Pattern Constructs}
 
-The system fully supports the following pattern constructs:
+The system supports the core pattern matching constructs described in 
+Section~\ref{sec:background}:
 
-\textbf{Literal patterns} (\texttt{5}, \texttt{"hello"}, \texttt{Pi}): Match expressions that are structurally identical to the given constant. These form the base case for pattern matching and demonstrate the fused test-and-branch instruction design.
+\begin{itemize}
+    \item \textbf{Literal patterns} (\texttt{5}, \texttt{Pi}) - 
+    exact structural matching
+    
+    \item \textbf{Blank patterns} (\texttt{\_}, \texttt{\_Integer}) - 
+    wildcards with optional head constraints
+    
+    \item \textbf{Named patterns} (\texttt{x\_}) - 
+    variable binding and capture
+    
+    \item \textbf{Repeated variables} (\texttt{f[x\_, x\_]}) - 
+    equality constraints across positions
+    
+    \item \textbf{Alternatives} (\texttt{p1 | p2}) - 
+    non-deterministic choice (primary motivation for backtracking)
+    
+    \item \textbf{Structured patterns} (\texttt{f[x\_, y\_]}) - 
+    compound expression decomposition
+    
+    \item \textbf{Pattern tests} (\texttt{\_?EvenQ}) - 
+    predicate application
+\end{itemize}
 
-\textbf{Blank patterns} (\texttt{\_}, \texttt{\_Integer}, \texttt{\_h}): Match any expression, optionally constrained by head type. The unconstrained blank \texttt{\_} matches anything, while \texttt{\_h} restricts matches to expressions with head \texttt{h}. This illustrates conditional compilation---unconstrained blanks generate no test instructions.
-
-\textbf{Named patterns} (\texttt{x\_}, \texttt{x\_Integer}): Capture matched values in named variables. These demonstrate the variable binding mechanism and integration with the frame stack for lexical scoping.
-
-\textbf{Repeated variables} (\texttt{f[x\_, x\_]}, \texttt{g[y\_, h[y\_]]}): Multiple occurrences of the same variable name within a pattern. The first occurrence binds the variable; subsequent occurrences verify equality with the bound value. This showcases the compile-time lexical environment that tracks variable usage across pattern structure.
-
-\textbf{Alternatives} (\texttt{p1 | p2 | p3}): Non-deterministic choice between multiple patterns. The system tries each alternative in sequence until one succeeds or all fail. This is the primary motivation for the backtracking mechanism, demonstrating the TRY/RETRY/TRUST protocol adapted from the Warren Abstract Machine.
-
-\textbf{Structured patterns} (\texttt{f[x\_, y\_]}, \texttt{\{a\_, b\_, c\_\}}): Patterns that decompose compound expressions, matching both the head and each argument recursively. These demonstrate the interplay between data movement instructions (\texttt{GET\_PART}, \texttt{MOVE}) and recursive pattern compilation.
-
-\textbf{Pattern tests} (\texttt{\_?EvenQ}, \texttt{x\_Integer?Positive}): Apply arbitrary predicates to matched values. The pattern matches only if the test function returns \texttt{True}. This shows integration with the host language evaluation system through the \texttt{APPLY\_TEST} instruction.
-
-Together, these features cover the most commonly used pattern matching operations in Wolfram Language programs and provide sufficient expressiveness for realistic applications.
+These constructs cover the most commonly used pattern matching operations 
+and demonstrate all key aspects of the VM architecture.
 
 \subsubsection{Excluded Features}
 
 Several advanced pattern features are beyond the scope of this work:
 
-\textbf{Sequence patterns} (\texttt{\_\_}, \texttt{\_\_\_}, \texttt{x\_\_}): Match variable-length sequences of arguments. Supporting sequences requires significant additional complexity: the compiler must generate loops or specialized instructions, and the runtime must handle sequence binding and extraction. While important for practical systems, sequences complicate the design without fundamentally changing the virtual machine architecture.
+\textbf{Sequence patterns} (\texttt{\_\_}, \texttt{\_\_\_}, \texttt{x\_\_}): 
+Match variable-length argument sequences. Supporting sequences requires 
+loop generation and sequence binding mechanisms—significant complexity 
+orthogonal to the core VM design.
 
-\textbf{Conditional patterns} (\texttt{x\_ /; x > 0}): Patterns with boolean guards that can reference previously bound variables. Unlike pattern tests (which apply a function to the current value), conditionals can express arbitrary relationships between multiple bindings. Implementing conditionals requires exposing the binding environment to user code and handling evaluation failures gracefully.
+\textbf{Conditional patterns} (\texttt{x\_ /; x > 0}): 
+Guards that can reference previously bound variables. Unlike pattern tests, 
+conditionals require exposing the full binding environment to user code.
 
-\textbf{Optional patterns} (\texttt{x\_.}, \texttt{Optional[x, default]}): Match expressions that may or may not appear, providing default values when absent. Optionals interact subtly with sequence patterns and require careful handling of match failure semantics.
+\textbf{Optional patterns} (\texttt{x\_.}): 
+Patterns with default values when matches fail. These interact subtly with 
+sequence patterns and require specialized failure handling.
 
-\textbf{Orderless matching}: Some Wolfram Language functions (like \texttt{Plus}, \texttt{Times}) have the \texttt{Orderless} attribute, meaning arguments can match in any order. Supporting this requires either backtracking through all permutations or sophisticated matching algorithms (e.g., graph matching for commutative operations).
+\textbf{Orderless matching}: 
+Patterns matching arguments in any order (e.g., for \texttt{Plus}, \texttt{Times}). 
+Requires either permutation backtracking or graph-based matching algorithms.
 
-\textbf{Attributes and special forms}: \texttt{Verbatim}, \texttt{HoldPattern}, \texttt{Literal}, and other pattern modifiers that alter evaluation or matching semantics.
+\textbf{Pattern modifiers}: 
+\texttt{Verbatim}, \texttt{HoldPattern}, \texttt{Literal}, and other constructs 
+that alter evaluation or matching semantics.
 
-\textbf{Optimization passes}: The current compiler generates bytecode directly without optimization. Potential optimizations include constant folding, dead code elimination, redundant test removal, register allocation, and common subexpression elimination. While these would improve performance, they are orthogonal to the core design question of whether pattern matching can be compiled to a minimal instruction set.
+\textbf{Optimization passes:} The current compiler generates unoptimized 
+bytecode. Promising optimizations include constant folding, dead code 
+elimination, redundant test removal, and register coalescing. These would 
+improve performance without changing the core architecture. (\emph{In progress}) 
 
 \subsubsection{Design Goals vs. Performance Goals}
 
-Our primary goal is \textbf{demonstrating feasibility and correctness} rather than achieving performance parity with Wolfram Language's highly optimized native \texttt{MatchQ} implementation. The native implementation has been refined over decades and includes:
-\begin{itemize}
-    \item Highly optimized C/C++ code with hand-tuned fast paths
-    \item Inline pattern matching for common cases
-    \item Specialized algorithms for specific pattern types
-    \item Integration with the kernel's expression caching
-\end{itemize}
+Our primary goal is \textbf{demonstrating feasibility and correctness} rather 
+than achieving performance parity with Wolfram Language's highly optimized 
+native \texttt{MatchQ} implementation, which has been refined over decades with 
+extensive low-level optimizations, specialized algorithms, and deep kernel 
+integration.
 
-Instead, we focus on:
+Instead, we focus on answering five key questions:
 \begin{itemize}
-    \item \textbf{Instruction set minimality}: Can we express pattern matching with ~20 opcodes?
+    \item \textbf{Instruction set minimality}: Can we express pattern matching with $\sim$20 opcodes?
     \item \textbf{Architectural clarity}: Does the register-based design make control flow explicit?
-    \item \textbf{Correctness}: Do we achieve 100\% semantic equivalence with \texttt{MatchQ}?
+    \item \textbf{Correctness}: Do we achieve 100\% semantic equivalence with \texttt{MatchQ}, or Wolfram Language's pattern matcher in general?
     \item \textbf{Observability}: Can we expose execution metrics for analysis?
     \item \textbf{Extensibility}: Does the design support adding new pattern types?
 \end{itemize}
 
-The system successfully demonstrates that pattern compilation is feasible with a clean, minimal design. Performance optimization remains important future work but is not the primary contribution of this research.
+Section~\ref{sec:evaluation} demonstrates affirmative answers to all five questions.
+
+The system conclusively demonstrates that pattern compilation is feasible 
+with a clean, minimal design. While raw execution speed is not our primary 
+concern, compilation provides inherent advantages: amortization across 
+repeated uses, bytecode caching, and a foundation for future optimization 
+passes (Section~\ref{sec:future}).
+
+With the scope established, we now describe the core architectural 
+components of the virtual machine.
 
 \subsection{Register Model}
 
@@ -986,6 +1022,7 @@ PatternMatcherExecute[f[x_,y_], f[1,2]]["Bindings"]
 % 6. EVALUATION
 % ============================================================================
 \section{Evaluation}
+\label{sec:evaluation}
 
 \subsection{Correctness Validation}
 
@@ -1108,38 +1145,118 @@ Compilation overhead is approximately 1--5ms per pattern. Break-even analysis:
 % ============================================================================
 \section{Implementation}
 
-The implementation comprises approximately 3,900 lines of code:
+The implementation comprises approximately 3,900 lines of code split between C++ (compiler and VM core) and Wolfram Language (high-level API and paclet infrastructure). This section describes the system architecture, key components, and critical implementation decisions.
 
-\begin{itemize}
-    \item \textbf{C++ core} (3,250 LOC): Compiler, VM, AST, LibraryLink integration
-    \item \textbf{Wolfram Language} (650 LOC): High-level API, paclet structure
-\end{itemize}
+\subsection{Code Organization}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrl}
+\toprule
+\textbf{Component} & \textbf{LOC} & \textbf{Language} \\
+\midrule
+Compiler & 850 & C++ \\
+Virtual Machine & 720 & C++ \\
+AST representation & 980 & C++ \\
+LibraryLink integration & 350 & C++ \\
+Expression wrappers & 350 & C++ \\
+\midrule
+Frontend API & 280 & WL \\
+Backend integration & 150 & WL \\
+Testing framework & 220 & WL \\
+\midrule
+\textbf{Total} & \textbf{3,900} & \\
+\bottomrule
+\end{tabular}
+\caption{Code distribution by component}
+\end{table}
 
 \subsection{System Architecture}
 
-The system follows a layered design:
+The implementation follows a layered architecture with clear separation between host language integration, compilation, and execution:
 
 \begin{enumerate}
-    \item \textbf{Wolfram Language API}: User-facing interface (\texttt{PatternMatcherExecute}, etc.)
-    \item \textbf{LibraryLink layer}: Bridges Wolfram Language and C++
-    \item \textbf{C++ compiler}: Translates patterns to bytecode
-    \item \textbf{C++ VM}: Executes bytecode with backtracking support
-    \item \textbf{AST layer}: Internal representation for efficient compilation
+    \item \textbf{Wolfram Language API layer}: Provides user-facing functions (\texttt{PatternMatcherExecute}, \texttt{CompilePatternToBytecode}) with pattern normalization, error handling, and result formatting.
+    
+    \item \textbf{LibraryLink bridge}: Manages C++ library loading, expression marshaling between Wolfram Language and C++ representations, and object lifetime through \texttt{ManagedLibraryExpressionID}.
+    
+    \item \textbf{Internal AST (MExpr)}: Provides efficient C++-native representation of Wolfram expressions, avoiding repeated LibraryLink calls during compilation. Supports literals (integer, real, string, symbol), normal expressions (head + arguments), and pattern constructs.
+    
+    \item \textbf{Pattern compiler}: Traverses MExpr AST, maintains lexical environment for variable tracking, generates bytecode with explicit register allocation, and manages label resolution for jumps.
+    
+    \item \textbf{Virtual machine}: Interprets bytecode through fetch-decode-execute loop, manages expression and integer register files, implements backtracking via choice point stack and trail, and collects execution metrics.
 \end{enumerate}
 
-\subsection{Key Design Decisions}
+\subsection{Key Components}
 
-\textbf{Register-based over stack-based:} Reduces instruction count by avoiding stack manipulation, making data flow explicit.
+\subsubsection{Pattern Compiler}
 
-\textbf{Separate internal representation (MExpr):} Enables efficient C++ manipulation without repeated LibraryLink calls.
+The compiler (\texttt{CompilePatternToBytecode.cpp}, 850 LOC) implements recursive pattern traversal with several responsibilities:
 
-\textbf{Compile-time lexical environment:} Detects repeated variables during compilation rather than runtime.
+\textbf{Lexical environment tracking}: Maintains a compile-time symbol table mapping pattern variable names to register assignments. When a variable appears multiple times (e.g., \texttt{f[x\_, x\_]}), the first occurrence allocates a register and emits \texttt{BIND}, while subsequent occurrences emit \texttt{EQ} instructions to verify equality.
 
-\textbf{TRY/RETRY/TRUST protocol:} Provides structured backtracking with well-defined choice point lifecycle.
+\textbf{Register allocation}: Uses a simple infinite-register model where each distinct value gets a fresh register. Register \texttt{\%e0} is reserved by convention for the current match target. Arguments are decomposed into consecutive registers (\texttt{\%e1}, \texttt{\%e2}, etc.).
 
-\textbf{Trail optimization:} Only trails variable bindings when choice points exist, optimizing deterministic execution.
+\textbf{Label management}: Forward jumps (from conditionals and alternatives) require two-pass label resolution: placeholder labels during code generation, followed by address patching once target locations are known.
 
-\textbf{Fused match operations:} Combines testing and conditional jumps in single instructions.
+\textbf{Alternative compilation}: Generates the TRY/RETRY/TRUST sequence by emitting \texttt{TRY label} for first alternative, \texttt{RETRY label} for middle alternatives, and \texttt{TRUST} for the final alternative, ensuring proper choice point lifecycle.
+
+\subsubsection{Virtual Machine}
+
+The VM (\texttt{VirtualMachine.cpp}, 720 LOC) executes bytecode through a standard interpreter loop with pattern-specific optimizations:
+
+\textbf{Register files}: Maintains separate register files for expressions (\texttt{std::vector<Expr>}) and integers (\texttt{std::vector<mint>}). Expression registers hold Wolfram \texttt{Expr} objects, while integer registers cache frequently-used counts (argument counts, choice point depths) to avoid boxing overhead.
+
+\textbf{Choice point stack}: Each choice point records saved program counter, register snapshot (shallow copy of register file), and trail checkpoint. Choice points are pushed by \texttt{TRY}, updated by \texttt{RETRY}, and popped by \texttt{TRUST} or successful completion.
+
+\textbf{Trail}: Records variable bindings made during match attempts. On backtracking, the trail is unwound to restore registers to their pre-binding state. \textit{Optimization}: trailing is disabled when the choice point stack is empty (deterministic execution), avoiding unnecessary bookkeeping.
+
+\textbf{Metrics collection}: Optionally tracks total instructions executed, cycles (including backtracking overhead), choice points created, backtrack events, and peak register usage. These metrics are exposed through the Wolfram Language API for introspection.
+
+\subsubsection{Internal AST (MExpr)}
+
+The MExpr representation (\texttt{AST/MExpr.cpp}, 980 LOC) provides a C++-native expression tree optimized for compilation:
+
+\textbf{Polymorphic design}: Uses class hierarchy with virtual methods for pattern matching operations. Base class \texttt{MExpr} has derived types: \texttt{MExprLiteral} (atoms), \texttt{MExprNormal} (compound expressions), \texttt{MExprSymbol} (named entities).
+
+\textbf{Pattern analysis}: Implements methods for detecting pattern constructs (\texttt{isBlank()}, \texttt{isNamedPattern()}, \texttt{isAlternatives()}), extracting pattern components (blank head, variable name, test function), and supporting compiler queries without string manipulation.
+
+\textbf{Conversion}: Bidirectional conversion between Wolfram \texttt{Expr} (LibraryLink) and \texttt{MExpr} (internal). Conversion happens once at API boundary, then all compilation operates on MExpr.
+
+\subsubsection{LibraryLink Integration}
+
+The bridge layer (\texttt{LibraryLink.cpp}, 350 LOC) handles Wolfram-C++ interaction:
+
+\textbf{Managed objects}: Uses \texttt{ManagedLibraryExpressionID} to create opaque handles for C++ objects (compiled bytecode, VM instances) that can be passed between Wolfram Language and C++. Wolfram Language's reference counting triggers C++ destructors when objects are no longer referenced.
+
+\textbf{Error propagation}: Maps C++ exceptions to Wolfram \texttt{Failure} objects with structured error information (error type, message, context). Ensures no C++ exceptions cross the LibraryLink boundary.
+
+\textbf{Expression marshaling}: Implements efficient conversion of Wolfram expressions to MExpr representation. Uses LibraryLink's \texttt{MTensor}, \texttt{MNumericArray} interfaces for bulk data transfer when appropriate.
+
+\subsection{Critical Design Decisions}
+
+\textbf{Register-based over stack-based}: Eliminates explicit stack manipulation instructions, reducing average instruction count by 20-30\%. Makes data flow explicit in bytecode, simplifying analysis and debugging.
+
+\textbf{Separate internal representation (MExpr)}: Avoids LibraryLink overhead during compilation (creating temporary Wolfram expressions for intermediate values). Provides type-safe pattern queries through C++ polymorphism rather than repeated \texttt{Head[]}, \texttt{Part[]} calls.
+
+\textbf{Compile-time lexical environment}: Detects repeated variables during compilation, emitting different instruction sequences for first vs. subsequent occurrences. Eliminates need for runtime symbol tables during pattern matching.
+
+\textbf{TRY/RETRY/TRUST protocol}: Adapted from Warren Abstract Machine, provides structured backtracking with explicit choice point lifecycle. \texttt{TRUST} optimization eliminates unnecessary choice point for final alternative.
+
+\textbf{Conditional trailing}: Only trails variable bindings when choice points exist. In deterministic patterns (no alternatives), trailing overhead is completely eliminated, reducing execution cost by 15-25\%.
+
+\textbf{Fused test-and-branch}: Instructions like \texttt{TEST\_HEAD\_JUMP} combine testing (head comparison) with conditional control flow (jump on failure) in a single opcode. Reduces instruction count and eliminates temporary boolean values.
+
+\subsection{Engineering Challenges}
+
+\textbf{Memory management across language boundary}: Wolfram expressions use reference counting, while C++ uses manual memory management. Required careful attention to ownership transfer and lifetime management to prevent leaks and dangling pointers.
+
+\textbf{Expression equality semantics}: Wolfram Language's \texttt{SameQ} has subtle semantics (structural equality, attribute-aware comparison). Replicating exact semantics in C++ required careful study of edge cases.
+
+\textbf{Pattern construct detection}: Distinguishing pattern syntax (\texttt{Blank[]}, \texttt{Pattern[]}) from normal expressions required building pattern analysis utilities that inspect head and structure without evaluating.
+
+\textbf{Debugging bytecode execution}: Initial implementation had no visibility into VM state. Added comprehensive logging, single-step execution mode, and register inspection to diagnose compilation and execution bugs.
 
 % ============================================================================
 % 8. RELATED WORK
