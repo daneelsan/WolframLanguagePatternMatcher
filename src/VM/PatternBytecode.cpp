@@ -95,13 +95,16 @@ std::string PatternBytecode::disassemble() const
 	{
 		const auto& instr = instrs[pc];
 
-		if (instr.opcode == Opcode::BEGIN_BLOCK)
-			currentBlockDepth++;
-
-		pcToDepth[pc] = currentBlockDepth;
-
+		// END_BLOCK should be at the same level as its matching BEGIN_BLOCK
 		if (instr.opcode == Opcode::END_BLOCK && currentBlockDepth > 0)
 			currentBlockDepth--;
+
+		// Assign depth to this instruction
+		pcToDepth[pc] = currentBlockDepth;
+
+		// BEGIN_BLOCK: next instruction starts indented
+		if (instr.opcode == Opcode::BEGIN_BLOCK)
+			currentBlockDepth++;
 	}
 
 	// Find maximum PC width for alignment
