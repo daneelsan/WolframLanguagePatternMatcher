@@ -146,7 +146,7 @@ If[TrueQ @ $Notebooks,
 
 
 TraceToShortString[logLevel_, line_, file_, fn_, args___] :=
-	StringJoin @@ ToString /@ {args};
+	StringJoin[ReleaseHold[Map[Function[Null, ToString[Unevaluated[##]], HoldAll], HoldComplete[args]]]];
 
 
 FormattedTrace := TraceToShortString;
