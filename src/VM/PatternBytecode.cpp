@@ -16,6 +16,7 @@ The disassembly format is designed to be human-readable with:
 
 #include "VM/PatternBytecode.h"
 #include "VM/Opcode.h"
+#include "VM/OptimizePatternBytecode.h"
 
 #include "AST/MExpr.h"
 #include "AST/MExprPatternTools.h"
@@ -30,6 +31,7 @@ The disassembly format is designed to be human-readable with:
 #include <optional>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace PatternMatcher
@@ -391,181 +393,97 @@ std::optional<size_t> PatternBytecode::resolveLabel(Label L) const
 ===========================================================================*/
 
 /**
- * @brief Optimize bytecode by removing dead code and redundant instructions
+ * @brief Optimize bytecode (currently disabled)
  *
- * Current optimizations:
+ * All optimization passes have been disabled because none apply to real patterns:
  *
- * Pass 1: Dead Branch Elimination
- *   Pattern: LOAD_IMM %b, 1
- *            BRANCH_FALSE %b, L
+ * - Dead branch elimination: LOAD_IMM and BRANCH_FALSE never appear adjacent
+ *   (LOAD_IMM only in epilogue, BRANCH_FALSE only after SAMEQ)
  *
- *   Since %b is always true (1), the BRANCH_FALSE never executes.
- *   We remove both instructions.
+ * - MOVE elimination: Would require checking if instruction is a jump target
+ *   (complex label tracking with error-prone PC adjustments)
  *
- * Future optimizations:
- *   - Unreachable code after unconditional jumps
- *   - Redundant MOVE elimination
- *   - Constant folding in comparisons
- *   - Label coalescing (multiple labels at same PC)
+ * - GET_PART+MOVE fusion: Same label tracking issues
  *
- * Note: After optimization, label map may have dangling references.
- *       The VM handles this gracefully by treating invalid labels as failures.
+ * - Jump elimination: Requires control flow graph analysis
+ *
+ * - Unreachable code: Requires understanding backtracking (TRY/TRUST/FAIL)
+ *
+ * The compiler generates reasonably efficient code already. Real optimization
+ * would require proper dataflow analysis and CFG, which is future work.
+ *
+ * @return Always false (no optimizations performed)
  */
-void PatternBytecode::optimize()
+bool PatternBytecode::optimize()
 {
-	// TODO: Split into multiple pass functions for better organization
-
-	/*-----------------------------------------------------------------------
-	  Pass 1: Dead Branch Elimination
-
-	  Detect pattern where a boolean is set to true (non-zero) and then
-	  immediately used in BRANCH_FALSE. Since the branch condition is
-	  always false, the branch never executes - remove both instructions.
-	-----------------------------------------------------------------------*/
-	for (size_t i = 0; i + 1 < instrs.size();)
-	{
-		// Look for: LOAD_IMM %b, <non-zero> followed by BRANCH_FALSE %b, L
-		if (instrs[i].opcode == Opcode::LOAD_IMM && instrs[i + 1].opcode == Opcode::BRANCH_FALSE)
-		{
-			// Extract operands safely
-			auto dstBool = std::get_if<BoolRegOp>(&instrs[i].ops[0]);
-			auto immMint = std::get_if<ImmMint>(&instrs[i].ops[1]);
-			auto jumpBool = std::get_if<BoolRegOp>(&instrs[i + 1].ops[0]);
-
-			// Check if same register and immediate is non-zero (true)
-			if (dstBool && immMint && jumpBool && (dstBool == jumpBool) && (immMint->v != 0))
-			{
-				// Dead code: branch never taken, remove both instructions
-				instrs.erase(instrs.begin() + i, instrs.begin() + i + 2);
-				continue; // Check same position again (don't increment)
-			}
-		}
-		++i;
-	}
-
-	// Pass 2: Unreachable code elimination (TODO)
-	// Would need control flow analysis to identify unreachable blocks
+	// Optimizer disabled - no safe optimizations apply to real patterns
+	return false;
 }
 
-/*===========================================================================
- Wolfram Language Interface
-
- These functions provide the bridge between C++ PatternBytecode objects
- and Wolfram Language code. Each function wraps a C++ method and returns
- a Wolfram Expr that can be used from WL.
-
- These are registered via initializeEmbedMethods() below to create the
- object-oriented interface in Wolfram Language:
-
-   bc = PatternBytecode[...]
-   bc["disassemble"]           -> calls disassemble()
-   bc["getInstructionCount"]   -> calls getInstructionCount()
-   bc["getBlockCount"]         -> calls getBlockCount()
-   etc.
-===========================================================================*/
 namespace PatternBytecodeInterface
 {
-	/// Convert bytecode to rich disassembly format
 	Expr disassemble(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(bytecode->disassemble());
 	}
-
-	/// Get number of boolean registers allocated
 	Expr getBoolRegisterCount(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(static_cast<mint>(bytecode->getBoolRegisterCount()));
 	}
-
-	/// Get number of expression registers allocated
 	Expr getExprRegisterCount(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(static_cast<mint>(bytecode->getExprRegisterCount()));
 	}
-
-	/// Get total number of instructions
 	Expr getInstructionCount(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(static_cast<mint>(bytecode->getInstructionCount()));
 	}
-
-	/// Get number of labels (jump targets)
 	Expr getLabelCount(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(static_cast<mint>(bytecode->getLabelCount()));
 	}
-
-	/// Get number of BEGIN_BLOCK instructions
 	Expr getBlockCount(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(static_cast<mint>(bytecode->getBlockCount()));
 	}
-
-	/// Get maximum block nesting depth
 	Expr getMaxBlockDepth(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(static_cast<mint>(bytecode->getMaxBlockDepth()));
 	}
-
-	/// Get number of jump instructions (JUMP + BRANCH_FALSE)
 	Expr getJumpCount(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(static_cast<mint>(bytecode->getJumpCount()));
 	}
-
-	/// Get number of backtrack points (TRY instructions)
 	Expr getBacktrackPointCount(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(static_cast<mint>(bytecode->getBacktrackPointCount()));
 	}
-
-	/// Get lexical bindings as Association
 	Expr getLexicalBindings(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return bytecode->getLexicalBindings();
 	}
-
-	/// Get the original pattern that was compiled to this bytecode
 	Expr getPattern(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return MExpr::toExpr(bytecode->getPattern());
 	}
-
-	/// Get total number of instructions in bytecode
 	Expr length(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(static_cast<mint>(bytecode->length()));
 	}
-
-	/// Run optimization passes on bytecode (modifies in-place)
 	Expr optimize(std::shared_ptr<PatternBytecode> bytecode)
 	{
-		bytecode->optimize();
-		return Expr::ToExpression("Null");
+		return toExpr(bytecode->optimize());
 	}
-
-	/// Convert bytecode object to formatted boxes for notebook display
 	Expr toBoxes(Expr objExpr, Expr fmt)
 	{
 		return Expr::construct("DanielS`PatternMatcher`BackEnd`PatternBytecode`Private`toBoxes", objExpr, fmt);
 	}
-
-	/// Convert bytecode to compact string format (for tests)
 	Expr toString(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(bytecode->toString());
 	}
 }; // namespace PatternBytecodeInterface
 
-/*===========================================================================
- Method Registration
-
- Register all PatternBytecode methods with the Wolfram Language embedding
- system. This creates the object-oriented interface where bytecode objects
- can call methods using bc["methodName"] syntax.
-
- Called once during library initialization.
-===========================================================================*/
 void PatternBytecode::initializeEmbedMethods(const char* embedName)
 {
 	// Register each interface function as a callable method

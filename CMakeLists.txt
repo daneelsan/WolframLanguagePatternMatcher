@@ -95,6 +95,7 @@ add_library(${PROJECT_NAME} SHARED
     src/VM/PatternBytecode.cpp
     src/VM/Opcode.cpp
     src/VM/CompilePatternToBytecode.cpp
+    src/VM/OptimizePatternBytecode.cpp
 )
 
 # Include directories

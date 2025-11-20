@@ -32,6 +32,12 @@ public:
 	/// @brief Get the instructions of the bytecode.
 	const std::vector<Instruction>& getInstructions() const { return instrs; }
 
+	/// @brief Get mutable reference to instructions (for optimization passes).
+	std::vector<Instruction>& getInstructions() { return instrs; }
+
+	/// @brief Get the label map.
+	const std::unordered_map<Label, size_t>& getLabelMap() const { return labelMap; }
+
 	/// @brief Get the length of the bytecode.
 	/// @return The length of the bytecode in bytes.
 	size_t length() const { return instrs.size(); }
@@ -101,7 +107,7 @@ public:
 	std::string disassemble() const;
 
 	/// @brief Optimize the bytecode (e.g., remove no-op instructions).
-	void optimize();
+	bool optimize();
 
 	/// @brief Initializes the embedded methods for the Bytecode class.
 	/// @param embedName The name to use for embedding.
