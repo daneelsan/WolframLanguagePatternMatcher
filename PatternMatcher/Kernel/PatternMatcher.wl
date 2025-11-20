@@ -21,6 +21,10 @@ PatternBytecodeInformation::usage =
 	"PatternBytecodeInformation[bc] returns an Association with statistics about the bytecode structure.";
 
 
+OptimizePatternBytecode::usage =
+	"OptimizePatternBytecode[bytecodeObj] performs optimization passes on the given pattern bytecode object.";
+
+
 CompilePatternToBytecode::usage =
 	"CompilePatternToBytecode[patt] converts a pattern expression into bytecode to be run in a virtual machine.";
 

@@ -15,6 +15,8 @@ Needs["DanielS`PatternMatcher`BackEnd`PatternBytecodeFormat`"]
 (*=============================================================================
 	PatternBytecodeDisassemble (formatted with colors)
 =============================================================================*)
+SyntaxInformation[PatternBytecodeDisassemble] =
+	{"ArgumentsPattern" -> {_}};
 
 PatternBytecodeDisassemble[obj_?PatternBytecodeQ] :=
 	FormatPatternBytecodeDisassembly[obj["disassemble"]];
@@ -24,8 +26,36 @@ PatternBytecodeDisassemble[x_] :=
 
 
 (*=============================================================================
-	PatternBytecodeInformation (statistics as Association)
+	PatternBytecodeQ
 =============================================================================*)
+SyntaxInformation[PatternBytecodeQ] =
+	{"ArgumentsPattern" -> {_}};
+
+PatternBytecodeQ[x_?Compile`Utilities`Class`Impl`ObjectInstanceQ] :=
+	x["_class"] === "PatternMatcherLibrary`VM`PatternBytecode";
+
+PatternBytecodeQ[_] :=
+	False;
+
+
+(*=============================================================================
+	OptimizePatternBytecode
+=============================================================================*)
+SyntaxInformation[OptimizePatternBytecode] =
+	{"ArgumentsPattern" -> {_}};
+
+Options[OptimizePatternBytecode] =
+	{};
+
+OptimizePatternBytecode[obj_?PatternBytecodeQ] :=
+	obj["optimize"];
+
+
+(*=============================================================================
+	PatternBytecodeInformation
+=============================================================================*)
+SyntaxInformation[PatternBytecodeInformation] =
+	{"ArgumentsPattern" -> {_}};
 
 PatternBytecodeInformation[obj_?PatternBytecodeQ] :=
 	<|
@@ -42,17 +72,6 @@ PatternBytecodeInformation[obj_?PatternBytecodeQ] :=
 
 PatternBytecodeInformation[x_] :=
 	$Failed;
-
-
-(*=============================================================================
-	PatternBytecodeQ
-=============================================================================*)
-
-PatternBytecodeQ[x_?Compile`Utilities`Class`Impl`ObjectInstanceQ] :=
-	x["_class"] === "PatternMatcherLibrary`VM`PatternBytecode";
-
-PatternBytecodeQ[_] :=
-	False;
 
 
 (*=============================================================================
