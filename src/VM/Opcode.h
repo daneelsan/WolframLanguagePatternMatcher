@@ -106,6 +106,13 @@ All backtracking instructions manipulate the choice point stack.
                              jumps if %e0 does not return true for the IntegerQ test
                            Used for: type patterns like IntegerQ, RealQ, StringQ */
 
+    EVAL_CONDITION,  /*  2: cond fail          → jump fail if eval(cond) != True
+                           Evaluate arbitrary WL expression and test if result is True.
+                           Condition may reference pattern variables bound in current frame.
+                           Example: EVAL_CONDITION x > 0, L_fail
+                             evaluates x > 0 and jumps if result is not True
+                           Used for: Condition patterns like x_Integer /; x > 0 */
+
     //=========================================================================
     // SEQUENCE MATCHING (4 opcodes)
     // Match variable-length sequences of expressions
@@ -316,6 +323,7 @@ inline OpcodeCategory getOpcodeCategory(Opcode op)
 
 		// Conditional matching (fused test + branch)
 		case Opcode::APPLY_TEST:
+		case Opcode::EVAL_CONDITION:
 		case Opcode::MATCH_HEAD:
 		case Opcode::MATCH_LENGTH:
 		case Opcode::MATCH_LITERAL:
@@ -381,8 +389,8 @@ inline bool isControlFlow(Opcode op)
 /// branches (BRANCH_FALSE, MATCH_*, FAIL). Used for control flow analysis.
 inline bool isBranch(Opcode op)
 {
-	return op == Opcode::JUMP || op == Opcode::APPLY_TEST || op == Opcode::BRANCH_FALSE || op == Opcode::MATCH_HEAD
-		|| op == Opcode::MATCH_LENGTH || op == Opcode::MATCH_LITERAL || op == Opcode::FAIL;
+	return op == Opcode::JUMP || op == Opcode::APPLY_TEST || op == Opcode::EVAL_CONDITION || op == Opcode::BRANCH_FALSE 
+		|| op == Opcode::MATCH_HEAD || op == Opcode::MATCH_LENGTH || op == Opcode::MATCH_LITERAL || op == Opcode::FAIL;
 }
 
 /// @brief Check if opcode has side effects beyond register writes
@@ -454,6 +462,7 @@ inline size_t getOperandCount(Opcode op)
 		case Opcode::BRANCH_FALSE:
 		case Opcode::BIND_VAR:
 		case Opcode::GET_LENGTH:
+		case Opcode::EVAL_CONDITION:
 			return 2;
 
 		// 3 operands
@@ -502,6 +511,8 @@ inline const char* getOpcodeDescription(Opcode op)
 		// Pattern matching
 		case Opcode::APPLY_TEST:
 			return "Apply pattern test and branch on failure";
+		case Opcode::EVAL_CONDITION:
+			return "Evaluate condition and branch on failure";
 		case Opcode::MATCH_HEAD:
 			return "Match head and branch on failure";
 		case Opcode::MATCH_LENGTH:

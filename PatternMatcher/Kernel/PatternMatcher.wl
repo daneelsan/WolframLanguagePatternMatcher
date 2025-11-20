@@ -41,6 +41,14 @@ PatternMatcherExecute::usage =
 	"RunPatternMatcher[vm, expr] does pattern matching on the expr using the pattern matcher virtual machine.";
 
 
+PatternMatcherMatchQ::usage =
+	"PatternMatcherMatchQ[vm, expr] returns True if expr matches the pattern in the virtual machine vm, and False otherwise.";
+
+
+PatternMatcherReplace::usage =
+	"PatternMatcherReplace[expr, lhs_ -> rhs_] replaces parts of expr that match the pattern lhs with rhs.";
+
+
 PatternMatcherStep::usage =
 	"PatternMatcherStep[vm] runs one step of the pattern matcher virtual machine.";
 

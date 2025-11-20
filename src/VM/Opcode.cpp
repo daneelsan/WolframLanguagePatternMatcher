@@ -23,6 +23,8 @@ const char* opcodeName(Opcode op)
 			return "DEBUG_PRINT";
 		case Opcode::END_BLOCK:
 			return "END_BLOCK";
+		case Opcode::EVAL_CONDITION:
+			return "EVAL_CONDITION";
 		case Opcode::EXPORT_BINDINGS:
 			return "EXPORT_BINDINGS";
 		case Opcode::FAIL:

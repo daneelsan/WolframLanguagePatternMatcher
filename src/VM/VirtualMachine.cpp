@@ -48,7 +48,9 @@ void traceOpcode(const char* opcode, const char* result, Args&&... args)
 #else
 // No-op version for release builds
 template <typename... Args>
-inline void traceOpcode(const char*, const char*, Args&&...) {}
+inline void traceOpcode(const char*, const char*, Args&&...)
+{
+}
 #endif
 
 VirtualMachine::VirtualMachine() = default;
@@ -373,11 +375,62 @@ bool VirtualMachine::step()
 
 			Expr testRes = Expr::construct(patternTest, exprRegs[src.v]).eval();
 			bool success = static_cast<bool>(testRes);
-			
-			traceOpcode("APPLY_TEST", success ? "SUCCESS" : "FAILURE",
-						"%e", src.v, "test=", patternTest.toString());
-			
+
+			traceOpcode("APPLY_TEST", success ? "SUCCESS" : "FAILURE", "%e", src.v, "test=", patternTest.toString());
+
 			if (!success)
+			{
+				jump(failLabel, true);
+			}
+			break;
+		}
+
+		case Opcode::EVAL_CONDITION:
+		{
+			auto condExpr = std::get<ImmExpr>(instr.ops[0]);
+			auto failLabel = std::get<LabelOp>(instr.ops[1]);
+
+			// Use Block to temporarily bind pattern variables during condition evaluation
+			// This mimics WL's pattern condition semantics: pattern /; condition
+			PM_ASSERT(!frames.empty(), "EVAL_CONDITION: No active frame");
+
+			Expr result = condExpr;
+
+			// Build Block[{x = value1, y = value2, ...}, condition]
+			if (!frames.back().bindings.empty())
+			{
+				std::vector<Expr> assignments;
+				assignments.reserve(frames.back().bindings.size());
+				for (const auto& [varName, value] : frames.back().bindings)
+				{
+					// varName is like "Global`x"
+					// We need to create: x = value (where x is a symbol, not Symbol[...])
+					// Use ToExpression to parse "Global`x" as a symbol
+					Expr symbolExpr = Expr::ToExpression(varName.c_str());
+					Expr assignment = Expr::construct("Set", symbolExpr, value);
+					assignments.push_back(assignment);
+				}
+
+				// Create {x = value1, y = value2, ...}
+				Expr assignmentList = Expr::createNormal(assignments.size(), "List");
+				for (size_t i = 0; i < assignments.size(); ++i)
+				{
+					assignmentList.setPart(static_cast<mint>(i + 1), assignments[i]);
+				}
+				// Evaluate: Block[{assignments}, condition]
+				Expr blockedExpr = Expr::construct("Block", assignmentList, condExpr);
+				result = blockedExpr.eval();
+			}
+			else
+			{
+				// No bindings, just evaluate the condition directly
+				result = condExpr.eval();
+			}
+
+			traceOpcode("EVAL_CONDITION", result ? "SUCCESS" : "FAILURE", "cond=", condExpr.toInputFormString(),
+						"result=", result.toInputFormString());
+
+			if (!result)
 			{
 				jump(failLabel, true);
 			}
@@ -393,8 +446,7 @@ bool VirtualMachine::step()
 			bool result = exprRegs[lhs.v].sameQ(exprRegs[rhs.v]);
 			boolRegs[dstBool.v] = result;
 
-			traceOpcode("SAMEQ", result ? "TRUE" : "FALSE",
-						"%b", dstBool.v, ":=(%e", lhs.v, "==%e", rhs.v, ")");
+			traceOpcode("SAMEQ", result ? "TRUE" : "FALSE", "%b", dstBool.v, ":=(%e", lhs.v, "==%e", rhs.v, ")");
 			break;
 		}
 
@@ -576,8 +628,7 @@ bool VirtualMachine::step()
 
 			exprRegs[dst.v] = seqExpr;
 
-			traceOpcode("MAKE_SEQUENCE", "INFO",
-						"%e", dst.v, ":=Sequence[%e", src.v, "[[", startIdx.v, "..", actualEnd, "]]");
+			traceOpcode("MAKE_SEQUENCE", "INFO", "%e", dst.v, ":=Sequence[%e", src.v, "[[", startIdx.v, "..", actualEnd, "]]");
 			break;
 		}
 
@@ -674,8 +725,7 @@ bool VirtualMachine::step()
 			{
 				PM_ASSERT(!frames.empty(), "BIND_VAR: No active frame");
 				frames.back().bindVariable(varName, exprRegs[reg.v]);
-				traceOpcode("BIND_VAR", "INFO",
-							varName, "<-%e", reg.v, "=", exprRegs[reg.v].toString(), "(no trail)");
+				traceOpcode("BIND_VAR", "INFO", varName, "<-%e", reg.v, "=", exprRegs[reg.v].toString(), "(no trail)");
 			}
 			break;
 		}

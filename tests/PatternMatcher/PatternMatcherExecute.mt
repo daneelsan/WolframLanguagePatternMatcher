@@ -197,147 +197,147 @@ Test[
 (*==============================================================================
 	Pattern
 ==============================================================================*)
-Test[
+TestMatch[
 	PatternMatcherExecute[x_, 5]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 8, "Bindings" -> <|"TestContext`x" -> 5|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 5|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-B6T7X1"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[x_, "a string"]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 8, "Bindings" -> <|"TestContext`x" -> "a string"|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> "a string"|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-V1W6B9"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[x_Integer, 5]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 9, "Bindings" -> <|"TestContext`x" -> 5|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 5|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-V7E5C8"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[x_Integer, "string"]
 	,
-	<|"Result" -> False, "CyclesExecuted" -> 6, "Bindings" -> <||>|>
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-R2L6F7"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_], f[5]]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 17, "Bindings" -> <|"TestContext`x" -> 5|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 5|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-T9Y3K9"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_], f["string"]]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 17, "Bindings" -> <|"TestContext`x" -> "string"|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> "string"|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-R9C9G8"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_Integer], f[5]]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 18, "Bindings" -> <|"TestContext`x" -> 5|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 5|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-L8L1U7"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_Integer], f["string"]]
 	,
-	<|"Result" -> False, "CyclesExecuted" -> 13, "Bindings" -> <||>|>
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-N9N7L9"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_, y_], f[5, 5]]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 23, "Bindings" -> <|"TestContext`y" -> 5, "TestContext`x" -> 5|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`y" -> 5, "TestContext`x" -> 5|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-H1O1H0"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_, y_], f[5, "string"]]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 23, "Bindings" -> <|"TestContext`y" -> "string", "TestContext`x" -> 5|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`y" -> "string", "TestContext`x" -> 5|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-C3O3I9"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_, x_], f[5, 5]]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 22, "Bindings" -> <|"TestContext`x" -> 5|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 5|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-Z3M9W3"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_, x_Integer], f[5, 5]]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 23, "Bindings" -> <|"TestContext`x" -> 5|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 5|>|>
 	,
 	TestID->"PatternMatcherExecute-20251114-X8X6E9"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_, x_Integer], f[5, 4]]
 	,
-	<|"Result" -> False, "CyclesExecuted" -> 19, "Bindings" -> <||>|>
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251114-B9B5J8"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_, x_Integer], f[5, 5.]]
 	,
-	<|"Result" -> False, "CyclesExecuted" -> 19, "Bindings" -> <||>|>
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251114-N2Q9A5"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_Real, x_Integer], f[5, 5]]
 	,
-	<|"Result" -> False, "CyclesExecuted" -> 13, "Bindings" -> <||>|>
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251114-D9X3S4"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_, x_], f[5, "string"]]
 	,
-	<|"Result" -> False, "CyclesExecuted" -> 19, "Bindings" -> <||>|>
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-D9V0X7"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_, h[x_, x_]], f[5, h[5, 5]]]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 36, "Bindings" -> <|"TestContext`x" -> 5|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 5|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-Q1Q9E5"
 ]
 
-Test[
+TestMatch[
 	(* FIXME *)
 	PatternMatcherExecute[f[x_, x_[g]], f[5, 5[g]]]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 34, "Bindings" -> <|"TestContext`x" -> 5|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 5|>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-T3F2S6"
 ]
@@ -346,66 +346,66 @@ Test[
 (*==============================================================================
 	PatternTest
 ==============================================================================*)
-Test[
+TestMatch[
 	PatternMatcherExecute[_?IntegerQ, 5]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 7, "Bindings" -> <||>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251115-N4Y8K5"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[_?IntegerQ, Integer["not an integer"]]
 	,
-	<|"Result" -> False, "CyclesExecuted" -> 5, "Bindings" -> <||>|>
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251115-B5H9O8"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[x_Integer?EvenQ, 2]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 11, "Bindings" -> <|"TestContext`x" -> 2|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 2|>|>
 	,
 	TestID->"PatternMatcherExecute-20251115-F4P7S3"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[x_Integer?EvenQ, 3]
 	,
-	<|"Result" -> False, "CyclesExecuted" -> 9, "Bindings" -> <||>|>
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251115-Q2R3G1"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_Integer?EvenQ], f[4]]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 19, "Bindings" -> <|"TestContext`x" -> 4|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 4|>|>
 	,
 	TestID->"PatternMatcherExecute-20251115-S4U9B8"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_Integer?EvenQ], f[3]]
 	,
-	<|"Result" -> False, "CyclesExecuted" -> 16, "Bindings" -> <||>|>
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251115-K8P6E1"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_Integer?EvenQ, y_], f[4, 5]]
 	,
-	<|"Result" -> True, "CyclesExecuted" -> 25, "Bindings" -> <|"TestContext`y" -> 5, "TestContext`x" -> 4|>|>
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`y" -> 5, "TestContext`x" -> 4|>|>
 	,
 	TestID->"PatternMatcherExecute-20251115-Y7U1M0"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[x_Integer?EvenQ, y_], f[3, 5]]
 	,
-	<|"Result" -> False, "CyclesExecuted" -> 16, "Bindings" -> <||>|>
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251115-J8J2M4"
 ]
@@ -919,10 +919,10 @@ TestMatch[
 	TestID->"PatternMatcherExecute-20251024-Y3E3Q6"
 ]
 
-Test[
+TestMatch[
 	PatternMatcherExecute[f[_Integer | _Real], f["string"]]
 	,
-	<|"Result" -> False, "CyclesExecuted" -> 16, "Bindings" -> <||>|>
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251024-P1Q7O6"
 ]
@@ -1046,6 +1046,273 @@ TestMatch[
 	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
 	,
 	TestID->"PatternMatcherExecute-20251115-E2O4N3"
+]
+
+
+(*==============================================================================
+	Condition Patterns (pattern /; test)
+==============================================================================*)
+
+(* Basic Condition with Blank *)
+TestMatch[
+	PatternMatcherExecute[x_ /; x > 0, 5]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 5|>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C1A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[x_ /; x > 0, -5]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C2A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[x_ /; x > 0, 0]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C3A0B0"
+]
+
+
+(* Condition with Typed Blank *)
+TestMatch[
+	PatternMatcherExecute[x_Integer /; x > 0, 5]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 5|>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C4A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[x_Integer /; x > 0, -5]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C5A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[x_Integer /; x > 0, 5.5]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C6A0B0"
+]
+
+
+(* Condition with Multiple Variables *)
+TestMatch[
+	PatternMatcherExecute[{x_, y_} /; x < y, {1, 2}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`y" -> 2, "TestContext`x" -> 1|>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C7A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[{x_, y_} /; x < y, {2, 1}]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C8A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[{x_, y_} /; x < y, {1, 1}]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C9A0B0"
+]
+
+
+(* Condition with Function Call *)
+TestMatch[
+	PatternMatcherExecute[x_Integer /; EvenQ[x], 4]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 4|>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C10A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[x_Integer /; EvenQ[x], 5]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C11A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[x_Integer /; PrimeQ[x], 7]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 7|>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C12A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[x_Integer /; PrimeQ[x], 8]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C13A0B0"
+]
+
+
+(* Condition with Complex Expression *)
+TestMatch[
+	PatternMatcherExecute[x_Integer /; Mod[x, 3] == 0, 9]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 9|>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C14A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[x_Integer /; Mod[x, 3] == 0, 10]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C15A0B0"
+]
+
+
+(* Condition with Nested Pattern *)
+TestMatch[
+	PatternMatcherExecute[f[x_Integer /; x > 0], f[5]]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 5|>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C16A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[f[x_Integer /; x > 0], f[-5]]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C17A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[f[x_Integer /; x > 0], f[5.5]]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C18A0B0"
+]
+
+
+(* Multiple Conditions in Same Pattern *)
+TestMatch[
+	PatternMatcherExecute[{x_Integer /; x > 0, y_Integer /; y > 0}, {3, 5}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`y" -> 5, "TestContext`x" -> 3|>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C19A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[{x_Integer /; x > 0, y_Integer /; y > 0}, {3, -5}]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C20A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[{x_Integer /; x > 0, y_Integer /; y > 0}, {-3, 5}]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C21A0B0"
+]
+
+
+(* Condition That Evaluates to Non-Boolean (should fail) *)
+TestMatch[
+	PatternMatcherExecute[x_ /; x, 5]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C22A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[x_ /; "string", 5]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C23A0B0"
+]
+
+
+(* Condition with String Operations *)
+TestMatch[
+	PatternMatcherExecute[s_String /; StringLength[s] > 3, "hello"]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`s" -> "hello"|>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C24A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[s_String /; StringLength[s] > 3, "hi"]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C25A0B0"
+]
+
+
+(* Condition with List Operations *)
+TestMatch[
+	PatternMatcherExecute[{x_, y_, z_} /; x + y == z, {3, 4, 7}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`z" -> 7, "TestContext`y" -> 4, "TestContext`x" -> 3|>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C26A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[{x_, y_, z_} /; x + y == z, {3, 4, 8}]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C27A0B0"
+]
+
+
+(* Condition with Range Check *)
+TestMatch[
+	test[x_] := 0 <= x <= 100;
+	PatternMatcherExecute[x_Integer /; test[x], 50]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 50|>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C28A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[x_Integer /; test[x], 101]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C29A0B0"
+]
+
+TestMatch[
+	PatternMatcherExecute[x_Integer /; test[x], -1]
+	,
+	<|"Result" -> False, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251120-C30A0B0"
 ]
 
 

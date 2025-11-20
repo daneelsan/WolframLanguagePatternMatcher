@@ -82,7 +82,7 @@ toBoxes[obj_, fmt_] :=
 			},
 			{
 				If[initialized,
-					BoxForm`SummaryItem[{"Current bytecode: ", obj["getBytecode"]}],
+					BoxForm`SummaryItem[{"Bytecode: ", obj["getBytecode"]}],
 					Nothing
 				]
 				(*BoxForm`SummaryItem[{"Stack: ", stack}],
@@ -92,15 +92,6 @@ toBoxes[obj_, fmt_] :=
 			fmt
 		]
 	];
-
-
-(*=============================================================================
-	PatternMatcherMatch
-=============================================================================*)
-
-(*=============================================================================
-	PatternMatcherStep
-=============================================================================*)
 
 
 End[]

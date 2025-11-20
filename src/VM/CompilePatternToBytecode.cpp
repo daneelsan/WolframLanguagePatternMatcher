@@ -537,6 +537,51 @@ static void compilePatternTest(CompilerState& st, std::shared_ptr<MExprNormal> m
 }
 
 /*---------------------------------------------------------------------------
+compileCondition: Match Pattern with Condition
+
+Compiles patterns like:
+- x_Integer /; x > 0 (match positive integers)
+- {a_, b_} /; a < b (match pairs where first < second)
+- x_ /; PrimeQ[x] (match primes)
+
+Strategy:
+1. Compile the base pattern (e.g., x_Integer)
+2. Evaluate the condition expression in the current binding context
+3. If condition evaluates to True, continue; otherwise jump to failLabel
+
+Generated code for x_Integer /; x > 0:
+  ; First match _Integer and bind x
+  MATCH_HEAD %e0, Integer, innerFail
+  MOVE %e3, %e0
+  BIND_VAR "Global`x", %e3
+
+  ; Then evaluate condition
+  EVAL_CONDITION x > 0, failLabel
+
+  ; Success
+  JUMP successLabel (if top-level)
+
+Note: Condition is evaluated AFTER pattern matching and binding.
+The condition expression can reference variables bound by the pattern.
+---------------------------------------------------------------------------*/
+static void compileCondition(CompilerState& st, std::shared_ptr<MExprNormal> mexprNormal, Label successLabel,
+							 Label failLabel, bool isTopLevel)
+{
+	// Condition[pattern, test]
+	auto pvalMExpr = mexprNormal->part(1); // The pattern
+	auto condMExpr = mexprNormal->part(2); // The condition expression
+
+	// First compile the pattern
+	compilePatternRec(st, pvalMExpr, successLabel, failLabel, false);
+
+	// Then evaluate the condition
+	// The condition can reference pattern variables that were just bound
+	st.emit(Opcode::EVAL_CONDITION, { OpImm(condMExpr->getExpr()), OpLabel(failLabel) });
+
+	st.emitSuccessJumpIfTopLevel(successLabel, isTopLevel);
+}
+
+/*---------------------------------------------------------------------------
 compileBlankSequence: Match Variable-Length Sequences
 
 Compiles standalone patterns like:
@@ -1012,6 +1057,10 @@ static void compilePatternRec(CompilerState& st, std::shared_ptr<MExpr> mexpr, L
 			else if (MExprIsPatternTest(mexpr))
 			{
 				compilePatternTest(st, mexprNormal, successLabel, failLabel, isTopLevel);
+			}
+			else if (MExprIsCondition(mexpr))
+			{
+				compileCondition(st, mexprNormal, successLabel, failLabel, isTopLevel);
 			}
 			else if (MExprIsBlankSequence(mexpr))
 			{

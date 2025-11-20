@@ -142,7 +142,8 @@ std::string Expr::toString() const
 // Return the input form string of a String Expr.
 std::string Expr::toInputFormString() const
 {
-	Expr toStrExpr = Expr::construct("ToString", Expr::construct("Unevaluated", *this), Expr::ToExpression("InputForm")).eval();
+	Expr toStrExpr =
+		Expr::construct("ToString", Expr::construct("Unevaluated", *this), Expr::ToExpression("InputForm")).eval();
 	return toStrExpr.as<std::string>().value_or("");
 }
 
@@ -174,21 +175,30 @@ bool Expr::symbolQ() const
 	return length() == 0 && head().sameQ(Expr::ToExpression("Symbol"));
 }
 
-std::optional<std::string> Expr::symbolName() const {
+std::optional<std::string> Expr::symbolName() const
+{
 	// NOTE: If symbolQ() was faster, we could check here.
 	auto nameExpr = Expr(CompilerSymbolName(instance));
 	return nameExpr.as<std::string>();
 }
 
-std::optional<std::string> Expr::context() const {
+std::optional<std::string> Expr::context() const
+{
 	// NOTE: If symbolQ() was faster, we could check here.
 	auto nameExpr = Expr(CompilerContext(instance));
 	return nameExpr.as<std::string>();
 }
 
-std::optional<bool> Expr::protectedQ() const {
+std::optional<bool> Expr::protectedQ() const
+{
 	// NOTE: If symbolQ() was faster, we could check here.
 	return CompilerProtectedQ(instance);
+}
+
+Expr Expr::toSymbol() const
+{
+	// TODO: Check the instance is a string expression
+	return Expr::construct("Symbol", instance).eval();
 }
 
 /*
