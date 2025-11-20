@@ -1047,12 +1047,10 @@ Generated structure:
 	END_BLOCK L0
 
   L1 (fail):
-	DEBUG_PRINT "Pattern failed"
 	LOAD_IMM %b0, false
 	HALT
 
   L2 (success):
-	DEBUG_PRINT "Pattern succeeded"
 	EXPORT_BINDINGS    ; Capture all variable bindings to result
 	LOAD_IMM %b0, true
 	HALT
@@ -1090,15 +1088,13 @@ std::shared_ptr<PatternBytecode> CompilePatternToBytecode(const Expr& patternExp
 	// FAILURE BLOCK: Pattern didn't match
 	// ============================================================
 	st.bindLabel(failLabel);
-	st.emit(Opcode::DEBUG_PRINT, { OpImm(Expr("Pattern failed")) });
 	st.emit(Opcode::LOAD_IMM, { OpBoolReg(0), OpImm(false) });
 	st.emit(Opcode::HALT, {});
 
 	// ============================================================
-	// SUCCESS BLOCK: Pattern matched!
+	// SUCCESS BLOCK: Pattern matched
 	// ============================================================
 	st.bindLabel(successLabel);
-	st.emit(Opcode::DEBUG_PRINT, { OpImm(Expr("Pattern succeeded")) });
 
 	// Save all variable bindings from the current frame
 	// This extracts bindings like {x→5, y→10} for the caller
