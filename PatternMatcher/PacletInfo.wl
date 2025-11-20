@@ -21,6 +21,7 @@ PacletObject[
           "DanielS`PatternMatcher`PatternToMatchFunction",
           "DanielS`PatternMatcher`PatternBytecode",
           "DanielS`PatternMatcher`PatternBytecodeDisassemble",
+          "DanielS`PatternMatcher`PatternBytecodeInformation",
           "DanielS`PatternMatcher`PatternBytecodeQ",
           "DanielS`PatternMatcher`PatternMatcherVirtualMachine",
           "DanielS`PatternMatcher`CreatePatternMatcherVirtualMachine",

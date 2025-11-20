@@ -24,6 +24,27 @@ PatternBytecodeDisassemble[x_] :=
 
 
 (*=============================================================================
+	PatternBytecodeInformation (statistics as Association)
+=============================================================================*)
+
+PatternBytecodeInformation[obj_?PatternBytecodeQ] :=
+	<|
+		"InstructionCount" -> obj["getInstructionCount"],
+		"LabelCount" -> obj["getLabelCount"],
+		"ExprRegisterCount" -> obj["getExprRegisterCount"],
+		"BoolRegisterCount" -> obj["getBoolRegisterCount"],
+		"BlockCount" -> obj["getBlockCount"],
+		"MaxBlockDepth" -> obj["getMaxBlockDepth"],
+		"JumpCount" -> obj["getJumpCount"],
+		"BacktrackPointCount" -> obj["getBacktrackPointCount"],
+		"LexicalBindings" -> obj["getLexicalBindings"]
+	|>;
+
+PatternBytecodeInformation[x_] :=
+	$Failed;
+
+
+(*=============================================================================
 	PatternBytecodeQ
 =============================================================================*)
 
@@ -50,11 +71,13 @@ toBoxes[obj_, fmt_] :=
 			None,
 			{
 				BoxForm`SummaryItem[{"Pattern: ", ClickToCopy[pattern["toHeldFormExpr"], pattern["toHeldExpr"]]}],
-				BoxForm`SummaryItem[{"Number of Expr registers: ", exprRegisterCount}],
-				BoxForm`SummaryItem[{"Number of Bool registers: ", boolRegisterCount}]
+				BoxForm`SummaryItem[{"Expr registers count: ", exprRegisterCount}],
+				BoxForm`SummaryItem[{"Bool registers count: ", boolRegisterCount}],
+				BoxForm`SummaryItem[{"Instruction count: ", obj["getInstructionCount"]}]
 			},
 			{
-				BoxForm`SummaryItem[{"Disassembly: ", ClickToCopy[disassembly]}]
+				BoxForm`SummaryItem[{"Block count: ", obj["getBlockCount"]}],
+				BoxForm`SummaryItem[{"Backtrack point count: ", obj["getBacktrackPointCount"]}]
 			},
 			fmt
 		]

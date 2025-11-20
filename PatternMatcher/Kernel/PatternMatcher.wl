@@ -17,6 +17,10 @@ PatternBytecodeDisassemble::usage =
 	"PatternBytecodeDisassemble[bytecodeObj] returns a formatted, colorized disassembly of the bytecodeObj.";
 
 
+PatternBytecodeInformation::usage =
+	"PatternBytecodeInformation[bc] returns an Association with statistics about the bytecode structure.";
+
+
 CompilePatternToBytecode::usage =
 	"CompilePatternToBytecode[patt] converts a pattern expression into bytecode to be run in a virtual machine.";
 

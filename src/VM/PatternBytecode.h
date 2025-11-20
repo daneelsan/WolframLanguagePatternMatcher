@@ -36,9 +36,37 @@ public:
 	/// @return The length of the bytecode in bytes.
 	size_t length() const { return instrs.size(); }
 
+	// Simple O(1) queries
+
+	/// @brief Get the number of instructions in the bytecode.
+	int getInstructionCount() const { return instrs.size(); }
+
+	/// @brief Get the number of labels in the bytecode.
+	int getLabelCount() const { return labelMap.size(); }
+
+	/// @brief Get the number of expression registers used.
 	int getExprRegisterCount() const { return exprRegisterCount; }
+
+	/// @brief Get the number of boolean registers used.
 	int getBoolRegisterCount() const { return boolRegisterCount; }
+
+	/// @brief Get the original pattern expression.
 	std::shared_ptr<MExpr> getPattern() const { return pattern; }
+
+	/// @brief Count total number of BEGIN_BLOCK instructions
+	int getBlockCount() const;
+
+	/// @brief Get maximum block nesting depth
+	int getMaxBlockDepth() const;
+
+	/// @brief Count total number of jump instructions (JUMP + BRANCH_FALSE)
+	int getJumpCount() const;
+
+	/// @brief Count number of backtracking choice points (TRY instructions)
+	int getBacktrackPointCount() const;
+
+	/// @brief Get the lexical bindings as an Association.
+	Expr getLexicalBindings() const;
 
 	/// @brief Add an instruction to the bytecode.
 	/// @param op The opcode of the instruction.
