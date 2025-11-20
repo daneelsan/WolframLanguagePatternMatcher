@@ -311,7 +311,7 @@ bool VirtualMachine::step()
 			auto dst = std::get<ExprRegOp>(instr.ops[0]);
 			auto src = std::get<ExprRegOp>(instr.ops[1]);
 			exprRegs[dst.v] = exprRegs[src.v];
-			PM_TRACE("MOVE %e", dst.v, " <- %e", src.v, " (", exprRegs[src.v].toString(), ")");
+			PM_TRACE("MOVE %e", dst.v, " <- %e", src.v, " (", exprRegs[src.v], ")");
 			break;
 		}
 
@@ -325,8 +325,21 @@ bool VirtualMachine::step()
 			auto src = std::get<ExprRegOp>(instr.ops[1]);
 			auto idx = std::get<ImmMint>(instr.ops[2]);
 
-			exprRegs[dst.v] = exprRegs[src.v].part(static_cast<size_t>(idx.v));
+			exprRegs[dst.v] = exprRegs[src.v].part(idx.v);
 			PM_TRACE("GET_PART %e", dst.v, " := part(%e", src.v, ", ", idx.v, ")");
+			break;
+		}
+
+		case Opcode::GET_LENGTH:
+		{
+			auto dst = std::get<ExprRegOp>(instr.ops[0]);
+			auto src = std::get<ExprRegOp>(instr.ops[1]);
+
+			// Store length as integer expression
+			mint len = static_cast<mint>(exprRegs[src.v].length());
+			exprRegs[dst.v] = Expr(len);
+
+			PM_TRACE("GET_LENGTH %e", dst.v, " := length(%e", src.v, ") = ", len);
 			break;
 		}
 
@@ -413,6 +426,171 @@ bool VirtualMachine::step()
 			if (!matches)
 			{
 				jump(failLabel, true);
+			}
+			break;
+		}
+
+			//=====================================================================
+			// SEQUENCE MATCHING
+			//=====================================================================
+
+		case Opcode::MATCH_MIN_LENGTH:
+		{
+			auto src = std::get<ExprRegOp>(instr.ops[0]);
+			auto minLen = std::get<ImmMint>(instr.ops[1]);
+			auto failLabel = std::get<LabelOp>(instr.ops[2]);
+
+			size_t actualLen = exprRegs[src.v].length();
+			bool matches = (actualLen >= static_cast<size_t>(minLen.v));
+
+			PM_TRACE("MATCH_MIN_LENGTH %e", src.v, " >= ", minLen.v, " (actual=", actualLen, ") -> ",
+					 (matches ? "SUCCESS" : "FAILURE"));
+
+			if (!matches)
+			{
+				jump(failLabel, true);
+			}
+			break;
+		}
+
+		case Opcode::MATCH_SEQ_HEADS:
+		{
+			auto src = std::get<ExprRegOp>(instr.ops[0]);
+			auto startIdx = std::get<ImmMint>(instr.ops[1]);
+			auto endReg = std::get<ExprRegOp>(instr.ops[2]);
+			auto expectedHead = std::get<ImmExpr>(instr.ops[3]);
+			auto failLabel = std::get<LabelOp>(instr.ops[4]);
+
+			// End index is in a register (as an integer stored in Expr)
+			mint actualEnd = exprRegs[endReg.v].as<mint>().value();
+			mint srcLen = static_cast<mint>(exprRegs[src.v].length());
+
+			// Early validation: check bounds once upfront
+			if (actualEnd < startIdx.v || startIdx.v < 1 || actualEnd > srcLen)
+			{
+				PM_TRACE("MATCH_SEQ_HEADS %e", src.v, "[", startIdx.v, "..", actualEnd, "] - INVALID RANGE");
+				jump(failLabel, true);
+				break;
+			}
+
+			// Check each part's head in range [startIdx, actualEnd]
+			const Expr& srcExpr = exprRegs[src.v];
+			for (mint i = startIdx.v; i <= actualEnd; ++i)
+			{
+				if (!srcExpr.part(static_cast<size_t>(i)).head().sameQ(expectedHead))
+				{
+					PM_TRACE("MATCH_SEQ_HEADS %e", src.v, "[", startIdx.v, "..", actualEnd, "] == ", expectedHead.toString(),
+							 " -> FAILURE");
+					jump(failLabel, true);
+					break;
+				}
+			}
+
+			PM_TRACE("MATCH_SEQ_HEADS %e", src.v, "[", startIdx.v, "..", actualEnd, "] == ", expectedHead.toString(),
+					 " -> SUCCESS");
+			break;
+		}
+
+		case Opcode::MAKE_SEQUENCE:
+		{
+			auto dst = std::get<ExprRegOp>(instr.ops[0]);
+			auto src = std::get<ExprRegOp>(instr.ops[1]);
+			auto startIdx = std::get<ImmMint>(instr.ops[2]);
+
+			mint srcLength = static_cast<mint>(exprRegs[src.v].length());
+
+			// Fourth operand can be either ImmMint or ExprRegOp (for dynamic length)
+			mint actualEnd;
+			if (auto* immEnd = std::get_if<ImmMint>(&instr.ops[3]))
+			{
+				actualEnd = immEnd->v;
+				// Support negative indices: -1 = last, -2 = second-to-last, etc.
+				if (actualEnd < 0)
+				{
+					actualEnd = srcLength + actualEnd + 1;
+				}
+			}
+			else if (auto* regEnd = std::get_if<ExprRegOp>(&instr.ops[3]))
+			{
+				// End index is in a register (as an integer stored in Expr)
+				mint endVal = exprRegs[regEnd->v].as<mint>().value();
+				actualEnd = endVal < 0 ? srcLength + endVal + 1 : endVal;
+			}
+			else
+			{
+				PM_ERROR("MAKE_SEQUENCE: fourth operand must be ImmMint or ExprRegOp");
+				return false;
+			}
+
+			// Validate indices (compiler should ensure validity, but check in debug mode)
+			PM_ASSERT(startIdx.v >= 1 && startIdx.v <= srcLength + 1, "MAKE_SEQUENCE: invalid start index");
+			PM_ASSERT(actualEnd >= 0 && actualEnd <= srcLength, "MAKE_SEQUENCE: invalid end index");
+
+			// Handle empty sequence (startIdx > actualEnd for nullable sequences)
+			if (startIdx.v > actualEnd)
+			{
+				// Create empty Sequence[]
+				exprRegs[dst.v] = Expr::createNormal(0, "System`Sequence");
+				PM_TRACE("MAKE_SEQUENCE %e", dst.v, " := Sequence[] (empty)");
+				break;
+			}
+
+			// Extract subsequence and wrap in Sequence
+			size_t numParts = static_cast<size_t>(actualEnd - startIdx.v + 1);
+			std::vector<Expr> parts;
+			parts.reserve(numParts);
+
+			for (mint i = startIdx.v; i <= actualEnd; ++i)
+			{
+				parts.push_back(exprRegs[src.v].part(static_cast<size_t>(i)));
+			}
+
+			// Create Sequence[part1, part2, ...]
+			Expr seqExpr = Expr::createNormal(parts.size(), "System`Sequence");
+			for (size_t i = 0; i < parts.size(); ++i)
+			{
+				seqExpr.setPart(i + 1, parts[i]);
+			}
+
+			exprRegs[dst.v] = seqExpr;
+
+			PM_TRACE("MAKE_SEQUENCE %e", dst.v, " := Sequence[%e", src.v, "[[", startIdx.v, "..", actualEnd, "]]]");
+			break;
+		}
+
+		case Opcode::SPLIT_SEQ:
+		{
+			auto src = std::get<ExprRegOp>(instr.ops[0]);
+			auto splitPos = std::get<ImmMint>(instr.ops[1]);
+			auto minRest = std::get<ImmMint>(instr.ops[2]);
+			auto nextLabel = std::get<LabelOp>(instr.ops[3]);
+			auto failLabel = std::get<LabelOp>(instr.ops[4]);
+
+			// This creates a choice point for sequence splitting
+			// On backtrack, we'll try the next split position
+
+			// Calculate if this split is valid
+			mint totalLen = static_cast<mint>(exprRegs[src.v].length());
+			mint seqLen = splitPos.v;
+			mint remaining = totalLen - seqLen;
+
+			if (remaining < minRest.v || seqLen < 1)
+			{
+				// Invalid split, jump to fail
+				PM_TRACE("SPLIT_SEQ invalid: splitPos=", splitPos.v, " minRest=", minRest.v, " totalLen=", totalLen);
+				jump(failLabel, true);
+			}
+			else
+			{
+				// Valid split - create choice point
+				// On backtrack, decrement splitPos and retry
+				PM_TRACE("SPLIT_SEQ creating choice point: splitPos=", splitPos.v, " nextLabel=", nextLabel.v);
+
+				// TODO: Implement proper choice point with split position tracking
+				// For now, this is a placeholder that doesn't actually create backtracking state
+				PM_WARNING("SPLIT_SEQ choice point creation not fully implemented");
+
+				// Continue with current split
 			}
 			break;
 		}

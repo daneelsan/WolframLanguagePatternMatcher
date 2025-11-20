@@ -27,6 +27,8 @@ const char* opcodeName(Opcode op)
 			return "EXPORT_BINDINGS";
 		case Opcode::FAIL:
 			return "FAIL";
+		case Opcode::GET_LENGTH:
+			return "GET_LENGTH";
 		case Opcode::GET_PART:
 			return "GET_PART";
 		case Opcode::HALT:
@@ -41,6 +43,14 @@ const char* opcodeName(Opcode op)
 			return "MATCH_LENGTH";
 		case Opcode::MATCH_LITERAL:
 			return "MATCH_LITERAL";
+		case Opcode::MATCH_MIN_LENGTH:
+			return "MATCH_MIN_LENGTH";
+		case Opcode::MATCH_SEQ_HEADS:
+			return "MATCH_SEQ_HEADS";
+		case Opcode::MAKE_SEQUENCE:
+			return "MAKE_SEQUENCE";
+		case Opcode::SPLIT_SEQ:
+			return "SPLIT_SEQ";
 		case Opcode::MOVE:
 			return "MOVE";
 		case Opcode::RETRY:

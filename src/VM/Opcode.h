@@ -59,9 +59,16 @@ All backtracking instructions manipulate the choice point stack.
                            The immediate is embedded in the bytecode. */
 
     //=========================================================================
-    // EXPRESSION INTROSPECTION (1 opcode)
-    // Extract parts of structured expressions
+    // EXPRESSION INTROSPECTION (2 opcodes)
+    // Extract parts and properties of structured expressions
     //=========================================================================
+    
+    GET_LENGTH,      /*  2: dest src           → dest := length(src)
+                           Get length of expression as integer.
+                           Returns length for lists, argument count for functions, 1 for atoms.
+                           Example: GET_LENGTH %e1, %e0
+                             %e1 := Length[%e0]
+                           Used for: Computing sequence ranges, iteration bounds */
     
     GET_PART,        /*  3: dest src index     → dest := part(src, index)
                            Extract the index-th part of src expression.
@@ -98,6 +105,46 @@ All backtracking instructions manipulate the choice point stack.
                            Example: APPLY_TEST %e0, IntegerQ, L_fail
                              jumps if %e0 does not return true for the IntegerQ test
                            Used for: type patterns like IntegerQ, RealQ, StringQ */
+
+    //=========================================================================
+    // SEQUENCE MATCHING (4 opcodes)
+    // Match variable-length sequences of expressions
+    //=========================================================================
+    
+    MATCH_MIN_LENGTH,   /*  3: reg minLen fail    → jump fail if length(reg) < minLen
+                           Test if expression has at least minLen parts.
+                           Example: MATCH_MIN_LENGTH %e0, 1, L_fail
+                             jumps if %e0 has 0 parts (for __)
+                           Used for: __ (min=1), ___ (min=0) */
+    
+    MATCH_SEQ_HEADS, /*  5: reg start endreg head fail → jump fail if any part has wrong head
+                           Test if all parts in range [start, end] have given head.
+                           The end index must be in a register (as integer).
+                           Example: MATCH_SEQ_HEADS %e0, 1, %e1, Integer, L_fail
+                             jumps if any part in [1..%e1] is not an Integer
+                           Used for: __Integer, ___Real typed sequences */
+    
+    MAKE_SEQUENCE,   /*  4: dest src start end → dest := List[src[[start..end]]]
+                           Extract subsequence and wrap in List.
+                           Example: MAKE_SEQUENCE %e2, %e0, 1, 3
+                             %e2 = List[%e0[[1]], %e0[[2]], %e0[[3]]]
+                           Used for: Binding sequence variables like a__ */
+    
+    SPLIT_SEQ,       /*  5: src splitPos minRest nextLabel fail → create split choice point
+                           Create choice point for sequence splitting.
+                           - src: expression being split
+                           - splitPos: where to split (how many go to first seq)
+                           - minRest: minimum elements for remaining patterns
+                           - nextLabel: where to try next split on backtrack
+                           - fail: where to jump if no valid splits exist
+                           
+                           On backtrack: decrements splitPos and retries
+                           
+                           Example: {a__, b_} matching {1,2,3} (length=3)
+                             Try splitPos=2: a={1,2}, b=3
+                             Backtrack: splitPos=1: a={1}, b=2 (then 3 fails)
+                           
+                           Used for: Patterns with sequences like {a__, b_, c__} */
 
     //=========================================================================
     // COMPARISON (1 opcode)
@@ -239,8 +286,9 @@ All backtracking instructions manipulate the choice point stack.
 enum class OpcodeCategory
 {
 	DataMovement, // MOVE, LOAD_IMM
-	Introspection, // GET_PART
+	Introspection, // GET_PART, GET_LENGTH
 	ConditionalMatch, // MATCH_HEAD, MATCH_LENGTH, MATCH_LITERAL (test + branch)
+	SequenceMatching, // MATCH_MIN_LENGTH, MATCH_SEQ_HEADS, MAKE_SEQUENCE, SPLIT_SEQ
 	Comparison, // SAMEQ
 	Binding, // BIND_VAR
 	ControlFlow, // JUMP, BRANCH_FALSE, HALT
@@ -262,6 +310,7 @@ inline OpcodeCategory getOpcodeCategory(Opcode op)
 			return OpcodeCategory::DataMovement;
 
 		// Introspection
+		case Opcode::GET_LENGTH:
 		case Opcode::GET_PART:
 			return OpcodeCategory::Introspection;
 
@@ -271,6 +320,13 @@ inline OpcodeCategory getOpcodeCategory(Opcode op)
 		case Opcode::MATCH_LENGTH:
 		case Opcode::MATCH_LITERAL:
 			return OpcodeCategory::ConditionalMatch;
+
+		// Sequence matching
+		case Opcode::MATCH_MIN_LENGTH:
+		case Opcode::MATCH_SEQ_HEADS:
+		case Opcode::MAKE_SEQUENCE:
+		case Opcode::SPLIT_SEQ:
+			return OpcodeCategory::SequenceMatching;
 
 		// Comparisons
 		case Opcode::SAMEQ:
@@ -352,6 +408,7 @@ inline bool hasSideEffects(Opcode op)
 		case Opcode::TRUST:
 		case Opcode::CUT:
 		case Opcode::FAIL:
+		case Opcode::SPLIT_SEQ: // Creates choice point for splits
 
 		// RETRY modifies existing choice point
 		case Opcode::RETRY:
@@ -396,6 +453,7 @@ inline size_t getOperandCount(Opcode op)
 		case Opcode::LOAD_IMM:
 		case Opcode::BRANCH_FALSE:
 		case Opcode::BIND_VAR:
+		case Opcode::GET_LENGTH:
 			return 2;
 
 		// 3 operands
@@ -404,8 +462,18 @@ inline size_t getOperandCount(Opcode op)
 		case Opcode::MATCH_HEAD:
 		case Opcode::MATCH_LENGTH:
 		case Opcode::MATCH_LITERAL:
+		case Opcode::MATCH_MIN_LENGTH:
 		case Opcode::SAMEQ:
 			return 3;
+
+		// 4 operands
+		case Opcode::MAKE_SEQUENCE:
+			return 4;
+
+		// 5 operands
+		case Opcode::MATCH_SEQ_HEADS:
+		case Opcode::SPLIT_SEQ:
+			return 5;
 
 		default:
 			return 0;
@@ -426,6 +494,8 @@ inline const char* getOpcodeDescription(Opcode op)
 			return "Load immediate constant";
 
 		// Introspection
+		case Opcode::GET_LENGTH:
+			return "Get expression length";
 		case Opcode::GET_PART:
 			return "Extract part of expression";
 
@@ -438,6 +508,16 @@ inline const char* getOpcodeDescription(Opcode op)
 			return "Match argument count and branch on failure";
 		case Opcode::MATCH_LITERAL:
 			return "Match literal value and branch on failure";
+
+		// Sequence matching
+		case Opcode::MATCH_MIN_LENGTH:
+			return "Test minimum sequence length";
+		case Opcode::MATCH_SEQ_HEADS:
+			return "Match heads of sequence elements";
+		case Opcode::MAKE_SEQUENCE:
+			return "Extract and wrap subsequence";
+		case Opcode::SPLIT_SEQ:
+			return "Create split choice point for sequences";
 
 		// Comparison
 		case Opcode::SAMEQ:

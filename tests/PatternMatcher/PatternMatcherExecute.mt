@@ -452,6 +452,435 @@ TestMatch[
 
 
 (*==============================================================================
+	Sequence Patterns (BlankSequence __ and BlankNullSequence ___)
+==============================================================================*)
+
+(* Standalone BlankSequence __ *)
+Test[
+	PatternMatcherExecute[__, {1, 2, 3}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ001"
+]
+
+Test[
+	PatternMatcherExecute[__, {1}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ002"
+]
+
+Test[
+	PatternMatcherExecute[__, {}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ003"
+]
+
+(* Standalone BlankNullSequence ___ *)
+Test[
+	PatternMatcherExecute[___, {1, 2, 3}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ004"
+]
+
+Test[
+	PatternMatcherExecute[___, {}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ005"
+]
+
+(* Trailing sequences: {__, last} *)
+Test[
+	PatternMatcherExecute[{__, 3}, {1, 2, 3}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ010"
+]
+
+Test[
+	PatternMatcherExecute[{__, 3}, {3}]["Result"]
+	,
+	False
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ011"
+]
+
+Test[
+	PatternMatcherExecute[{__, 3}, {}]["Result"]
+	,
+	False
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ012"
+]
+
+Test[
+	PatternMatcherExecute[{___, 3}, {}]["Result"]
+	,
+	False
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ013"
+]
+
+Test[
+	PatternMatcherExecute[{__, 4}, {1, 2, 3}]["Result"]
+	,
+	False
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ014"
+]
+
+(* Named sequence binding *)
+TestMatch[
+	PatternMatcherExecute[a__, {1, 2, 3}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`a" -> {1, 2, 3}|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ015"
+]
+
+Test[
+	PatternMatcherExecute[{a__}, {1, 2, 3}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ016-REMOVED"
+]
+
+TestMatch[
+	PatternMatcherExecute[{a__, 3}, {1, 2, 3}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`a" -> Sequence[1, 2]|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ017"
+]
+
+Test[
+	PatternMatcherExecute[{a__, 3}, {3}]["Result"]
+	,
+	False
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ018"
+]
+
+Test[
+	PatternMatcherExecute[{___, 3}, {3}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ018B"
+]
+
+(* Leading patterns: {first, __} *)
+Test[
+	PatternMatcherExecute[{1, __}, {1, 2, 3}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ019"
+]
+
+Test[
+	PatternMatcherExecute[{1, __}, {1}]["Result"]
+	,
+	False
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ020"
+]
+
+Test[
+	PatternMatcherExecute[{1, ___}, {1}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ021"
+]
+
+TestMatch[
+	PatternMatcherExecute[{x_, y__}, {1, 2, 3, 4}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`y" -> Sequence[2, 3, 4], "TestContext`x" -> 1|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ022"
+]
+
+TestMatch[
+	PatternMatcherExecute[{x_, y__}, {1, 2}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`y" -> Sequence[2], "TestContext`x" -> 1|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ023"
+]
+
+(* Typed sequences in patterns *)
+Test[
+	PatternMatcherExecute[{__Integer, 4}, {1, 2, 3, 4}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ024"
+]
+
+Test[
+	PatternMatcherExecute[{__Integer, 4}, {1, 2.5, 3, 4}]["Result"]
+	,
+	False
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ025"
+]
+
+TestMatch[
+	PatternMatcherExecute[{_, __Integer}, {a, 1, 2, 3}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <||>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ026"
+]
+
+Test[
+	PatternMatcherExecute[{__Integer, _Symbol}, {1, 2, 3, x}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ027"
+]
+
+(* Named typed sequences *)
+TestMatch[
+	PatternMatcherExecute[{x_, a__Integer}, {0, 1, 2, 3}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`a" -> Sequence[1, 2, 3], "TestContext`x" -> 0|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ028"
+]
+
+TestMatch[
+	PatternMatcherExecute[{a__Symbol, x_Integer}, {a, b, c, 42}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 42, "TestContext`a" -> Sequence[a, b, c]|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ029"
+]
+
+(* BlankNullSequence with bindings *)
+TestMatch[
+	PatternMatcherExecute[{a___, 3}, {3}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`a" -> Sequence[]|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ030"
+]
+
+TestMatch[
+	PatternMatcherExecute[{a___, 3}, {1, 2, 3}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`a" -> Sequence[1, 2]|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ031"
+]
+
+(* Multiple patterns with BlankNullSequence *)
+TestMatch[
+	PatternMatcherExecute[{x_, a___, y_}, {1, 2}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`y" -> 2, "TestContext`a" -> Sequence[], "TestContext`x" -> 1|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ031B"
+]
+
+TestMatch[
+	PatternMatcherExecute[{x_, a___, y_}, {1, 2, 3, 4}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`y" -> 4, "TestContext`a" -> Sequence[2, 3], "TestContext`x" -> 1|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ031C"
+]
+
+(* Edge cases *)
+Test[
+	PatternMatcherExecute[{__}, {}]["Result"]
+	,
+	False
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ032"
+]
+
+Test[
+	PatternMatcherExecute[{___}, {}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ033"
+]
+
+Test[
+	PatternMatcherExecute[{1, 2, __}, {1, 2, 3, 4}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ034"
+]
+
+Test[
+	PatternMatcherExecute[{__, 3, 4}, {1, 2, 3, 4}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ035"
+]
+
+TestMatch[
+	PatternMatcherExecute[{a_, b__, c_}, {1, 2, 3, 4}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`c" -> 4, "TestContext`b" -> Sequence[2, 3], "TestContext`a" -> 1|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ036"
+]
+
+TestMatch[
+	PatternMatcherExecute[{a_, b__, c_}, {1, 2, 3}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`c" -> 3, "TestContext`b" -> Sequence[2], "TestContext`a" -> 1|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ037"
+]
+
+(* Nested sequences in expressions *)
+Test[
+	PatternMatcherExecute[f[__], f[1, 2, 3]]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ038"
+]
+
+Test[
+	PatternMatcherExecute[f[__Integer], f[1, 2, 3]]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ039"
+]
+
+Test[
+	PatternMatcherExecute[f[x_, __], f[1, 2, 3]]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ040"
+]
+
+(* Sequences in other heads *)
+TestMatch[
+	PatternMatcherExecute[f[a__, 3], f[1, 2, 3]]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`a" -> Sequence[1, 2]|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ041"
+]
+
+TestMatch[
+	PatternMatcherExecute[g[x_, y__], g[1, 2, 3, 4]]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`y" -> Sequence[2, 3, 4], "TestContext`x" -> 1|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ042"
+]
+
+(* Minimum length edge cases *)
+Test[
+	PatternMatcherExecute[{a_, b__}, {1}]["Result"]
+	,
+	False
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ043"
+]
+
+Test[
+	PatternMatcherExecute[{a_, b__}, {1, 2}]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ044"
+]
+
+TestMatch[
+	PatternMatcherExecute[{a_, b___, c_}, {1, 2}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`c" -> 2, "TestContext`b" -> Sequence[], "TestContext`a" -> 1|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ045"
+]
+
+(* Leading sequences with bindings *)
+TestMatch[
+	PatternMatcherExecute[{a__, x_, y_}, {1, 2, 3, 4}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`y" -> 4, "TestContext`x" -> 3, "TestContext`a" -> Sequence[1, 2]|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ046"
+]
+
+TestMatch[
+	PatternMatcherExecute[{a__, x_}, {1, 2, 3}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 3, "TestContext`a" -> Sequence[1, 2]|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ047"
+]
+
+(* Single element sequences *)
+TestMatch[
+	PatternMatcherExecute[{a__}, {1}]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`a" -> Sequence[1]|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ048"
+]
+
+(* Standalone typed sequence: should check expression head, not parts *)
+Test[
+	PatternMatcherExecute[x___Integer, f[1, 2, 3]]["Result"]
+	,
+	False
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ049"
+]
+
+TestMatch[
+	PatternMatcherExecute[x___Integer, 5]
+	,
+	<|"Result" -> True, "CyclesExecuted" -> _, "Bindings" -> <|"TestContext`x" -> 5|>|>
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ050"
+]
+
+Test[
+	PatternMatcherExecute[x__Real, 3.14]["Result"]
+	,
+	True
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ051"
+]
+
+Test[
+	PatternMatcherExecute[x__Real, 5]["Result"]
+	,
+	False
+	,
+	TestID->"PatternMatcherExecute-20251119-SEQ052"
+]
+
+
+(*==============================================================================
 	Alternatives
 ==============================================================================*)
 TestMatch[
