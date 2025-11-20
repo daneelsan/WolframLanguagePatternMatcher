@@ -107,6 +107,9 @@ public:
 		Error
 	};
 
+	// Runtime control for tracing
+	static inline bool traceEnabled = false;
+
 	static const char* to_string(Level l)
 	{
 		switch (l)
@@ -133,8 +136,16 @@ public:
 	template <Level logLevel, typename... TArgs>
 	static void trace(int line, const char* file, const char* function, TArgs&&... args)
 	{
+		// Check if tracing is enabled at runtime
+		if (!traceEnabled)
+			return;
+		
 		logOrTrace<logLevel>(traceHandlerName, line, file, function, std::forward<TArgs>(args)...);
 	}
+
+	// Enable/disable tracing at runtime
+	static void setTraceEnabled(bool enabled) { traceEnabled = enabled; }
+	static bool isTraceEnabled() { return traceEnabled; }
 
 private:
 	template <Level logLevel, typename... TArgs>

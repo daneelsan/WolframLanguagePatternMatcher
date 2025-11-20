@@ -149,7 +149,133 @@ TraceToShortString[logLevel_, line_, file_, fn_, args___] :=
 	StringJoin[ReleaseHold[Map[Function[Null, ToString[Unevaluated[##]], HoldAll], HoldComplete[args]]]];
 
 
-FormattedTrace := TraceToShortString;
+(* Opcode metadata for intelligent formatting *)
+$CategoriesToOpcodes = <|
+	"DataMovement" -> {"MOVE", "LOAD_IMM"},
+	"Introspection" -> {"GET_LENGTH", "GET_PART"},
+	"Matching" -> {"MATCH_HEAD", "MATCH_LENGTH", "MATCH_MIN_LENGTH", "MATCH_LITERAL", "APPLY_TEST", "MATCH_SEQ_HEADS"},
+	"Sequence" -> {"MAKE_SEQUENCE", "SPLIT_SEQ"},
+	"Comparison" -> {"SAMEQ"},
+	"Binding" -> {"BIND_VAR", "SAVE_BINDING"},
+	"ControlFlow" -> {"JUMP", "BRANCH_FALSE", "HALT"},
+	"Scope" -> {"BEGIN_BLOCK", "END_BLOCK", "EXPORT_BINDINGS"},
+	"Backtracking" -> {"TRY", "RETRY", "TRUST", "CUT", "FAIL"},
+	"Debug" -> {"DEBUG_PRINT"}
+|>;
+
+
+$OpcodesToCategories =
+	Association[Flatten[KeyValueMap[Thread[#2 -> #1] &, $CategoriesToOpcodes]]];
+
+
+$OpcodeColors = <|
+	"DataMovement" -> RGBColor[0.4, 0.4, 0.4],
+	"Introspection" -> RGBColor[0.2, 0.5, 0.8],
+	"Matching" -> RGBColor[0.3, 0.6, 0.3],
+	"Sequence" -> RGBColor[0.5, 0.4, 0.7],
+	"Comparison" -> RGBColor[0.6, 0.5, 0.2],
+	"Binding" -> RGBColor[0.7, 0.4, 0.3],
+	"ControlFlow" -> RGBColor[0.6, 0.3, 0.6],
+	"Scope" -> RGBColor[0.5, 0.5, 0.5],
+	"Backtracking" -> RGBColor[0.8, 0.4, 0.4],
+	"Debug" -> RGBColor[0.3, 0.3, 0.3],
+	"Unknown" -> GrayLevel[0.5]
+|>;
+
+
+GetOpcodeColor[opcode_String] := 
+	Lookup[$OpcodeColors, $OpcodesToCategories[opcode], GrayLevel[0.5]];
+
+
+(*
+	Improved trace formatter with opcode awareness and structured data parsing
+	TODO: Future improvements:
+	- Add indentation for nested BEGIN_BLOCK/END_BLOCK scopes
+	- Add tooltips on register references showing their values
+	- Add instruction counter/cycle number display
+	- Add collapsible sections for block scopes
+	- Add diff highlighting for MOVE/BIND operations
+	- Add performance metrics (time per opcode category)
+	- Add export options (save trace to file, JSON format for analysis)
+	- Add alternate line background colors for readability
+*)
+TraceToStyledRow[logLevel_, line_, file_, fn_, args___] := Module[
+	{msg, color, icon, opcode, result, details, formattedDetails},
+	
+	(* Build message string *)
+	msg = StringJoin[ReleaseHold[Map[Function[Null, ToString[Unevaluated[##]], HoldAll], HoldComplete[args]]]];
+	
+	(* Try to parse structured format: "OPCODE|RESULT|details..." *)
+	{opcode, result, details} = StringSplit[msg, "|", 3];
+	
+	(* Format details with proper spacing *)
+	formattedDetails = StringReplace[details, {
+		(* Add space after register references: %e0==List -> %e0 == List *)
+		RegularExpression["(%[eb]\\d+)(==|:=|<-)"] :> "$1 $2 ",
+		(* Add space between register and keyword: %e0len -> %e0 len *)
+		RegularExpression["(%[eb]\\d+)([a-z]+)"] :> "$1 $2",
+		(* Add space between word and digit: saved0 -> saved 0 *)
+		RegularExpression["([a-z])(\\d)"] :> "$1 $2",
+		(* Add space between number and word: 0bindings -> 0 bindings, 15cycles -> 15 cycles *)
+		RegularExpression["(\\d+)([a-z]+)"] :> "$1 $2",
+		(* Add space around equals sign *)
+		"=" -> " = ",
+		(* Add space before parentheses *)
+		RegularExpression["(\\d)\\("] :> "$1 (",
+		(* Add space after label references *)
+		RegularExpression["L(\\d+)"] :> "L$1 ",
+		(* Clean up multiple spaces *)
+		RegularExpression["  +"] -> " "
+	}] // StringTrim;
+	
+	(* Determine color based on result and opcode category *)
+	color = Which[
+		result == "SUCCESS", RGBColor[0, 0.65, 0],
+		result == "FAILURE", RGBColor[0.85, 0, 0],
+		result == "INVALID", RGBColor[0.85, 0.5, 0],
+		result == "TERMINAL", RGBColor[0.7, 0, 0.7],
+		result == "TRUE", RGBColor[0, 0.5, 0.5],
+		result == "FALSE", RGBColor[0.5, 0.5, 0],
+		result == "TAKEN", RGBColor[0.4, 0.4, 0.8],
+		result == "SKIP", GrayLevel[0.6],
+		True, GetOpcodeColor[opcode]
+	];
+	
+	(* Choose icon based on result and opcode *)
+	icon = Which[
+		result == "SUCCESS", "\[CheckmarkedBox]",
+		result == "FAILURE", "\[Times]",
+		result == "INVALID", "\[WarningSign]",
+		result == "TERMINAL", "\[FivePointedStar]",
+		result == "TAKEN", "\[RightArrow]",
+		result == "SKIP", "\[EmptyCircle]",
+		result == "TRUE", "\[CheckmarkedBox]",
+		result == "FALSE", "\[Times]",
+		StringMatchQ[opcode, "JUMP" | "FAIL" | "BACKTRACK"], "\[RightArrow]",
+		StringMatchQ[opcode, "MATCH_*"], "\[RightTriangle]",
+		StringMatchQ[opcode, "GET_*"], "\[RightGuillemet]",
+		StringMatchQ[opcode, "MAKE_*"], "\[CirclePlus]",
+		StringMatchQ[opcode, "BIND_*"], "\[DownTeeArrow]",
+		StringMatchQ[opcode, "BEGIN_*" | "END_*"], "\[VerticalEllipsis]",
+		StringMatchQ[opcode, "TRY" | "RETRY" | "TRUST" | "CUT"], "\[Continuation]",
+		True, "\[FilledSmallCircle]"
+	];
+	
+	(* Format as styled row with color-coded components *)
+	Row[{
+		Style[icon <> " ", color, Bold],
+		Style[opcode, color, Bold, FontFamily -> "Courier"],
+		If[result =!= "INFO", 
+			Style[" " <> result <> " ", color, Background -> Lighter[color, 0.9]],
+			""
+		],
+		" ",
+		Style[formattedDetails, color]
+	}]
+];
+
+(* This is a "selector" called by other functions below. You can switch between formats *)
+FormattedTrace := TraceToStyledRow; 
 
 
 (************* Functions filtering log messages *************)

@@ -33,6 +33,24 @@ Execution Flow:
   initialize() -> match(input) -> [execute bytecode] -> HALT -> return result
 ===========================================================================*/
 
+//=============================================================================
+// Structured Trace Helper
+//=============================================================================
+
+#ifdef PM_LOG_LEVEL_TRACE
+/// Helper to emit structured trace data for better WL formatting
+/// Format: "opcode|result|details"
+template <typename... Args>
+void traceOpcode(const char* opcode, const char* result, Args&&... args)
+{
+	PM_TRACE(opcode, "|", result, "|", std::forward<Args>(args)...);
+}
+#else
+// No-op version for release builds
+template <typename... Args>
+inline void traceOpcode(const char*, const char*, Args&&...) {}
+#endif
+
 VirtualMachine::VirtualMachine() = default;
 VirtualMachine::~VirtualMachine() = default;
 
@@ -106,7 +124,7 @@ void VirtualMachine::jump(LabelOp label, bool isFailure)
 		unwindingFailure = true;
 	}
 	pc = bytecode.value()->resolveLabel(label.v).value();
-	PM_TRACE((isFailure ? "FAIL_JUMP" : "JUMP"), " to L", label.v, " (pc=", pc, ")");
+	traceOpcode(isFailure ? "FAIL_JUMP" : "JUMP", "INFO", "L", label.v, "pc=", pc);
 }
 
 void VirtualMachine::saveBindings(Frame& tgtFrame)
@@ -120,7 +138,7 @@ void VirtualMachine::saveBindings(Frame& tgtFrame)
 		tgtFrame.bindVariable(varName, value);
 	}
 
-	PM_TRACE("SAVE_BINDINGS: ", srcFrame.bindings.size(), " bindings copied");
+	traceOpcode("SAVE_BINDINGS", "INFO", srcFrame.bindings.size(), "bindings copied");
 }
 
 //=============================================================================
@@ -137,14 +155,14 @@ void VirtualMachine::createChoicePoint(size_t nextAlternative)
 							 frames.size() // Current frame depth
 	);
 
-	PM_TRACE("CHOICE_POINT created: alternatives at L", nextAlternative, " (stack depth=", choiceStack.size(), ")");
+	traceOpcode("CHOICE_POINT", "INFO", "alternatives at L", nextAlternative, "depth=", choiceStack.size());
 }
 
 bool VirtualMachine::backtrack()
 {
 	if (choiceStack.empty())
 	{
-		PM_TRACE("BACKTRACK: No choice points left - FAIL");
+		traceOpcode("BACKTRACK", "TERMINAL", "no choice points");
 		return false;
 	}
 
@@ -169,7 +187,7 @@ bool VirtualMachine::backtrack()
 	PM_ASSERT(nextPC.has_value(), "Failed to resolve label L", cp.nextAlternative);
 	pc = nextPC.value();
 
-	PM_TRACE("BACKTRACK: Restoring choice point, jumping to L", cp.nextAlternative, " (pc=", pc, ")");
+	traceOpcode("BACKTRACK", "INFO", "jumping to L", cp.nextAlternative, "pc=", pc);
 
 	// Set flags
 	backtracking = true;
@@ -184,7 +202,7 @@ void VirtualMachine::commit()
 {
 	if (!choiceStack.empty())
 	{
-		PM_TRACE("COMMIT: Removing ", choiceStack.size(), " choice points");
+		traceOpcode("COMMIT", "INFO", "removing", choiceStack.size(), "choice points");
 		choiceStack.clear();
 	}
 }
@@ -204,13 +222,13 @@ void VirtualMachine::trailBind(const std::string& varName, const Expr& value)
 	if (currentFrame.hasVariable(varName))
 	{
 		trail.emplace_back(varName, frames.size() - 1);
-		PM_TRACE("TRAIL: Recording existing binding of ", varName, " (trail size=", trail.size(), ")");
+		traceOpcode("TRAIL", "INFO", "recording", varName, "size=", trail.size());
 	}
 
 	// Bind the variable (overwrites existing binding if any)
 	currentFrame.bindVariable(varName, value);
 
-	PM_TRACE("BIND_VAR (trailed): ", varName, " <- ", value.toString());
+	traceOpcode("BIND_VAR", "INFO", varName, "<-", value.toString(), "(trailed)");
 }
 
 void VirtualMachine::unwindTrail(size_t mark)
@@ -218,7 +236,7 @@ void VirtualMachine::unwindTrail(size_t mark)
 	if (trail.size() <= mark)
 		return; // Nothing to unwind
 
-	PM_TRACE("UNWIND_TRAIL: from ", trail.size(), " to ", mark);
+	traceOpcode("UNWIND_TRAIL", "INFO", "from", trail.size(), "to", mark);
 
 	// Undo bindings in reverse order (LIFO)
 	while (trail.size() > mark)
@@ -230,7 +248,7 @@ void VirtualMachine::unwindTrail(size_t mark)
 		{
 			auto& frame = frames[entry.frameIndex];
 			frame.bindings.erase(entry.varName);
-			PM_TRACE("  Unbinding: ", entry.varName, " from frame ", entry.frameIndex);
+			traceOpcode("UNBIND", "INFO", entry.varName, "frame=", entry.frameIndex);
 		}
 
 		trail.pop_back();
@@ -275,7 +293,7 @@ bool VirtualMachine::step()
 		{
 			if (!instr.ops.empty())
 			{
-				PM_TRACE("VM_DEBUG_PRINT: ", operandToString(instr.ops[0]));
+				traceOpcode("DEBUG_PRINT", "INFO", operandToString(instr.ops[0]));
 			}
 			break;
 		}
@@ -292,7 +310,7 @@ bool VirtualMachine::step()
 				// Load Expr immediate
 				auto immExpr = std::get<ImmExpr>(instr.ops[1]);
 				exprRegs[dstExprReg->v] = immExpr;
-				PM_TRACE("LOAD_IMM %e", dstExprReg->v, " <- ", immExpr.toString());
+				traceOpcode("LOAD_IMM", "INFO", "%e", dstExprReg->v, "<-", immExpr.toString());
 			}
 			else
 			{
@@ -301,7 +319,7 @@ bool VirtualMachine::step()
 				auto immMint = std::get<ImmMint>(instr.ops[1]);
 				bool value = (immMint.v != 0);
 				boolRegs[dstBoolReg.v] = value;
-				PM_TRACE("LOAD_IMM %b", dstBoolReg.v, " <- ", (value ? "True" : "False"));
+				traceOpcode("LOAD_IMM", "INFO", "%b", dstBoolReg.v, "<-", (value ? "True" : "False"));
 			}
 			break;
 		}
@@ -311,7 +329,7 @@ bool VirtualMachine::step()
 			auto dst = std::get<ExprRegOp>(instr.ops[0]);
 			auto src = std::get<ExprRegOp>(instr.ops[1]);
 			exprRegs[dst.v] = exprRegs[src.v];
-			PM_TRACE("MOVE %e", dst.v, " <- %e", src.v, " (", exprRegs[src.v], ")");
+			traceOpcode("MOVE", "INFO", "%e", dst.v, "<-%e", src.v, "=", exprRegs[src.v].toString());
 			break;
 		}
 
@@ -326,7 +344,7 @@ bool VirtualMachine::step()
 			auto idx = std::get<ImmMint>(instr.ops[2]);
 
 			exprRegs[dst.v] = exprRegs[src.v].part(idx.v);
-			PM_TRACE("GET_PART %e", dst.v, " := part(%e", src.v, ", ", idx.v, ")");
+			traceOpcode("GET_PART", "INFO", "%e", dst.v, ":=part(%e", src.v, ",", idx.v, ")");
 			break;
 		}
 
@@ -339,7 +357,7 @@ bool VirtualMachine::step()
 			mint len = static_cast<mint>(exprRegs[src.v].length());
 			exprRegs[dst.v] = Expr(len);
 
-			PM_TRACE("GET_LENGTH %e", dst.v, " := length(%e", src.v, ") = ", len);
+			traceOpcode("GET_LENGTH", "INFO", "%e", dst.v, ":=length(%e", src.v, ")=", len);
 			break;
 		}
 
@@ -354,13 +372,13 @@ bool VirtualMachine::step()
 			auto failLabel = std::get<LabelOp>(instr.ops[2]);
 
 			Expr testRes = Expr::construct(patternTest, exprRegs[src.v]).eval();
-			if (testRes)
+			bool success = static_cast<bool>(testRes);
+			
+			traceOpcode("APPLY_TEST", success ? "SUCCESS" : "FAILURE",
+						"%e", src.v, "test=", patternTest.toString());
+			
+			if (!success)
 			{
-				PM_TRACE("APPLY_TEST %e", src.v, " with pattern ", patternTest.toString(), " -> SUCCESS");
-			}
-			else
-			{
-				PM_TRACE("APPLY_TEST %e", src.v, " with pattern ", patternTest.toString(), " -> FAILURE");
 				jump(failLabel, true);
 			}
 			break;
@@ -375,7 +393,8 @@ bool VirtualMachine::step()
 			bool result = exprRegs[lhs.v].sameQ(exprRegs[rhs.v]);
 			boolRegs[dstBool.v] = result;
 
-			PM_TRACE("SAMEQ %b", dstBool.v, " := (%e", lhs.v, " == %e", rhs.v, ") -> ", (result ? "True" : "False"));
+			traceOpcode("SAMEQ", result ? "TRUE" : "FALSE",
+						"%b", dstBool.v, ":=(%e", lhs.v, "==%e", rhs.v, ")");
 			break;
 		}
 
@@ -385,9 +404,11 @@ bool VirtualMachine::step()
 			auto expectedLen = std::get<ImmMint>(instr.ops[1]);
 			auto failLabel = std::get<LabelOp>(instr.ops[2]);
 
-			bool matches = (exprRegs[src.v].length() == static_cast<size_t>(expectedLen.v));
+			size_t actualLen = exprRegs[src.v].length();
+			bool matches = (actualLen == static_cast<size_t>(expectedLen.v));
 
-			PM_TRACE("MATCH_LENGTH %e", src.v, " == ", expectedLen.v, " -> ", (matches ? "SUCCESS" : "FAILURE"));
+			traceOpcode("MATCH_LENGTH", matches ? "SUCCESS" : "FAILURE", "%e", src.v, "len=", actualLen,
+						"expected=", expectedLen.v);
 
 			if (!matches)
 			{
@@ -404,7 +425,7 @@ bool VirtualMachine::step()
 
 			bool matches = exprRegs[src.v].head().sameQ(expected);
 
-			PM_TRACE("MATCH_HEAD %e", src.v, " == ", expected.toString(), " -> ", (matches ? "SUCCESS" : "FAILURE"));
+			traceOpcode("MATCH_HEAD", matches ? "SUCCESS" : "FAILURE", "%e", src.v, "==", expected.toString());
 
 			if (!matches)
 			{
@@ -421,7 +442,7 @@ bool VirtualMachine::step()
 
 			bool matches = exprRegs[src.v].sameQ(expected);
 
-			PM_TRACE("MATCH_LITERAL %e", src.v, " == ", expected.toString(), " -> ", (matches ? "SUCCESS" : "FAILURE"));
+			traceOpcode("MATCH_LITERAL", matches ? "SUCCESS" : "FAILURE", "%e", src.v, "==", expected.toString());
 
 			if (!matches)
 			{
@@ -443,8 +464,8 @@ bool VirtualMachine::step()
 			size_t actualLen = exprRegs[src.v].length();
 			bool matches = (actualLen >= static_cast<size_t>(minLen.v));
 
-			PM_TRACE("MATCH_MIN_LENGTH %e", src.v, " >= ", minLen.v, " (actual=", actualLen, ") -> ",
-					 (matches ? "SUCCESS" : "FAILURE"));
+			traceOpcode("MATCH_MIN_LENGTH", matches ? "SUCCESS" : "FAILURE", "%e", src.v, "len=", actualLen,
+						"min=", minLen.v);
 
 			if (!matches)
 			{
@@ -468,7 +489,8 @@ bool VirtualMachine::step()
 			// Early validation: check bounds once upfront
 			if (actualEnd < startIdx.v || startIdx.v < 1 || actualEnd > srcLen)
 			{
-				PM_TRACE("MATCH_SEQ_HEADS %e", src.v, "[", startIdx.v, "..", actualEnd, "] - INVALID RANGE");
+				traceOpcode("MATCH_SEQ_HEADS", "INVALID", "%e", src.v, "[", startIdx.v, "..", actualEnd, "]",
+							"srcLen=", srcLen);
 				jump(failLabel, true);
 				break;
 			}
@@ -479,15 +501,15 @@ bool VirtualMachine::step()
 			{
 				if (!srcExpr.part(static_cast<size_t>(i)).head().sameQ(expectedHead))
 				{
-					PM_TRACE("MATCH_SEQ_HEADS %e", src.v, "[", startIdx.v, "..", actualEnd, "] == ", expectedHead.toString(),
-							 " -> FAILURE");
+					traceOpcode("MATCH_SEQ_HEADS", "FAILURE", "%e", src.v, "[", startIdx.v, "..", actualEnd,
+								"]==", expectedHead.toString(), "at", i);
 					jump(failLabel, true);
 					break;
 				}
 			}
 
-			PM_TRACE("MATCH_SEQ_HEADS %e", src.v, "[", startIdx.v, "..", actualEnd, "] == ", expectedHead.toString(),
-					 " -> SUCCESS");
+			traceOpcode("MATCH_SEQ_HEADS", "SUCCESS", "%e", src.v, "[", startIdx.v, "..", actualEnd,
+						"]==", expectedHead.toString());
 			break;
 		}
 
@@ -531,7 +553,7 @@ bool VirtualMachine::step()
 			{
 				// Create empty Sequence[]
 				exprRegs[dst.v] = Expr::createNormal(0, "System`Sequence");
-				PM_TRACE("MAKE_SEQUENCE %e", dst.v, " := Sequence[] (empty)");
+				traceOpcode("MAKE_SEQUENCE", "INFO", "%e", dst.v, ":=Sequence[]", "(empty)");
 				break;
 			}
 
@@ -554,7 +576,8 @@ bool VirtualMachine::step()
 
 			exprRegs[dst.v] = seqExpr;
 
-			PM_TRACE("MAKE_SEQUENCE %e", dst.v, " := Sequence[%e", src.v, "[[", startIdx.v, "..", actualEnd, "]]]");
+			traceOpcode("MAKE_SEQUENCE", "INFO",
+						"%e", dst.v, ":=Sequence[%e", src.v, "[[", startIdx.v, "..", actualEnd, "]]");
 			break;
 		}
 
@@ -577,14 +600,14 @@ bool VirtualMachine::step()
 			if (remaining < minRest.v || seqLen < 1)
 			{
 				// Invalid split, jump to fail
-				PM_TRACE("SPLIT_SEQ invalid: splitPos=", splitPos.v, " minRest=", minRest.v, " totalLen=", totalLen);
+				traceOpcode("SPLIT_SEQ", "INVALID", "splitPos=", splitPos.v, "minRest=", minRest.v, "totalLen=", totalLen);
 				jump(failLabel, true);
 			}
 			else
 			{
 				// Valid split - create choice point
 				// On backtrack, decrement splitPos and retry
-				PM_TRACE("SPLIT_SEQ creating choice point: splitPos=", splitPos.v, " nextLabel=", nextLabel.v);
+				traceOpcode("SPLIT_SEQ", "INFO", "choice point splitPos=", splitPos.v, "nextLabel=", nextLabel.v);
 
 				// TODO: Implement proper choice point with split position tracking
 				// For now, this is a placeholder that doesn't actually create backtracking state
@@ -616,11 +639,11 @@ bool VirtualMachine::step()
 				auto targetPC = bytecode.value()->resolveLabel(label.v);
 				PM_ASSERT(targetPC.has_value(), "Failed to resolve label L", label.v);
 				pc = targetPC.value();
-				PM_TRACE("BRANCH_FALSE %b", condReg.v, " to L", label.v, " (pc=", pc, ")");
+				traceOpcode("BRANCH_FALSE", "TAKEN", "%b", condReg.v, "->L", label.v, "pc=", pc);
 			}
 			else
 			{
-				PM_TRACE("BRANCH_FALSE %b", condReg.v, " not taken (value is true)");
+				traceOpcode("BRANCH_FALSE", "SKIP", "%b", condReg.v, "(true)");
 			}
 			break;
 		}
@@ -628,7 +651,7 @@ bool VirtualMachine::step()
 		case Opcode::HALT:
 		{
 			halted = true;
-			PM_TRACE("HALT: Stopping execution");
+			traceOpcode("HALT", "INFO", "stopping execution", "cycles=", cycles);
 			break;
 		}
 
@@ -651,7 +674,8 @@ bool VirtualMachine::step()
 			{
 				PM_ASSERT(!frames.empty(), "BIND_VAR: No active frame");
 				frames.back().bindVariable(varName, exprRegs[reg.v]);
-				PM_TRACE("BIND_VAR (no trail): ", varName, " <- %e", reg.v, " (", exprRegs[reg.v].toString(), ")");
+				traceOpcode("BIND_VAR", "INFO",
+							varName, "<-%e", reg.v, "=", exprRegs[reg.v].toString(), "(no trail)");
 			}
 			break;
 		}
@@ -664,7 +688,7 @@ bool VirtualMachine::step()
 		{
 			auto label = std::get<LabelOp>(instr.ops[0]);
 			frames.emplace_back();
-			PM_TRACE("BEGIN_BLOCK L", label.v, " (frame depth=", frames.size(), ")");
+			traceOpcode("BEGIN_BLOCK", "INFO", "L", label.v, "depth=", frames.size());
 			break;
 		}
 
@@ -678,12 +702,12 @@ bool VirtualMachine::step()
 			{
 				auto& parentFrame = frames[frames.size() - 2];
 				saveBindings(parentFrame);
-				PM_TRACE("END_BLOCK L", label.v, ": Merged bindings to parent");
 			}
 
 			// Pop the frame
 			frames.pop_back();
-			PM_TRACE("END_BLOCK L", label.v, " (popped, depth=", frames.size(), ")");
+			traceOpcode("END_BLOCK", "INFO", "L", label.v, "depth=", frames.size(),
+						unwindingFailure ? "(unwinding)" : "(merged)");
 			break;
 		}
 
@@ -691,7 +715,7 @@ bool VirtualMachine::step()
 		{
 			PM_ASSERT(!frames.empty(), "EXPORT_BINDINGS with no active frame");
 			saveBindings(resultFrame);
-			PM_TRACE("EXPORT_BINDINGS: Saved ", resultFrame.bindings.size(), " bindings to result");
+			traceOpcode("EXPORT_BINDINGS", "INFO", "saved", resultFrame.bindings.size(), "bindings");
 			break;
 		}
 
@@ -703,7 +727,7 @@ bool VirtualMachine::step()
 		{
 			auto nextAlt = std::get<LabelOp>(instr.ops[0]);
 			createChoicePoint(nextAlt.v);
-			PM_TRACE("TRY: Choice point created for L", nextAlt.v);
+			traceOpcode("TRY", "INFO", "choice point", "->L", nextAlt.v, "depth=", choiceStack.size());
 			break;
 		}
 
@@ -714,7 +738,7 @@ bool VirtualMachine::step()
 			if (!choiceStack.empty())
 			{
 				choiceStack.back().nextAlternative = nextAlt.v;
-				PM_TRACE("RETRY: Updated choice point to L", nextAlt.v);
+				traceOpcode("RETRY", "INFO", "updated choice point", "->L", nextAlt.v);
 			}
 			else
 			{
@@ -728,7 +752,7 @@ bool VirtualMachine::step()
 			if (!choiceStack.empty())
 			{
 				choiceStack.pop_back();
-				PM_TRACE("TRUST: Removed choice point (last alternative)");
+				traceOpcode("TRUST", "INFO", "removed choice point", "(last alternative)");
 			}
 			else
 			{
@@ -739,23 +763,26 @@ bool VirtualMachine::step()
 
 		case Opcode::FAIL:
 		{
-			PM_TRACE("FAIL: Forcing backtrack");
-
 			if (!backtrack())
 			{
 				// No choice points left - permanent failure
 				halted = true;
 				boolRegs[0] = false;
-				PM_TRACE("FAIL: No choice points, halting with failure");
+				traceOpcode("FAIL", "TERMINAL", "no choice points", "halting");
 				return false;
+			}
+			else
+			{
+				traceOpcode("FAIL", "INFO", "backtracking", "depth=", choiceStack.size());
 			}
 			break;
 		}
 
 		case Opcode::CUT:
 		{
+			size_t removed = choiceStack.size();
 			commit();
-			PM_TRACE("CUT: All choice points removed");
+			traceOpcode("CUT", "INFO", "removed", removed, "choice points");
 			break;
 		}
 
@@ -865,6 +892,10 @@ namespace MethodInterface
 	{
 		return toExpr(vm->isInitialized());
 	}
+	Expr isTraceEnabled(VirtualMachine* vm)
+	{
+		return toExpr(Logger::isTraceEnabled());
+	}
 	Expr match(VirtualMachine* vm, Expr input)
 	{
 		bool res = vm->match(input);
@@ -873,6 +904,12 @@ namespace MethodInterface
 	Expr reset(VirtualMachine* vm)
 	{
 		vm->reset();
+		return Expr::ToExpression("Null");
+	}
+	Expr setTraceEnabled(VirtualMachine* vm, Expr enabled)
+	{
+		bool enabledBool = enabled.as<bool>().value_or(false);
+		Logger::setTraceEnabled(enabledBool);
 		return Expr::ToExpression("Null");
 	}
 	Expr shutdown(VirtualMachine* vm)
@@ -905,8 +942,11 @@ void VirtualMachine::initializeEmbedMethods(const char* embedName)
 	RegisterMethod<VirtualMachine*, MethodInterface::initialize>(embedName, "initialize");
 	RegisterMethod<VirtualMachine*, MethodInterface::isHalted>(embedName, "isHalted");
 	RegisterMethod<VirtualMachine*, MethodInterface::isInitialized>(embedName, "isInitialized");
+	RegisterMethod<VirtualMachine*, MethodInterface::isTraceEnabled>(embedName, "isTraceEnabled");
 	RegisterMethod<VirtualMachine*, MethodInterface::match>(embedName, "match");
 	RegisterMethod<VirtualMachine*, MethodInterface::reset>(embedName, "reset");
+	RegisterMethod<VirtualMachine*, MethodInterface::setTraceEnabled>(embedName, "setTraceEnabled");
+	RegisterMethod<VirtualMachine*, MethodInterface::shutdown>(embedName, "shutdown");
 	RegisterMethod<VirtualMachine*, MethodInterface::step>(embedName, "step");
 	RegisterMethod<VirtualMachine*, MethodInterface::toBoxes>(embedName, "toBoxes");
 	RegisterMethod<VirtualMachine*, MethodInterface::toString>(embedName, "toString");
