@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       154,          7]
-NotebookDataLength[     32612,        723]
-NotebookOptionsPosition[     29454,        671]
-NotebookOutlinePosition[     29849,        687]
-CellTagsIndexPosition[     29806,        684]
+NotebookDataLength[     18884,        482]
+NotebookOptionsPosition[     15557,        428]
+NotebookOutlinePosition[     15952,        444]
+CellTagsIndexPosition[     15909,        441]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -23,7 +23,7 @@ Cell[BoxData[
  CellChangeTimes->{{3.968678129889373*^9, 3.9686781304371023`*^9}, {
   3.9721577317699623`*^9, 3.9721577333764467`*^9}, {3.9725999430649233`*^9, 
   3.972599943836784*^9}},
- CellLabel->"In[7]:=",ExpressionUUID->"d2f9ff3f-3fbe-4cf3-8f8a-2cb41874e744"],
+ CellLabel->"In[10]:=",ExpressionUUID->"d2f9ff3f-3fbe-4cf3-8f8a-2cb41874e744"],
 
 Cell[BoxData[
  RowBox[{
@@ -44,338 +44,113 @@ Cell[BoxData[
 Cell[CellGroupData[{
 
 Cell[BoxData[
+ RowBox[{"PatternMatcherTraceEnabledQ", "[", "]"}]], "Input",
+ CellChangeTimes->{3.97260257003878*^9},
+ CellLabel->"In[4]:=",ExpressionUUID->"5cc95292-c58b-48aa-b57a-9efcac044d95"],
+
+Cell[BoxData["False"], "Output",
+ CellChangeTimes->{3.9726025708405046`*^9, 3.972602606450638*^9, 
+  3.972602779529917*^9},
+ CellLabel->"Out[4]=",ExpressionUUID->"ab568f07-c3d7-4619-965b-54ee6a74c424"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
  RowBox[{"PatternMatcherExecute", "[", 
   RowBox[{
-   RowBox[{"{", "__", "}"}], ",", 
-   RowBox[{"{", 
-    RowBox[{"1", ",", "2", ",", "3"}], "}"}]}], "]"}]], "Input",
- CellLabel->"In[5]:=",ExpressionUUID->"3724c75f-4274-402e-8619-725a1b150c9d"],
+   RowBox[{"f", "[", 
+    RowBox[{"_Integer", "|", "_Real"}], "]"}], ",", 
+   RowBox[{"f", "[", "5", "]"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.9726018007227993`*^9, 3.972601800722858*^9}},
+ CellLabel->"In[5]:=",ExpressionUUID->"2f9dc33f-af68-4030-8f10-4de91621e464"],
 
 Cell[BoxData[
  RowBox[{"\[LeftAssociation]", 
   RowBox[{
    RowBox[{"\<\"Result\"\>", "\[Rule]", "True"}], ",", 
-   RowBox[{"\<\"CyclesExecuted\"\>", "\[Rule]", "15"}], ",", 
+   RowBox[{"\<\"CyclesExecuted\"\>", "\[Rule]", "17"}], ",", 
    RowBox[{"\<\"Bindings\"\>", "\[Rule]", 
     RowBox[{"\[LeftAssociation]", "\[RightAssociation]"}]}]}], 
   "\[RightAssociation]"}]], "Output",
- CellChangeTimes->{
-  3.9725989342511587`*^9, {3.972599526583675*^9, 3.9725995342864437`*^9}, 
-   3.972600469025228*^9, 3.972600947859262*^9},
- CellLabel->"Out[5]=",ExpressionUUID->"f97277ec-7fc8-46a5-bdc5-afbc8eacdf23"]
+ CellChangeTimes->{{3.972601801183249*^9, 3.9726018091451674`*^9}, 
+   3.972602613971904*^9, 3.972602779648676*^9},
+ CellLabel->"Out[5]=",ExpressionUUID->"90658127-443e-429e-881a-963729001f3d"]
 }, Open  ]],
 
 Cell[CellGroupData[{
 
 Cell[BoxData[
- RowBox[{"vm", "=", 
-  RowBox[{"CreatePatternMatcherVirtualMachine", "[", 
-   RowBox[{"{", "___", "}"}], "]"}]}]], "Input",
- CellChangeTimes->{{3.972599538426095*^9, 3.97259954360639*^9}},
- CellLabel->"In[4]:=",ExpressionUUID->"44a4adde-2008-4fd6-a07e-b144812a2063"],
+ RowBox[{"PatternMatcherEnableTrace", "[", "True", "]"}]], "Input",
+ CellChangeTimes->{{3.97260261659671*^9, 3.972602620563643*^9}, {
+  3.972602663638494*^9, 3.972602680872642*^9}, {3.9726027820729113`*^9, 
+  3.9726027904907703`*^9}},
+ CellLabel->"In[6]:=",ExpressionUUID->"01a397aa-f3a6-40a2-a73e-baf8bd80a6d0"],
 
-Cell[BoxData[
- InterpretationBox[
-  RowBox[{
-   TagBox["PatternMatcherVirtualMachine",
-    "SummaryHead"], "[", 
-   DynamicModuleBox[{Typeset`open$$ = False, Typeset`embedState$$ = "Ready"}, 
-    
-    TemplateBox[{
-      PaneSelectorBox[{False -> GridBox[{{
-            PaneBox[
-             ButtonBox[
-              DynamicBox[
-               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxOpener"]], 
-              ButtonFunction :> (Typeset`open$$ = True), Appearance -> None, 
-              BaseStyle -> {}, Evaluator -> Automatic, Method -> 
-              "Preemptive"], Alignment -> {Center, Center}, ImageSize -> 
-             Dynamic[{
-               Automatic, 
-                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
-                 Magnification])}]], 
-            GridBox[{{
-               RowBox[{
-                 TagBox["\"Initialized: \"", "SummaryItemAnnotation"], 
-                 "\[InvisibleSpace]", 
-                 TagBox["True", "SummaryItem"]}]}, {
-               RowBox[{
-                 TagBox["\"Halted: \"", "SummaryItemAnnotation"], 
-                 "\[InvisibleSpace]", 
-                 TagBox["False", "SummaryItem"]}]}, {
-               RowBox[{
-                 TagBox["\"Program counter: \"", "SummaryItemAnnotation"], 
-                 "\[InvisibleSpace]", 
-                 TagBox["0", "SummaryItem"]}]}, {
-               RowBox[{
-                 TagBox["\"Cycles: \"", "SummaryItemAnnotation"], 
-                 "\[InvisibleSpace]", 
-                 TagBox["0", "SummaryItem"]}]}}, 
-             GridBoxAlignment -> {
-              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, AutoDelete -> 
-             False, GridBoxItemSize -> {
-              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
-             GridBoxSpacings -> {"Columns" -> {{2}}, "Rows" -> {{Automatic}}},
-              BaseStyle -> {
-              ShowStringCharacters -> False, NumberMarks -> False, 
-               PrintPrecision -> 3, ShowSyntaxStyles -> False}]}}, 
-          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
-          AutoDelete -> False, 
-          GridBoxItemSize -> {
-           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
-          BaselinePosition -> {1, 1}], True -> GridBox[{{
-            PaneBox[
-             ButtonBox[
-              DynamicBox[
-               FEPrivate`FrontEndResource["FEBitmaps", "SummaryBoxCloser"]], 
-              ButtonFunction :> (Typeset`open$$ = False), Appearance -> None, 
-              BaseStyle -> {}, Evaluator -> Automatic, Method -> 
-              "Preemptive"], Alignment -> {Center, Center}, ImageSize -> 
-             Dynamic[{
-               Automatic, 
-                3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
-                 Magnification])}]], 
-            GridBox[{{
-               RowBox[{
-                 TagBox["\"Initialized: \"", "SummaryItemAnnotation"], 
-                 "\[InvisibleSpace]", 
-                 TagBox["True", "SummaryItem"]}]}, {
-               RowBox[{
-                 TagBox["\"Halted: \"", "SummaryItemAnnotation"], 
-                 "\[InvisibleSpace]", 
-                 TagBox["False", "SummaryItem"]}]}, {
-               RowBox[{
-                 TagBox["\"Program counter: \"", "SummaryItemAnnotation"], 
-                 "\[InvisibleSpace]", 
-                 TagBox["0", "SummaryItem"]}]}, {
-               RowBox[{
-                 TagBox["\"Cycles: \"", "SummaryItemAnnotation"], 
-                 "\[InvisibleSpace]", 
-                 TagBox["0", "SummaryItem"]}]}, {
-               RowBox[{
-                 TagBox["\"Current bytecode: \"", "SummaryItemAnnotation"], 
-                 "\[InvisibleSpace]", 
-                 TagBox[
-                  InterpretationBox[
-                   RowBox[{
-                    TagBox["PatternBytecode", "SummaryHead"], "[", 
-                    
-                    DynamicModuleBox[{
-                    Typeset`open$$ = False, Typeset`embedState$$ = "Ready"}, 
-                    TemplateBox[{
-                    PaneSelectorBox[{False -> GridBox[{{
-                    PaneBox[
-                    ButtonBox[
-                    DynamicBox[
-                    FEPrivate`FrontEndResource[
-                    "FEBitmaps", "SummaryBoxOpener"]], 
-                    ButtonFunction :> (Typeset`open$$ = True), Appearance -> 
-                    None, BaseStyle -> {}, Evaluator -> Automatic, Method -> 
-                    "Preemptive"], Alignment -> {Center, Center}, ImageSize -> 
-                    Dynamic[{Automatic, 
-                    3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
-                    Magnification])}]], 
-                    GridBox[{{
-                    RowBox[{
-                    TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
-                    "\[InvisibleSpace]", 
-                    TagBox[
-                    TemplateBox[{
-                    TagBox[
-                    RowBox[{"{", "___", "}"}], HoldCompleteForm], 
-                    RowBox[{"HoldComplete", "[", 
-                    RowBox[{"{", "___", "}"}], "]"}]}, "ClickToCopy2"], 
-                    "SummaryItem"]}]}, {
-                    RowBox[{
-                    TagBox[
-                    "\"Number of Expr registers: \"", 
-                    "SummaryItemAnnotation"], "\[InvisibleSpace]", 
-                    TagBox["4", "SummaryItem"]}]}, {
-                    RowBox[{
-                    TagBox[
-                    "\"Number of Bool registers: \"", 
-                    "SummaryItemAnnotation"], "\[InvisibleSpace]", 
-                    TagBox["1", "SummaryItem"]}]}}, 
-                    GridBoxAlignment -> {
-                    "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
-                    AutoDelete -> False, 
-                    GridBoxItemSize -> {
-                    "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
-                    GridBoxSpacings -> {
-                    "Columns" -> {{2}}, "Rows" -> {{Automatic}}}, 
-                    BaseStyle -> {
-                    ShowStringCharacters -> False, NumberMarks -> False, 
-                    PrintPrecision -> 3, ShowSyntaxStyles -> False}]}}, 
-                    GridBoxAlignment -> {
-                    "Columns" -> {{Left}}, "Rows" -> {{Top}}}, AutoDelete -> 
-                    False, GridBoxItemSize -> {
-                    "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
-                    BaselinePosition -> {1, 1}], True -> GridBox[{{
-                    PaneBox[
-                    ButtonBox[
-                    DynamicBox[
-                    FEPrivate`FrontEndResource[
-                    "FEBitmaps", "SummaryBoxCloser"]], 
-                    ButtonFunction :> (Typeset`open$$ = False), Appearance -> 
-                    None, BaseStyle -> {}, Evaluator -> Automatic, Method -> 
-                    "Preemptive"], Alignment -> {Center, Center}, ImageSize -> 
-                    Dynamic[{Automatic, 
-                    3.5 (CurrentValue["FontCapHeight"]/AbsoluteCurrentValue[
-                    Magnification])}]], 
-                    GridBox[{{
-                    RowBox[{
-                    TagBox["\"Pattern: \"", "SummaryItemAnnotation"], 
-                    "\[InvisibleSpace]", 
-                    TagBox[
-                    TemplateBox[{
-                    TagBox[
-                    RowBox[{"{", "___", "}"}], HoldCompleteForm], 
-                    RowBox[{"HoldComplete", "[", 
-                    RowBox[{"{", "___", "}"}], "]"}]}, "ClickToCopy2"], 
-                    "SummaryItem"]}]}, {
-                    RowBox[{
-                    TagBox[
-                    "\"Number of Expr registers: \"", 
-                    "SummaryItemAnnotation"], "\[InvisibleSpace]", 
-                    TagBox["4", "SummaryItem"]}]}, {
-                    RowBox[{
-                    TagBox[
-                    "\"Number of Bool registers: \"", 
-                    "SummaryItemAnnotation"], "\[InvisibleSpace]", 
-                    TagBox["1", "SummaryItem"]}]}, {
-                    RowBox[{
-                    TagBox["\"Disassembly: \"", "SummaryItemAnnotation"], 
-                    "\[InvisibleSpace]", 
-                    TagBox[
-                    
-                    TemplateBox[{
-                    "\"\\nL0:\\n 0    BEGIN_BLOCK     Label[0]\\n\\nL3:\\n 1  \
-  BEGIN_BLOCK     Label[3]\\n 2    MATCH_HEAD      %e0, Expr[List], \
-Label[4]\\n 3    MATCH_MIN_LENGTH%e0, 0, Label[4]\\n 4    MOVE            \
-%e1, %e0\\n 5    GET_LENGTH      %e2, %e1\\n 6    MAKE_SEQUENCE   %e3, %e1, \
-1, %e2\\n 7    MOVE            %e0, %e3\\n 8    MOVE            %e0, %e1\\n 9 \
-   END_BLOCK       Label[3]\\n10    JUMP            Label[2]\\n\\nL4:\\n11    \
-JUMP            Label[1]\\n\\nL5:\\n12    END_BLOCK       \
-Label[0]\\n\\nL1:\\n13    DEBUG_PRINT     Expr[\\\"Pattern failed\\\"]\\n14   \
- LOAD_IMM        %b0, 0\\n15    HALT            \\n\\nL2:\\n16    DEBUG_PRINT \
-    Expr[\\\"Pattern succeeded\\\"]\\n17    EXPORT_BINDINGS \\n18    LOAD_IMM \
-       %b0, 1\\n19    HALT            \
-\\n\\n----------------------------------------\\nExpr registers: 4, Bool \
-registers: 1\\n\""}, "ClickToCopy"], "SummaryItem"]}]}}, 
-                    GridBoxAlignment -> {
-                    "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, 
-                    AutoDelete -> False, 
-                    GridBoxItemSize -> {
-                    "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
-                    GridBoxSpacings -> {
-                    "Columns" -> {{2}}, "Rows" -> {{Automatic}}}, 
-                    BaseStyle -> {
-                    ShowStringCharacters -> False, NumberMarks -> False, 
-                    PrintPrecision -> 3, ShowSyntaxStyles -> False}]}}, 
-                    GridBoxAlignment -> {
-                    "Columns" -> {{Left}}, "Rows" -> {{Top}}}, AutoDelete -> 
-                    False, GridBoxItemSize -> {
-                    "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
-                    BaselinePosition -> {1, 1}]}, 
-                    Dynamic[Typeset`open$$], ImageSize -> Automatic]}, 
-                    "SummaryPanel"], DynamicModuleValues :> {}], "]"}], 
-                   PatternMatcherLibrary`VM`PatternBytecode[
-                   "PatternMatcherLibrary`VM`PatternBytecode", $Failed], 
-                   Selectable -> False, Editable -> False, SelectWithContents -> 
-                   True], "SummaryItem"]}]}}, 
-             GridBoxAlignment -> {
-              "Columns" -> {{Left}}, "Rows" -> {{Automatic}}}, AutoDelete -> 
-             False, GridBoxItemSize -> {
-              "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
-             GridBoxSpacings -> {"Columns" -> {{2}}, "Rows" -> {{Automatic}}},
-              BaseStyle -> {
-              ShowStringCharacters -> False, NumberMarks -> False, 
-               PrintPrecision -> 3, ShowSyntaxStyles -> False}]}}, 
-          GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
-          AutoDelete -> False, 
-          GridBoxItemSize -> {
-           "Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}, 
-          BaselinePosition -> {1, 1}]}, 
-       Dynamic[Typeset`open$$], ImageSize -> Automatic]},
-     "SummaryPanel"],
-    DynamicModuleValues:>{}], "]"}],
-  PatternMatcherLibrary`VM`VirtualMachine[
-  "PatternMatcherLibrary`VM`VirtualMachine", $Failed],
-  Editable->False,
-  SelectWithContents->True,
-  Selectable->False]], "Output",
- CellChangeTimes->{3.9725995438741217`*^9, 3.972599616171213*^9, 
-  3.972599689606946*^9, 3.972599860271182*^9, 3.9725999505071793`*^9, 
-  3.97260038966901*^9, 3.9726004696841*^9, 3.972600564721551*^9, 
-  3.972600948309999*^9, 3.9726010715353727`*^9, 3.972601221663475*^9},
- CellLabel->"Out[4]=",ExpressionUUID->"9b04805b-d661-4771-8138-cb4cf8c9546c"]
-}, Open  ]],
-
-Cell[BoxData[
- RowBox[{"vm", "[", 
-  RowBox[{"\"\<setTraceEnabled\>\"", ",", "True"}], "]"}]], "Input",
- CellChangeTimes->{{3.972599544223621*^9, 3.97259955599146*^9}},
- CellLabel->"In[5]:=",ExpressionUUID->"b3130bbd-7580-4b87-9677-5f1d35e03000"],
-
-Cell[CellGroupData[{
-
-Cell[BoxData[
- RowBox[{"{", "\"\<SAVE_BINDINGS: 0 bindings copied\>\"", "}"}]], "Input",
- CellLabel->"In[6]:=",ExpressionUUID->"0c6c334a-bc45-402e-8f5a-adc64fdf4b08"],
-
-Cell[BoxData[
- RowBox[{"{", "\<\"SAVE_BINDINGS: 0 bindings copied\"\>", "}"}]], "Output",
- CellChangeTimes->{3.972601221786021*^9},
- CellLabel->"Out[6]=",ExpressionUUID->"c8d382cf-e6f8-4911-aae1-570a6a0590c8"]
+Cell[BoxData["True"], "Output",
+ CellChangeTimes->{3.9726026209147177`*^9, 3.972602790912561*^9},
+ CellLabel->"Out[6]=",ExpressionUUID->"71644545-f6ca-4d05-aec4-3be933957078"]
 }, Open  ]],
 
 Cell[CellGroupData[{
 
 Cell[BoxData[
  RowBox[{"PatternMatcherExecute", "[", 
-  RowBox[{"vm", ",", 
-   RowBox[{"{", 
-    RowBox[{"1", ",", "2", ",", "3"}], "}"}]}], "]"}]], "Input",
- CellChangeTimes->{{3.972599558515644*^9, 3.972599566008114*^9}},
- CellLabel->"In[7]:=",ExpressionUUID->"fb50d337-c627-496d-895a-4b3aca3607ad"],
+  RowBox[{
+   RowBox[{"f", "[", 
+    RowBox[{"_Integer", "|", "_Real"}], "]"}], ",", 
+   RowBox[{"f", "[", "5", "]"}]}], "]"}]], "Input",
+ CellLabel->"In[7]:=",ExpressionUUID->"a2695e37-ad96-4110-900c-d927056059a6"],
 
 Cell[CellGroupData[{
 
 Cell[BoxData[
  TemplateBox[{
    StyleBox["\"\[VerticalEllipsis] \"", 
-    RGBColor[0.5, 0.5, 0.5], Bold, StripOnInput -> False], 
+    RGBColor[0.4, 0.4, 0.4], Bold, StripOnInput -> False], 
    StyleBox["\"BEGIN_BLOCK\"", 
-    RGBColor[0.5, 0.5, 0.5], Bold, FontFamily -> "Courier", StripOnInput -> 
+    RGBColor[0.4, 0.4, 0.4], Bold, FontFamily -> "Courier", StripOnInput -> 
     False], "\"\"", "\" \"", 
    StyleBox["\"L0 depth = 1\"", 
-    RGBColor[0.5, 0.5, 0.5], StripOnInput -> False]},
+    RGBColor[0.4, 0.4, 0.4], StripOnInput -> False]},
   "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.972601221805561*^9},
+ CellChangeTimes->{3.972602623371896*^9, 3.972602793134367*^9},
  CellLabel->
   "During evaluation of \
-In[7]:=",ExpressionUUID->"070616f2-288a-4c49-97df-859b8cf2dffb"],
+In[7]:=",ExpressionUUID->"5274d9f4-c4c5-478d-9805-366d2f21de5d"],
 
 Cell[BoxData[
  TemplateBox[{
    StyleBox["\"\[VerticalEllipsis] \"", 
-    RGBColor[0.5, 0.5, 0.5], Bold, StripOnInput -> False], 
+    RGBColor[0.4, 0.4, 0.4], Bold, StripOnInput -> False], 
    StyleBox["\"BEGIN_BLOCK\"", 
-    RGBColor[0.5, 0.5, 0.5], Bold, FontFamily -> "Courier", StripOnInput -> 
+    RGBColor[0.4, 0.4, 0.4], Bold, FontFamily -> "Courier", StripOnInput -> 
     False], "\"\"", "\" \"", 
    StyleBox["\"L3 depth = 2\"", 
-    RGBColor[0.5, 0.5, 0.5], StripOnInput -> False]},
+    RGBColor[0.4, 0.4, 0.4], StripOnInput -> False]},
   "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.9726012218068953`*^9},
+ CellChangeTimes->{3.972602623371896*^9, 3.9726027931353083`*^9},
  CellLabel->
   "During evaluation of \
-In[7]:=",ExpressionUUID->"35b65397-a44b-442a-a241-52d1e74535e5"],
+In[7]:=",ExpressionUUID->"86973957-7cf6-45a3-a5d1-45eb101a383b"],
+
+Cell[BoxData[
+ TemplateBox[{
+   StyleBox["\"\[CheckmarkedBox] \"", 
+    RGBColor[0, 0.65, 0], Bold, StripOnInput -> False], 
+   StyleBox["\"MATCH_LENGTH\"", 
+    RGBColor[0, 0.65, 0], Bold, FontFamily -> "Courier", StripOnInput -> 
+    False], 
+   StyleBox["\" SUCCESS \"", 
+    RGBColor[0, 0.65, 0], Background -> RGBColor[0.9, 0.965, 0.9], 
+    StripOnInput -> False], "\" \"", 
+   StyleBox["\"%e0 len = 1 expected = 1\"", 
+    RGBColor[0, 0.65, 0], StripOnInput -> False]},
+  "RowDefault"]], "Print",
+ CellChangeTimes->{3.972602623371896*^9, 3.972602793135936*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"27679878-dd6f-45ff-a040-232971f583d2"],
 
 Cell[BoxData[
  TemplateBox[{
@@ -387,199 +162,136 @@ Cell[BoxData[
    StyleBox["\" SUCCESS \"", 
     RGBColor[0, 0.65, 0], Background -> RGBColor[0.9, 0.965, 0.9], 
     StripOnInput -> False], "\" \"", 
-   StyleBox["\"%e0 == List\"", 
+   StyleBox["\"%e0 == f\"", 
     RGBColor[0, 0.65, 0], StripOnInput -> False]},
   "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.972601221807953*^9},
+ CellChangeTimes->{3.972602623371896*^9, 3.972602793136552*^9},
  CellLabel->
   "During evaluation of \
-In[7]:=",ExpressionUUID->"c627483a-956b-4bc3-9c57-83fceba1ea68"],
-
-Cell[BoxData[
- TemplateBox[{
-   StyleBox["\"\[CheckmarkedBox] \"", 
-    RGBColor[0, 0.65, 0], Bold, StripOnInput -> False], 
-   StyleBox["\"MATCH_MIN_LENGTH\"", 
-    RGBColor[0, 0.65, 0], Bold, FontFamily -> "Courier", StripOnInput -> 
-    False], 
-   StyleBox["\" SUCCESS \"", 
-    RGBColor[0, 0.65, 0], Background -> RGBColor[0.9, 0.965, 0.9], 
-    StripOnInput -> False], "\" \"", 
-   StyleBox["\"%e0 len = 3 min = 0\"", 
-    RGBColor[0, 0.65, 0], StripOnInput -> False]},
-  "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.972601221808662*^9},
- CellLabel->
-  "During evaluation of \
-In[7]:=",ExpressionUUID->"a85ecb83-b348-4882-890c-8d2da2f8aac5"],
-
-Cell[BoxData[
- TemplateBox[{
-   StyleBox["\"\[FilledSmallCircle] \"", 
-    RGBColor[0.4, 0.4, 0.4], Bold, StripOnInput -> False], 
-   StyleBox["\"MOVE\"", 
-    RGBColor[0.4, 0.4, 0.4], Bold, FontFamily -> "Courier", StripOnInput -> 
-    False], "\"\"", "\" \"", 
-   StyleBox["\"%e1 <- %e 0 = {1, 2, 3}\"", 
-    RGBColor[0.4, 0.4, 0.4], StripOnInput -> False]},
-  "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.972601221809332*^9},
- CellLabel->
-  "During evaluation of \
-In[7]:=",ExpressionUUID->"5d18cbb2-cf28-43ea-8e5d-719cb004e720"],
-
-Cell[BoxData[
- TemplateBox[{
-   StyleBox["\"\[RightGuillemet] \"", 
-    RGBColor[0.2, 0.5, 0.8], Bold, StripOnInput -> False], 
-   StyleBox["\"GET_LENGTH\"", 
-    RGBColor[0.2, 0.5, 0.8], Bold, FontFamily -> "Courier", StripOnInput -> 
-    False], "\"\"", "\" \"", 
-   StyleBox["\"%e2 := length(%e 1) = 3\"", 
-    RGBColor[0.2, 0.5, 0.8], StripOnInput -> False]},
-  "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.9726012218100357`*^9},
- CellLabel->
-  "During evaluation of \
-In[7]:=",ExpressionUUID->"0e7b8bb3-3302-4eed-85ca-26f064a2da24"],
-
-Cell[BoxData[
- TemplateBox[{
-   StyleBox["\"\[CirclePlus] \"", 
-    RGBColor[0.5, 0.4, 0.7], Bold, StripOnInput -> False], 
-   StyleBox["\"MAKE_SEQUENCE\"", 
-    RGBColor[0.5, 0.4, 0.7], Bold, FontFamily -> "Courier", StripOnInput -> 
-    False], "\"\"", "\" \"", 
-   StyleBox["\"%e3 := Sequence[%e 1[[1..3]]\"", 
-    RGBColor[0.5, 0.4, 0.7], StripOnInput -> False]},
-  "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.9726012218107853`*^9},
- CellLabel->
-  "During evaluation of \
-In[7]:=",ExpressionUUID->"8b30ee42-5163-40d5-8585-9d8de604863b"],
-
-Cell[BoxData[
- TemplateBox[{
-   StyleBox["\"\[FilledSmallCircle] \"", 
-    RGBColor[0.4, 0.4, 0.4], Bold, StripOnInput -> False], 
-   StyleBox["\"MOVE\"", 
-    RGBColor[0.4, 0.4, 0.4], Bold, FontFamily -> "Courier", StripOnInput -> 
-    False], "\"\"", "\" \"", 
-   StyleBox["\"%e0 <- %e 3 = Sequence[1, 2, 3]\"", 
-    RGBColor[0.4, 0.4, 0.4], StripOnInput -> False]},
-  "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.972601221811543*^9},
- CellLabel->
-  "During evaluation of \
-In[7]:=",ExpressionUUID->"b83b66e5-4004-44ee-b340-e91266c3c0dd"],
-
-Cell[BoxData[
- TemplateBox[{
-   StyleBox["\"\[FilledSmallCircle] \"", 
-    RGBColor[0.4, 0.4, 0.4], Bold, StripOnInput -> False], 
-   StyleBox["\"MOVE\"", 
-    RGBColor[0.4, 0.4, 0.4], Bold, FontFamily -> "Courier", StripOnInput -> 
-    False], "\"\"", "\" \"", 
-   StyleBox["\"%e0 <- %e 1 = {1, 2, 3}\"", 
-    RGBColor[0.4, 0.4, 0.4], StripOnInput -> False]},
-  "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.9726012218122063`*^9},
- CellLabel->
-  "During evaluation of \
-In[7]:=",ExpressionUUID->"c672003f-9792-4dfd-b5de-0dda84e39fa3"],
-
-Cell[BoxData[
- TemplateBox[{
-   StyleBox["\"\[FilledSmallCircle] \"", 
-    GrayLevel[0.5], Bold, StripOnInput -> False], 
-   StyleBox["\"SAVE_BINDINGS\"", 
-    GrayLevel[0.5], Bold, FontFamily -> "Courier", StripOnInput -> False], 
-   "\"\"", "\" \"", 
-   StyleBox["\"0 bindings copied\"", 
-    GrayLevel[0.5], StripOnInput -> False]},
-  "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.9726012218128366`*^9},
- CellLabel->
-  "During evaluation of \
-In[7]:=",ExpressionUUID->"02db3b30-7251-44c8-82e3-f033cda9310a"],
-
-Cell[BoxData[
- TemplateBox[{
-   StyleBox["\"\[VerticalEllipsis] \"", 
-    RGBColor[0.5, 0.5, 0.5], Bold, StripOnInput -> False], 
-   StyleBox["\"END_BLOCK\"", 
-    RGBColor[0.5, 0.5, 0.5], Bold, FontFamily -> "Courier", StripOnInput -> 
-    False], "\"\"", "\" \"", 
-   StyleBox["\"L3 depth = 1 (merged)\"", 
-    RGBColor[0.5, 0.5, 0.5], StripOnInput -> False]},
-  "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.972601221813468*^9},
- CellLabel->
-  "During evaluation of \
-In[7]:=",ExpressionUUID->"e6a9f8f4-df8a-4104-82f3-3ade35fee49f"],
-
-Cell[BoxData[
- TemplateBox[{
-   StyleBox["\"\[RightArrow] \"", 
-    RGBColor[0.6, 0.3, 0.6], Bold, StripOnInput -> False], 
-   StyleBox["\"JUMP\"", 
-    RGBColor[0.6, 0.3, 0.6], Bold, FontFamily -> "Courier", StripOnInput -> 
-    False], "\"\"", "\" \"", 
-   StyleBox["\"L2 pc = 16\"", 
-    RGBColor[0.6, 0.3, 0.6], StripOnInput -> False]},
-  "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.972601221814104*^9},
- CellLabel->
-  "During evaluation of \
-In[7]:=",ExpressionUUID->"b0319bc0-86ff-42c5-9dc9-23cf1d1c3224"],
+In[7]:=",ExpressionUUID->"865f38a0-756e-485b-94b2-60e4643bb3ce"],
 
 Cell[BoxData[
  TemplateBox[{
    StyleBox["\"\[FilledSmallCircle] \"", 
     RGBColor[0.3, 0.3, 0.3], Bold, StripOnInput -> False], 
-   StyleBox["\"DEBUG_PRINT\"", 
+   StyleBox["\"MOVE\"", 
     RGBColor[0.3, 0.3, 0.3], Bold, FontFamily -> "Courier", StripOnInput -> 
     False], "\"\"", "\" \"", 
-   StyleBox["\"Expr[\\\"Pattern succeeded\\\"]\"", 
+   StyleBox["\"%e1 <- %e 0 = f[5]\"", 
     RGBColor[0.3, 0.3, 0.3], StripOnInput -> False]},
   "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.9726012218147583`*^9},
+ CellChangeTimes->{3.972602623371896*^9, 3.972602793137169*^9},
  CellLabel->
   "During evaluation of \
-In[7]:=",ExpressionUUID->"e719ca71-ecc9-48ec-959e-a849b612f926"],
+In[7]:=",ExpressionUUID->"16a0c674-722a-4d56-b2d5-a2bf53ad729f"],
+
+Cell[BoxData[
+ TemplateBox[{
+   StyleBox["\"\[RightGuillemet] \"", 
+    RGBColor[0.1, 0.4, 0.9], Bold, StripOnInput -> False], 
+   StyleBox["\"GET_PART\"", 
+    RGBColor[0.1, 0.4, 0.9], Bold, FontFamily -> "Courier", StripOnInput -> 
+    False], "\"\"", "\" \"", 
+   StyleBox["\"%e2 := part(%e 0,1)\"", 
+    RGBColor[0.1, 0.4, 0.9], StripOnInput -> False]},
+  "RowDefault"]], "Print",
+ CellChangeTimes->{3.972602623371896*^9, 3.97260279313774*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"09943845-8d31-4c2b-8775-2e346137fa40"],
+
+Cell[BoxData[
+ TemplateBox[{
+   StyleBox["\"\[FilledSmallCircle] \"", 
+    RGBColor[0.3, 0.3, 0.3], Bold, StripOnInput -> False], 
+   StyleBox["\"MOVE\"", 
+    RGBColor[0.3, 0.3, 0.3], Bold, FontFamily -> "Courier", StripOnInput -> 
+    False], "\"\"", "\" \"", 
+   StyleBox["\"%e0 <- %e 2 = 5\"", 
+    RGBColor[0.3, 0.3, 0.3], StripOnInput -> False]},
+  "RowDefault"]], "Print",
+ CellChangeTimes->{3.972602623371896*^9, 3.9726027931383057`*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"3d460f04-1507-48bf-9d9d-a64b655ea363"],
+
+Cell[BoxData[
+ TemplateBox[{
+   StyleBox["\"\[FilledSmallCircle] \"", 
+    GrayLevel[0.5], Bold, StripOnInput -> False], 
+   StyleBox["\"CHOICE_POINT\"", 
+    GrayLevel[0.5], Bold, FontFamily -> "Courier", StripOnInput -> False], 
+   "\"\"", "\" \"", 
+   StyleBox["\"alternatives at L6 depth = 1\"", 
+    GrayLevel[0.5], StripOnInput -> False]},
+  "RowDefault"]], "Print",
+ CellChangeTimes->{3.972602623371896*^9, 3.972602793138871*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"28aca105-3c70-4bd7-8a74-2408a58e14a3"],
+
+Cell[BoxData[
+ TemplateBox[{
+   StyleBox["\"\[Continuation] \"", 
+    RGBColor[0.9, 0.3, 0.3], Bold, StripOnInput -> False], 
+   StyleBox["\"TRY\"", 
+    RGBColor[0.9, 0.3, 0.3], Bold, FontFamily -> "Courier", StripOnInput -> 
+    False], "\"\"", "\" \"", 
+   StyleBox["\"choice point->L6 depth = 1\"", 
+    RGBColor[0.9, 0.3, 0.3], StripOnInput -> False]},
+  "RowDefault"]], "Print",
+ CellChangeTimes->{3.972602623371896*^9, 3.972602793139414*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"352b13fc-5711-4a68-9536-7697efeafae2"],
+
+Cell[BoxData[
+ TemplateBox[{
+   StyleBox["\"\[CheckmarkedBox] \"", 
+    RGBColor[0, 0.65, 0], Bold, StripOnInput -> False], 
+   StyleBox["\"MATCH_HEAD\"", 
+    RGBColor[0, 0.65, 0], Bold, FontFamily -> "Courier", StripOnInput -> 
+    False], 
+   StyleBox["\" SUCCESS \"", 
+    RGBColor[0, 0.65, 0], Background -> RGBColor[0.9, 0.965, 0.9], 
+    StripOnInput -> False], "\" \"", 
+   StyleBox["\"%e0 == Integer\"", 
+    RGBColor[0, 0.65, 0], StripOnInput -> False]},
+  "RowDefault"]], "Print",
+ CellChangeTimes->{3.972602623371896*^9, 3.9726027931399727`*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"a9fb3030-a1b5-4d62-b53c-28ded269b308"],
+
+Cell[BoxData[
+ TemplateBox[{
+   StyleBox["\"\[RightArrow] \"", 
+    RGBColor[0.8, 0.2, 0.8], Bold, StripOnInput -> False], 
+   StyleBox["\"JUMP\"", 
+    RGBColor[0.8, 0.2, 0.8], Bold, FontFamily -> "Courier", StripOnInput -> 
+    False], "\"\"", "\" \"", 
+   StyleBox["\"L7 pc = 14\"", 
+    RGBColor[0.8, 0.2, 0.8], StripOnInput -> False]},
+  "RowDefault"]], "Print",
+ CellChangeTimes->{3.972602623371896*^9, 3.9726027931405277`*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"9ac2a071-68e1-4ab7-be2d-d870882515ff"],
+
+Cell[BoxData[
+ TemplateBox[{
+   StyleBox["\"\[FilledSmallCircle] \"", 
+    RGBColor[0.3, 0.3, 0.3], Bold, StripOnInput -> False], 
+   StyleBox["\"MOVE\"", 
+    RGBColor[0.3, 0.3, 0.3], Bold, FontFamily -> "Courier", StripOnInput -> 
+    False], "\"\"", "\" \"", 
+   StyleBox["\"%e0 <- %e 1 = f[5]\"", 
+    RGBColor[0.3, 0.3, 0.3], StripOnInput -> False]},
+  "RowDefault"]], "Print",
+ CellChangeTimes->{3.972602623371896*^9, 3.9726027931411037`*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"9554b6fd-b51d-4608-8a48-b1e16b17ff32"],
 
 Cell[BoxData[
  TemplateBox[{
@@ -591,82 +303,127 @@ Cell[BoxData[
    StyleBox["\"0 bindings copied\"", 
     GrayLevel[0.5], StripOnInput -> False]},
   "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.972601221815462*^9},
+ CellChangeTimes->{3.972602623371896*^9, 3.972602793141671*^9},
  CellLabel->
   "During evaluation of \
-In[7]:=",ExpressionUUID->"a5889fd4-4f94-440c-9a5c-ef8f7db0ce09"],
+In[7]:=",ExpressionUUID->"36ada289-2c0e-4df7-b570-c61f47dfe8a7"],
+
+Cell[BoxData[
+ TemplateBox[{
+   StyleBox["\"\[VerticalEllipsis] \"", 
+    RGBColor[0.4, 0.4, 0.4], Bold, StripOnInput -> False], 
+   StyleBox["\"END_BLOCK\"", 
+    RGBColor[0.4, 0.4, 0.4], Bold, FontFamily -> "Courier", StripOnInput -> 
+    False], "\"\"", "\" \"", 
+   StyleBox["\"L3 depth = 1 (merged)\"", 
+    RGBColor[0.4, 0.4, 0.4], StripOnInput -> False]},
+  "RowDefault"]], "Print",
+ CellChangeTimes->{3.972602623371896*^9, 3.97260279314222*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"b97125d9-4e90-4b3f-947c-ee2fd3116496"],
+
+Cell[BoxData[
+ TemplateBox[{
+   StyleBox["\"\[RightArrow] \"", 
+    RGBColor[0.8, 0.2, 0.8], Bold, StripOnInput -> False], 
+   StyleBox["\"JUMP\"", 
+    RGBColor[0.8, 0.2, 0.8], Bold, FontFamily -> "Courier", StripOnInput -> 
+    False], "\"\"", "\" \"", 
+   StyleBox["\"L2 pc = 22\"", 
+    RGBColor[0.8, 0.2, 0.8], StripOnInput -> False]},
+  "RowDefault"]], "Print",
+ CellChangeTimes->{3.972602623371896*^9, 3.9726027931427803`*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"0f0c4687-384e-421a-9d73-2725bb317753"],
 
 Cell[BoxData[
  TemplateBox[{
    StyleBox["\"\[FilledSmallCircle] \"", 
     RGBColor[0.5, 0.5, 0.5], Bold, StripOnInput -> False], 
-   StyleBox["\"EXPORT_BINDINGS\"", 
+   StyleBox["\"DEBUG_PRINT\"", 
     RGBColor[0.5, 0.5, 0.5], Bold, FontFamily -> "Courier", StripOnInput -> 
     False], "\"\"", "\" \"", 
-   StyleBox["\"saved 0bindings\"", 
+   StyleBox["\"Expr[\\\"Pattern succeeded\\\"]\"", 
     RGBColor[0.5, 0.5, 0.5], StripOnInput -> False]},
   "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.972601221816081*^9},
+ CellChangeTimes->{3.972602623371896*^9, 3.9726027931433153`*^9},
  CellLabel->
   "During evaluation of \
-In[7]:=",ExpressionUUID->"15146bf5-f531-4839-a7b4-574319625f8f"],
+In[7]:=",ExpressionUUID->"122d1afa-2f11-4017-bbfa-f188acd18626"],
+
+Cell[BoxData[
+ TemplateBox[{
+   StyleBox["\"\[FilledSmallCircle] \"", 
+    GrayLevel[0.5], Bold, StripOnInput -> False], 
+   StyleBox["\"SAVE_BINDINGS\"", 
+    GrayLevel[0.5], Bold, FontFamily -> "Courier", StripOnInput -> False], 
+   "\"\"", "\" \"", 
+   StyleBox["\"0 bindings copied\"", 
+    GrayLevel[0.5], StripOnInput -> False]},
+  "RowDefault"]], "Print",
+ CellChangeTimes->{3.972602623371896*^9, 3.972602793143898*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"452fcd88-2fdd-4b37-8cb3-4c2c4a32f028"],
 
 Cell[BoxData[
  TemplateBox[{
    StyleBox["\"\[FilledSmallCircle] \"", 
     RGBColor[0.4, 0.4, 0.4], Bold, StripOnInput -> False], 
-   StyleBox["\"LOAD_IMM\"", 
+   StyleBox["\"EXPORT_BINDINGS\"", 
     RGBColor[0.4, 0.4, 0.4], Bold, FontFamily -> "Courier", StripOnInput -> 
     False], "\"\"", "\" \"", 
-   StyleBox["\"%b0 <- True\"", 
+   StyleBox["\"saved 0bindings\"", 
     RGBColor[0.4, 0.4, 0.4], StripOnInput -> False]},
   "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.9726012218166857`*^9},
+ CellChangeTimes->{3.972602623371896*^9, 3.972602793144465*^9},
  CellLabel->
   "During evaluation of \
-In[7]:=",ExpressionUUID->"d0735daa-f7c7-4efe-9f53-fd20973fc3c9"],
+In[7]:=",ExpressionUUID->"c993a1ac-822f-4449-8fe1-e5ff10f8644b"],
 
 Cell[BoxData[
  TemplateBox[{
    StyleBox["\"\[FilledSmallCircle] \"", 
-    RGBColor[0.6, 0.3, 0.6], Bold, StripOnInput -> False], 
-   StyleBox["\"HALT\"", 
-    RGBColor[0.6, 0.3, 0.6], Bold, FontFamily -> "Courier", StripOnInput -> 
+    RGBColor[0.3, 0.3, 0.3], Bold, StripOnInput -> False], 
+   StyleBox["\"LOAD_IMM\"", 
+    RGBColor[0.3, 0.3, 0.3], Bold, FontFamily -> "Courier", StripOnInput -> 
     False], "\"\"", "\" \"", 
-   StyleBox["\"stopping executioncycles = 15\"", 
-    RGBColor[0.6, 0.3, 0.6], StripOnInput -> False]},
+   StyleBox["\"%b0 <- True\"", 
+    RGBColor[0.3, 0.3, 0.3], StripOnInput -> False]},
   "RowDefault"]], "Print",
- CellChangeTimes->{3.972599566255522*^9, 3.972599617468978*^9, 
-  3.972599691060848*^9, 3.972599860391966*^9, 3.972599950637278*^9, 
-  3.972600389790535*^9, 3.97260047157482*^9, 3.972600565845151*^9, 
-  3.9726009500555763`*^9, 3.972601072590123*^9, 3.9726012218173323`*^9},
+ CellChangeTimes->{3.972602623371896*^9, 3.972602793144992*^9},
  CellLabel->
   "During evaluation of \
-In[7]:=",ExpressionUUID->"4c6a7446-2d22-4058-954c-a0a3c56cd155"]
+In[7]:=",ExpressionUUID->"04df1ed1-abb5-4ea2-940f-1d2a9ea4efc6"],
+
+Cell[BoxData[
+ TemplateBox[{
+   StyleBox["\"\[FilledSmallCircle] \"", 
+    RGBColor[0.8, 0.2, 0.8], Bold, StripOnInput -> False], 
+   StyleBox["\"HALT\"", 
+    RGBColor[0.8, 0.2, 0.8], Bold, FontFamily -> "Courier", StripOnInput -> 
+    False], "\"\"", "\" \"", 
+   StyleBox["\"stopping executioncycles = 17\"", 
+    RGBColor[0.8, 0.2, 0.8], StripOnInput -> False]},
+  "RowDefault"]], "Print",
+ CellChangeTimes->{3.972602623371896*^9, 3.972602793145547*^9},
+ CellLabel->
+  "During evaluation of \
+In[7]:=",ExpressionUUID->"0b609830-7831-49f4-8e57-a41d608c6e55"]
 }, Open  ]],
 
 Cell[BoxData[
  RowBox[{"\[LeftAssociation]", 
   RowBox[{
    RowBox[{"\<\"Result\"\>", "\[Rule]", "True"}], ",", 
-   RowBox[{"\<\"CyclesExecuted\"\>", "\[Rule]", "15"}], ",", 
+   RowBox[{"\<\"CyclesExecuted\"\>", "\[Rule]", "17"}], ",", 
    RowBox[{"\<\"Bindings\"\>", "\[Rule]", 
     RowBox[{"\[LeftAssociation]", "\[RightAssociation]"}]}]}], 
   "\[RightAssociation]"}]], "Output",
- CellChangeTimes->{3.972599566305983*^9, 3.972599617510296*^9, 
-  3.972599691296167*^9, 3.9725998604319563`*^9, 3.972599950679031*^9, 
-  3.972600389802923*^9, 3.972600471584982*^9, 3.9726005658588867`*^9, 
-  3.972600950305027*^9, 3.972601072857781*^9, 3.972601221818*^9},
- CellLabel->"Out[7]=",ExpressionUUID->"f4ff2d07-8e3e-4f20-af10-411d9cee894e"]
+ CellChangeTimes->{3.972602623384256*^9, 3.972602793146118*^9},
+ CellLabel->"Out[7]=",ExpressionUUID->"20fe862a-2f1d-495f-8397-298501d035a8"]
 }, Open  ]]
 },
 WindowSize->{1512, 831},
@@ -686,44 +443,46 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[554, 20, 302, 5, 29, "Input",ExpressionUUID->"d2f9ff3f-3fbe-4cf3-8f8a-2cb41874e744"],
-Cell[859, 27, 369, 8, 51, "Code",ExpressionUUID->"d98955b5-3b3c-4846-b828-f083b7743d84"],
-Cell[1231, 37, 282, 4, 51, "Code",ExpressionUUID->"d383c1be-6029-4b29-b954-0f7fa68b4cc6"],
+Cell[554, 20, 303, 5, 29, "Input",ExpressionUUID->"d2f9ff3f-3fbe-4cf3-8f8a-2cb41874e744"],
+Cell[860, 27, 369, 8, 51, "Code",ExpressionUUID->"d98955b5-3b3c-4846-b828-f083b7743d84"],
+Cell[1232, 37, 282, 4, 51, "Code",ExpressionUUID->"d383c1be-6029-4b29-b954-0f7fa68b4cc6"],
 Cell[CellGroupData[{
-Cell[1538, 45, 259, 6, 29, "Input",ExpressionUUID->"3724c75f-4274-402e-8619-725a1b150c9d"],
-Cell[1800, 53, 540, 11, 33, "Output",ExpressionUUID->"f97277ec-7fc8-46a5-bdc5-afbc8eacdf23"]
+Cell[1539, 45, 194, 3, 29, "Input",ExpressionUUID->"5cc95292-c58b-48aa-b57a-9efcac044d95"],
+Cell[1736, 50, 201, 3, 33, "Output",ExpressionUUID->"ab568f07-c3d7-4619-965b-54ee6a74c424"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[2377, 69, 280, 5, 29, "Input",ExpressionUUID->"44a4adde-2008-4fd6-a07e-b144812a2063"],
-Cell[2660, 76, 11860, 234, 83, "Output",ExpressionUUID->"9b04805b-d661-4771-8138-cb4cf8c9546c"]
-}, Open  ]],
-Cell[14535, 313, 246, 4, 29, "Input",ExpressionUUID->"b3130bbd-7580-4b87-9677-5f1d35e03000"],
-Cell[CellGroupData[{
-Cell[14806, 321, 166, 2, 29, "Input",ExpressionUUID->"0c6c334a-bc45-402e-8f5a-adc64fdf4b08"],
-Cell[14975, 325, 209, 3, 33, "Output",ExpressionUUID->"c8d382cf-e6f8-4911-aae1-570a6a0590c8"]
+Cell[1974, 58, 337, 7, 29, "Input",ExpressionUUID->"2f9dc33f-af68-4030-8f10-4de91621e464"],
+Cell[2314, 67, 513, 10, 33, "Output",ExpressionUUID->"90658127-443e-429e-881a-963729001f3d"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[15221, 333, 301, 6, 29, "Input",ExpressionUUID->"fb50d337-c627-496d-895a-4b3aca3607ad"],
-Cell[CellGroupData[{
-Cell[15547, 343, 758, 16, 23, "Print",ExpressionUUID->"070616f2-288a-4c49-97df-859b8cf2dffb"],
-Cell[16308, 361, 760, 16, 23, "Print",ExpressionUUID->"35b65397-a44b-442a-a241-52d1e74535e5"],
-Cell[17071, 379, 864, 19, 23, "Print",ExpressionUUID->"c627483a-956b-4bc3-9c57-83fceba1ea68"],
-Cell[17938, 400, 878, 19, 23, "Print",ExpressionUUID->"a85ecb83-b348-4882-890c-8d2da2f8aac5"],
-Cell[18819, 421, 763, 16, 23, "Print",ExpressionUUID->"5d18cbb2-cf28-43ea-8e5d-719cb004e720"],
-Cell[19585, 439, 768, 16, 23, "Print",ExpressionUUID->"0e7b8bb3-3302-4eed-85ca-26f064a2da24"],
-Cell[20356, 457, 772, 16, 23, "Print",ExpressionUUID->"8b30ee42-5163-40d5-8585-9d8de604863b"],
-Cell[21131, 475, 771, 16, 23, "Print",ExpressionUUID->"b83b66e5-4004-44ee-b340-e91266c3c0dd"],
-Cell[21905, 493, 765, 16, 23, "Print",ExpressionUUID->"c672003f-9792-4dfd-b5de-0dda84e39fa3"],
-Cell[22673, 511, 740, 16, 23, "Print",ExpressionUUID->"02db3b30-7251-44c8-82e3-f033cda9310a"],
-Cell[23416, 529, 765, 16, 23, "Print",ExpressionUUID->"e6a9f8f4-df8a-4104-82f3-3ade35fee49f"],
-Cell[24184, 547, 743, 16, 23, "Print",ExpressionUUID->"b0319bc0-86ff-42c5-9dc9-23cf1d1c3224"],
-Cell[24930, 565, 780, 16, 23, "Print",ExpressionUUID->"e719ca71-ecc9-48ec-959e-a849b612f926"],
-Cell[25713, 583, 738, 16, 23, "Print",ExpressionUUID->"a5889fd4-4f94-440c-9a5c-ef8f7db0ce09"],
-Cell[26454, 601, 766, 16, 23, "Print",ExpressionUUID->"15146bf5-f531-4839-a7b4-574319625f8f"],
-Cell[27223, 619, 757, 16, 23, "Print",ExpressionUUID->"d0735daa-f7c7-4efe-9f53-fd20973fc3c9"],
-Cell[27983, 637, 771, 16, 23, "Print",ExpressionUUID->"4c6a7446-2d22-4058-954c-a0a3c56cd155"]
+Cell[2864, 82, 326, 5, 29, "Input",ExpressionUUID->"01a397aa-f3a6-40a2-a73e-baf8bd80a6d0"],
+Cell[3193, 89, 175, 2, 33, "Output",ExpressionUUID->"71644545-f6ca-4d05-aec4-3be933957078"]
 }, Open  ]],
-Cell[28769, 656, 669, 12, 33, "Output",ExpressionUUID->"f4ff2d07-8e3e-4f20-af10-411d9cee894e"]
+Cell[CellGroupData[{
+Cell[3405, 96, 269, 6, 29, "Input",ExpressionUUID->"a2695e37-ad96-4110-900c-d927056059a6"],
+Cell[CellGroupData[{
+Cell[3699, 106, 550, 13, 23, "Print",ExpressionUUID->"5274d9f4-c4c5-478d-9805-366d2f21de5d"],
+Cell[4252, 121, 552, 13, 23, "Print",ExpressionUUID->"86973957-7cf6-45a3-a5d1-45eb101a383b"],
+Cell[4807, 136, 671, 16, 23, "Print",ExpressionUUID->"27679878-dd6f-45ff-a040-232971f583d2"],
+Cell[5481, 154, 653, 16, 23, "Print",ExpressionUUID->"865f38a0-756e-485b-94b2-60e4643bb3ce"],
+Cell[6137, 172, 550, 13, 23, "Print",ExpressionUUID->"16a0c674-722a-4d56-b2d5-a2bf53ad729f"],
+Cell[6690, 187, 551, 13, 23, "Print",ExpressionUUID->"09943845-8d31-4c2b-8775-2e346137fa40"],
+Cell[7244, 202, 549, 13, 23, "Print",ExpressionUUID->"3d460f04-1507-48bf-9d9d-a64b655ea363"],
+Cell[7796, 217, 540, 13, 23, "Print",ExpressionUUID->"28aca105-3c70-4bd7-8a74-2408a58e14a3"],
+Cell[8339, 232, 552, 13, 23, "Print",ExpressionUUID->"352b13fc-5711-4a68-9536-7697efeafae2"],
+Cell[8894, 247, 661, 16, 23, "Print",ExpressionUUID->"a9fb3030-a1b5-4d62-b53c-28ded269b308"],
+Cell[9558, 265, 537, 13, 23, "Print",ExpressionUUID->"9ac2a071-68e1-4ab7-be2d-d870882515ff"],
+Cell[10098, 280, 552, 13, 23, "Print",ExpressionUUID->"9554b6fd-b51d-4608-8a48-b1e16b17ff32"],
+Cell[10653, 295, 530, 13, 23, "Print",ExpressionUUID->"36ada289-2c0e-4df7-b570-c61f47dfe8a7"],
+Cell[11186, 310, 556, 13, 23, "Print",ExpressionUUID->"b97125d9-4e90-4b3f-947c-ee2fd3116496"],
+Cell[11745, 325, 537, 13, 23, "Print",ExpressionUUID->"0f0c4687-384e-421a-9d73-2725bb317753"],
+Cell[12285, 340, 572, 13, 23, "Print",ExpressionUUID->"122d1afa-2f11-4017-bbfa-f188acd18626"],
+Cell[12860, 355, 530, 13, 23, "Print",ExpressionUUID->"452fcd88-2fdd-4b37-8cb3-4c2c4a32f028"],
+Cell[13393, 370, 558, 13, 23, "Print",ExpressionUUID->"c993a1ac-822f-4449-8fe1-e5ff10f8644b"],
+Cell[13954, 385, 547, 13, 23, "Print",ExpressionUUID->"04df1ed1-abb5-4ea2-940f-1d2a9ea4efc6"],
+Cell[14504, 400, 561, 13, 23, "Print",ExpressionUUID->"0b609830-7831-49f4-8e57-a41d608c6e55"]
+}, Open  ]],
+Cell[15080, 416, 461, 9, 33, "Output",ExpressionUUID->"20fe862a-2f1d-495f-8397-298501d035a8"]
 }, Open  ]]
 }
 ]

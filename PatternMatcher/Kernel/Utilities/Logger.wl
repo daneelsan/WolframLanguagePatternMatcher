@@ -169,16 +169,16 @@ $OpcodesToCategories =
 
 
 $OpcodeColors = <|
-	"DataMovement" -> RGBColor[0.4, 0.4, 0.4],
-	"Introspection" -> RGBColor[0.2, 0.5, 0.8],
-	"Matching" -> RGBColor[0.3, 0.6, 0.3],
-	"Sequence" -> RGBColor[0.5, 0.4, 0.7],
-	"Comparison" -> RGBColor[0.6, 0.5, 0.2],
-	"Binding" -> RGBColor[0.7, 0.4, 0.3],
-	"ControlFlow" -> RGBColor[0.6, 0.3, 0.6],
-	"Scope" -> RGBColor[0.5, 0.5, 0.5],
-	"Backtracking" -> RGBColor[0.8, 0.4, 0.4],
-	"Debug" -> RGBColor[0.3, 0.3, 0.3],
+	"DataMovement" -> RGBColor[0.3, 0.3, 0.3],
+	"Introspection" -> RGBColor[0.1, 0.4, 0.9],
+	"Matching" -> RGBColor[0.2, 0.7, 0.2],
+	"Sequence" -> RGBColor[0.6, 0.3, 0.9],
+	"Comparison" -> RGBColor[0.8, 0.6, 0.1],
+	"Binding" -> RGBColor[0.9, 0.4, 0.2],
+	"ControlFlow" -> RGBColor[0.8, 0.2, 0.8],
+	"Scope" -> RGBColor[0.4, 0.4, 0.4],
+	"Backtracking" -> RGBColor[0.9, 0.3, 0.3],
+	"Debug" -> RGBColor[0.5, 0.5, 0.5],
 	"Unknown" -> GrayLevel[0.5]
 |>;
 
@@ -214,8 +214,8 @@ TraceToStyledRow[logLevel_, line_, file_, fn_, args___] := Module[
 		RegularExpression["(%[eb]\\d+)(==|:=|<-)"] :> "$1 $2 ",
 		(* Add space between register and keyword: %e0len -> %e0 len *)
 		RegularExpression["(%[eb]\\d+)([a-z]+)"] :> "$1 $2",
-		(* Add space between word and digit: saved0 -> saved 0 *)
-		RegularExpression["([a-z])(\\d)"] :> "$1 $2",
+		(* Add space between word and digit (but not register refs): saved0 -> saved 0 *)
+		RegularExpression["(?<!%[eb])([a-z])(\\d)"] :> "$1 $2",
 		(* Add space between number and word: 0bindings -> 0 bindings, 15cycles -> 15 cycles *)
 		RegularExpression["(\\d+)([a-z]+)"] :> "$1 $2",
 		(* Add space around equals sign *)

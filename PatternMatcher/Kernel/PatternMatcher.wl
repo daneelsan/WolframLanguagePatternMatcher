@@ -37,6 +37,14 @@ ResetPatternMatcherVirtualMachine::usage =
 	"ResetPatternMatcherVirtualMachine[vm] resets the state of the pattern matcher virtual machine.";
 
 
+PatternMatcherEnableTrace::usage =
+	"PatternMatcherEnableTrace[True|False] enables or disables trace output globally for all VMs.";
+
+
+PatternMatcherTraceEnabledQ::usage =
+	"PatternMatcherTraceEnabledQ[] returns whether trace output is currently enabled.";
+
+
 Begin["`Private`"];
 
 

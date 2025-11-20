@@ -892,10 +892,6 @@ namespace MethodInterface
 	{
 		return toExpr(vm->isInitialized());
 	}
-	Expr isTraceEnabled(VirtualMachine* vm)
-	{
-		return toExpr(Logger::isTraceEnabled());
-	}
 	Expr match(VirtualMachine* vm, Expr input)
 	{
 		bool res = vm->match(input);
@@ -904,12 +900,6 @@ namespace MethodInterface
 	Expr reset(VirtualMachine* vm)
 	{
 		vm->reset();
-		return Expr::ToExpression("Null");
-	}
-	Expr setTraceEnabled(VirtualMachine* vm, Expr enabled)
-	{
-		bool enabledBool = enabled.as<bool>().value_or(false);
-		Logger::setTraceEnabled(enabledBool);
 		return Expr::ToExpression("Null");
 	}
 	Expr shutdown(VirtualMachine* vm)
@@ -942,10 +932,8 @@ void VirtualMachine::initializeEmbedMethods(const char* embedName)
 	RegisterMethod<VirtualMachine*, MethodInterface::initialize>(embedName, "initialize");
 	RegisterMethod<VirtualMachine*, MethodInterface::isHalted>(embedName, "isHalted");
 	RegisterMethod<VirtualMachine*, MethodInterface::isInitialized>(embedName, "isInitialized");
-	RegisterMethod<VirtualMachine*, MethodInterface::isTraceEnabled>(embedName, "isTraceEnabled");
 	RegisterMethod<VirtualMachine*, MethodInterface::match>(embedName, "match");
 	RegisterMethod<VirtualMachine*, MethodInterface::reset>(embedName, "reset");
-	RegisterMethod<VirtualMachine*, MethodInterface::setTraceEnabled>(embedName, "setTraceEnabled");
 	RegisterMethod<VirtualMachine*, MethodInterface::shutdown>(embedName, "shutdown");
 	RegisterMethod<VirtualMachine*, MethodInterface::step>(embedName, "step");
 	RegisterMethod<VirtualMachine*, MethodInterface::toBoxes>(embedName, "toBoxes");

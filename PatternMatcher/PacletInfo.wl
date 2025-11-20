@@ -25,7 +25,9 @@ PacletObject[
           "DanielS`PatternMatcher`CreatePatternMatcherVirtualMachine",
           "DanielS`PatternMatcher`ResetPatternMatcherVirtualMachine",
           "DanielS`PatternMatcher`PatternMatcherMatch",
-          "DanielS`PatternMatcher`PatternMatcherStep"
+          "DanielS`PatternMatcher`PatternMatcherStep",
+          "DanielS`PatternMatcher`PatternMatcherEnableTrace",
+          "DanielS`PatternMatcher`PatternMatcherTraceEnabledQ"
         }
       },
       {

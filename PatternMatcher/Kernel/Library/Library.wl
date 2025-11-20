@@ -83,6 +83,24 @@ InitializePatternMatcherLibraryInternal[OptionsPattern[InitializePatternMatcherL
 	];
 
 
+DanielS`PatternMatcher`PatternMatcherEnableTrace :=
+	Module[{},
+		InitializePatternMatcherLibrary[];
+		Clear[DanielS`PatternMatcher`PatternMatcherEnableTrace];
+		DanielS`PatternMatcher`PatternMatcherEnableTrace =
+			SafeLibraryFunctionLoad[$PatternMatcherLibrary, "PatternMatcherLibrary_SetTraceEnabled", {True|False}, True|False]
+	];
+
+
+DanielS`PatternMatcher`PatternMatcherTraceEnabledQ :=
+	Module[{},
+		InitializePatternMatcherLibrary[];
+		Clear[DanielS`PatternMatcher`PatternMatcherTraceEnabledQ];
+		DanielS`PatternMatcher`PatternMatcherTraceEnabledQ =
+			SafeLibraryFunctionLoad[$PatternMatcherLibrary, "PatternMatcherLibrary_TraceEnabledQ", {}, True|False]
+	];
+
+
 UninitializePatternMatcherLibrary[] /; TrueQ[$InitializedQ] :=
 	Module[{res, libPath},
 		res = Quiet[LibraryUnload[$PatternMatcherLibrary]];

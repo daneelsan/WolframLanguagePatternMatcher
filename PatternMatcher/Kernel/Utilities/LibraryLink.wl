@@ -25,7 +25,7 @@ SafeLibraryLoad[lib_] :=
 
 
 SafeLibraryFunctionLoad[libName_?StringQ, fname_?StringQ, fParams_, retType_] :=
-	Quiet @Module[{libFunction},
+	Quiet @ Module[{libFunction},
 		libFunction = LibraryFunctionLoad[libName, fname, fParams, retType];
 		If[MatchQ[libFunction, _?FailureQ | _LibraryFunctionLoad],
 			ThrowFailure["SafeLibraryFunctionLoad", "Failed to load the function `1` from `2`. Details: `3`.", {fname, libName, ToString[LibraryLink`$LibraryError]}]
