@@ -64,10 +64,13 @@ public:
 		this->lexicalMap = lexical;
 	}
 
-	/// @brief Converts the bytecode to a string representation.
+	/// @brief Converts the bytecode to a string representation (compact format for tests).
 	/// @return The string representation of the bytecode.
 	std::string toString() const;
 
+	/// @brief Converts the bytecode to a formatted disassembly (user-friendly with indentation).
+	/// @return The formatted disassembly of the bytecode.
+	std::string disassemble() const;
 
 	/// @brief Optimize the bytecode (e.g., remove no-op instructions).
 	void optimize();

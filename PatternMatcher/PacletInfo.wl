@@ -20,6 +20,7 @@ PacletObject[
           "DanielS`PatternMatcher`CompilePatternToBytecode",
           "DanielS`PatternMatcher`PatternToMatchFunction",
           "DanielS`PatternMatcher`PatternBytecode",
+          "DanielS`PatternMatcher`PatternBytecodeDisassemble",
           "DanielS`PatternMatcher`PatternBytecodeQ",
           "DanielS`PatternMatcher`PatternMatcherVirtualMachine",
           "DanielS`PatternMatcher`CreatePatternMatcherVirtualMachine",

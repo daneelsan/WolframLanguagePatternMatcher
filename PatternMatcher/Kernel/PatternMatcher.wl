@@ -13,6 +13,10 @@ PatternBytecodeQ::usage =
 	"PatternBytecodeQ[x] returns True if x is a valid PatternBytecode[...] object, and False otherwise.";
 
 
+PatternBytecodeDisassemble::usage =
+	"PatternBytecodeDisassemble[bytecodeObj] returns a formatted, colorized disassembly of the bytecodeObj.";
+
+
 CompilePatternToBytecode::usage =
 	"CompilePatternToBytecode[patt] converts a pattern expression into bytecode to be run in a virtual machine.";
 

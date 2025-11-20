@@ -24,7 +24,8 @@ std::string instructionToString(const PatternBytecode::Instruction& instr)
 	std::stringstream ss;
 
 	// Opcode name
-	ss << std::left << std::setw(16) << opcodeName(instr.opcode);
+	const char* name = opcodeName(instr.opcode);
+	ss << std::left << std::setw(16) << name;
 
 	// Operands
 	bool first = true;
@@ -50,7 +51,7 @@ std::string PatternBytecode::toString() const
 	// Find maximum PC width for alignment
 	size_t maxPCWidth = std::to_string(instrs.size() - 1).length();
 
-	// Print instructions
+	// Print instructions (compact format - no indentation, no blank lines)
 	for (size_t pc = 0; pc < instrs.size(); ++pc)
 	{
 		const auto& instr = instrs[pc];
@@ -68,14 +69,114 @@ std::string PatternBytecode::toString() const
 		ss << "\n";
 	}
 
-	// Footer with summary
+	// Footer with basic summary
 	ss << "\n";
 	ss << "----------------------------------------\n";
 	ss << "Expr registers: " << exprRegisterCount << ", Bool registers: " << boolRegisterCount << "\n";
 
+	return ss.str();
+}
+
+std::string PatternBytecode::disassemble() const
+{
+	std::stringstream ss;
+
+	// Build reverse label map (pc -> label)
+	std::unordered_map<size_t, Label> pcToLabel;
+	for (const auto& [label, pc] : labelMap)
+		pcToLabel[pc] = label;
+
+	// Analyze structure for indentation
+	int currentBlockDepth = 0;
+	std::unordered_map<size_t, int> pcToDepth;
+
+	// First pass: calculate indentation depth
+	for (size_t pc = 0; pc < instrs.size(); ++pc)
+	{
+		const auto& instr = instrs[pc];
+
+		if (instr.opcode == Opcode::BEGIN_BLOCK)
+			currentBlockDepth++;
+
+		pcToDepth[pc] = currentBlockDepth;
+
+		if (instr.opcode == Opcode::END_BLOCK && currentBlockDepth > 0)
+			currentBlockDepth--;
+	}
+
+	// Find maximum PC width for alignment
+	size_t maxPCWidth = std::to_string(instrs.size() - 1).length();
+
+	// Statistics tracking
+	int blockCount = 0;
+	int maxBlockDepth = 0;
+	int jumpCount = 0;
+	int backtrackPoints = 0;
+
+	// Print instructions with indentation
+	for (size_t pc = 0; pc < instrs.size(); ++pc)
+	{
+		const auto& instr = instrs[pc];
+		int depth = pcToDepth[pc];
+		maxBlockDepth = std::max(maxBlockDepth, depth);
+
+		// Update statistics
+		if (instr.opcode == Opcode::BEGIN_BLOCK)
+			blockCount++;
+		if (instr.opcode == Opcode::JUMP || instr.opcode == Opcode::BRANCH_FALSE)
+			jumpCount++;
+		if (instr.opcode == Opcode::TRY)
+			backtrackPoints++;
+
+		// Show label if this PC is a target (no blank line before)
+		auto labelIt = pcToLabel.find(pc);
+		if (labelIt != pcToLabel.end())
+		{
+			ss << "L" << labelIt->second << ":\n";
+		}
+
+		// PC with indentation
+		ss << std::setw(maxPCWidth) << pc << "    ";
+
+		// Indentation based on block depth
+		for (int i = 0; i < depth; ++i)
+			ss << "  ";
+
+		// Instruction
+		ss << instructionToString(instr);
+
+		// Inline annotations for jumps
+		if (instr.opcode == Opcode::JUMP || instr.opcode == Opcode::BRANCH_FALSE)
+		{
+			// Find label operand
+			for (const auto& op : instr.ops)
+			{
+				if (auto* labelOp = std::get_if<LabelOp>(&op))
+				{
+					ss << "  → L" << labelOp->v;
+					break;
+				}
+			}
+		}
+
+		ss << "\n";
+	}
+
+	// Footer with enhanced statistics
+	ss << "\n";
+	ss << "========================================\n";
+	ss << "Statistics:\n";
+	ss << "  Instructions:      " << instrs.size() << "\n";
+	ss << "  Labels:            " << labelMap.size() << "\n";
+	ss << "  Expr registers:    " << exprRegisterCount << "\n";
+	ss << "  Bool registers:    " << boolRegisterCount << "\n";
+	ss << "  Blocks:            " << blockCount << " (max depth: " << maxBlockDepth << ")\n";
+	ss << "  Jumps:             " << jumpCount << "\n";
+	ss << "  Backtrack points:  " << backtrackPoints << "\n";
+
 	if (!lexicalMap.empty())
 	{
-		ss << "Lexical bindings:\n";
+		ss << "\nLexical bindings:\n";
 		for (const auto& [name, reg] : lexicalMap)
 		{
 			ss << "  " << std::setw(12) << std::left << name << " → %e" << reg << "\n";
@@ -123,6 +224,10 @@ void PatternBytecode::optimize()
 
 namespace PatternBytecodeInterface
 {
+	Expr disassemble(std::shared_ptr<PatternBytecode> bytecode)
+	{
+		return Expr(bytecode->disassemble());
+	}
 	Expr getBoolRegisterCount(std::shared_ptr<PatternBytecode> bytecode)
 	{
 		return Expr(static_cast<mint>(bytecode->getBoolRegisterCount()));
@@ -156,6 +261,7 @@ namespace PatternBytecodeInterface
 
 void PatternBytecode::initializeEmbedMethods(const char* embedName)
 {
+	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::disassemble>(embedName, "disassemble");
 	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::getBoolRegisterCount>(
 		embedName, "getBoolRegisterCount");
 	RegisterMethod<std::shared_ptr<PatternBytecode>, PatternBytecodeInterface::getExprRegisterCount>(
