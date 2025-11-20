@@ -135,14 +135,14 @@ bool Expr::sameQ(const char* txt) const
 // Return a string from a String Expr.
 std::string Expr::toString() const
 {
-	Expr toStrExpr = Expr::construct("ToString", *this).eval();
+	Expr toStrExpr = Expr::construct("ToString", Expr::construct("Unevaluated", *this)).eval();
 	return toStrExpr.as<std::string>().value_or("");
 }
 
 // Return the input form string of a String Expr.
 std::string Expr::toInputFormString() const
 {
-	Expr toStrExpr = Expr::construct("ToString", *this, Expr::ToExpression("InputForm")).eval();
+	Expr toStrExpr = Expr::construct("ToString", Expr::construct("Unevaluated", *this), Expr::ToExpression("InputForm")).eval();
 	return toStrExpr.as<std::string>().value_or("");
 }
 

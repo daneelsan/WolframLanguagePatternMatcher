@@ -9,6 +9,8 @@ const char* opcodeName(Opcode op)
 {
 	switch (op)
 	{
+		case Opcode::APPLY_TEST:
+			return "APPLY_TEST";
 		case Opcode::BEGIN_BLOCK:
 			return "BEGIN_BLOCK";
 		case Opcode::BIND_VAR:

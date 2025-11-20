@@ -334,6 +334,25 @@ bool VirtualMachine::step()
 			// COMPARISON
 			//=====================================================================
 
+		case Opcode::APPLY_TEST:
+		{
+			auto src = std::get<ExprRegOp>(instr.ops[0]);
+			auto patternTest = std::get<ImmExpr>(instr.ops[1]);
+			auto failLabel = std::get<LabelOp>(instr.ops[2]);
+
+			Expr testRes = Expr::construct(patternTest, exprRegs[src.v]).eval();
+			if (testRes)
+			{
+				PM_TRACE("APPLY_TEST %e", src.v, " with pattern ", patternTest.toString(), " -> SUCCESS");
+			}
+			else
+			{
+				PM_TRACE("APPLY_TEST %e", src.v, " with pattern ", patternTest.toString(), " -> FAILURE");
+				jump(failLabel, true);
+			}
+			break;
+		}
+
 		case Opcode::SAMEQ:
 		{
 			auto dstBool = std::get<BoolRegOp>(instr.ops[0]);
