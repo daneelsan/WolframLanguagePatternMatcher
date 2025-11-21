@@ -660,7 +660,7 @@ static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> 
 
 			// Load the value from the runtime binding into our tracking register
 			// At runtime: if variable was bound by the successful alternative, load its value
-			//            if variable was not bound, register remains uninitialized (handled by SAMEQ)
+			//            if variable was not bound, load $$Failure sentinel
 			st.emit(Opcode::LOAD_VAR, { OpExprReg(trackingReg), OpIdent(varName) });
 		}
 	}

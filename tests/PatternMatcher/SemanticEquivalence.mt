@@ -562,7 +562,7 @@ VerificationTest[
 	,
 	MatchQ[f[2, 2.5], f[x_Integer | y_Real, x_]]
 	,
-	TestID->"SemanticEquivalence-20251120-ALT-COMPLEX3-CRITICAL"
+	TestID->"SemanticEquivalence-20251120-ALT-COMPLEX3"
 ]
 
 (* Test alternatives with conditions *)
