@@ -89,13 +89,12 @@ public:
 	std::optional<size_t> resolveLabel(Label L) const;
 
 	void set_metadata(std::shared_ptr<MExpr> pattern, int exprRegs, int boolRegs,
-					  const std::unordered_map<std::string, ExprRegIndex>& lexical)
+					  const std::unordered_map<std::string, ExprRegIndex>& lexicalBindings)
 	{
 		this->pattern = pattern;
 		this->exprRegisterCount = exprRegs;
 		this->boolRegisterCount = boolRegs;
-		// TODO: move?
-		this->lexicalMap = lexical;
+		this->lexicalMap = lexicalBindings;
 	}
 
 	/// @brief Converts the bytecode to a string representation (compact format for tests).

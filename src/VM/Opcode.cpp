@@ -39,6 +39,8 @@ const char* opcodeName(Opcode op)
 			return "JUMP";
 		case Opcode::LOAD_IMM:
 			return "LOAD_IMM";
+		case Opcode::LOAD_VAR:
+			return "LOAD_VAR";
 		case Opcode::MATCH_HEAD:
 			return "MATCH_HEAD";
 		case Opcode::MATCH_LENGTH:

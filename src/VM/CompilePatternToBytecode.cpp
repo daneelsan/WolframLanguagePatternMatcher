@@ -12,6 +12,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace PatternMatcher
@@ -42,6 +43,114 @@ Label Model:
 ===========================================================================*/
 
 /*---------------------------------------------------------------------------
+LexicalEnvironment: Variable Name to Register Mapping
+
+Manages the compile-time tracking of pattern variables during compilation.
+This is separate from runtime variable bindings (which live in frames).
+
+Example: In pattern f[x_, x_], when compiling the second x_, we check
+st.lexical to see if "x" was already bound, making it a repeated variable.
+---------------------------------------------------------------------------*/
+class LexicalEnvironment
+{
+private:
+	std::unordered_map<std::string, ExprRegIndex> bindings;
+
+public:
+	/// Check if a variable is bound
+	bool contains(const std::string& varName) const { return bindings.find(varName) != bindings.end(); }
+
+	/// Get the register for a variable (assumes it exists)
+	ExprRegIndex get(const std::string& varName) const { return bindings.at(varName); }
+
+	/// Bind a variable to a register
+	void bind(const std::string& varName, ExprRegIndex reg) { bindings[varName] = reg; }
+
+	/// Get all variable names currently bound
+	std::unordered_set<std::string> getVarNames() const
+	{
+		std::unordered_set<std::string> names;
+		for (const auto& [name, reg] : bindings)
+		{
+			names.insert(name);
+		}
+		return names;
+	}
+
+	/// Get the underlying map (for iteration)
+	const std::unordered_map<std::string, ExprRegIndex>& getBindings() const { return bindings; }
+
+	/// Save the current state
+	LexicalEnvironment snapshot() const { return *this; }
+
+	/// Restore from a saved state
+	void restore(const LexicalEnvironment& saved) { bindings = saved.bindings; }
+
+	/// Clear all bindings
+	void clear() { bindings.clear(); }
+
+	/// Compute intersection of variable names with another environment
+	/// Returns only variables present in BOTH environments
+	std::unordered_set<std::string> intersectVarNames(const LexicalEnvironment& other) const
+	{
+		std::unordered_set<std::string> result;
+		for (const auto& [name, reg] : bindings)
+		{
+			if (other.contains(name))
+			{
+				result.insert(name);
+			}
+		}
+		return result;
+	}
+
+	/// Get variables introduced since a previous snapshot
+	/// Returns variables in current environment but not in the saved environment
+	/// Example: After compiling x_Integer, getNewVariables(savedLexical) returns {"Global`x"}
+	std::unordered_set<std::string> getNewVariables(const LexicalEnvironment& baseline) const
+	{
+		std::unordered_set<std::string> newVars;
+		for (const auto& [name, reg] : bindings)
+		{
+			if (!baseline.contains(name))
+			{
+				newVars.insert(name);
+			}
+		}
+		return newVars;
+	}
+
+	/// Compute intersection with a set of variable names
+	/// Keeps only variables that are in both this environment and the given set
+	static std::unordered_set<std::string> intersectSets(const std::unordered_set<std::string>& set1,
+														 const std::unordered_set<std::string>& set2)
+	{
+		std::unordered_set<std::string> result;
+		for (const auto& name : set1)
+		{
+			if (set2.find(name) != set2.end())
+			{
+				result.insert(name);
+			}
+		}
+		return result;
+	}
+
+	/// Compute union with a set of variable names
+	/// Includes variables that are in either set
+	static std::unordered_set<std::string> unionSets(const std::unordered_set<std::string>& set1,
+													 const std::unordered_set<std::string>& set2)
+	{
+		std::unordered_set<std::string> result = set1;
+		for (const auto& name : set2)
+		{
+			result.insert(name);
+		}
+		return result;
+	}
+};
+
+/*---------------------------------------------------------------------------
 CompilerState: The Central State Manager
 
 Manages all compilation state:
@@ -63,7 +172,7 @@ struct CompilerState
 
 	// Maps variable names (e.g., "Global`x") to the register holding their value
 	// This allows detecting repeated variables: f[x_, x_] requires both x's to match
-	std::unordered_map<std::string, ExprRegIndex> lexical;
+	LexicalEnvironment lexical;
 
 	// Stack of currently open blocks (for proper nesting)
 	// Used by beginBlock/endBlock to ensure balanced BEGIN_BLOCK/END_BLOCK
@@ -259,13 +368,13 @@ Example bytecode for x_Integer (first occurrence):
   MATCH_HEAD %e0, Integer, innerFail    ; Check if integer
   MOVE %e3, %e0                         ; Copy value to register
   BIND_VAR "Global`x", %e3              ; Runtime binding
-  JUMP successLabel                     ; Success!
+  JUMP successLabel                     ; Success
 innerFail:
   JUMP outerFail                        ; Subpattern failed
 
 Example bytecode for second x in f[x_, x_]:
   SAMEQ %b1, %e3, %e0                   ; Compare with first x
-  BRANCH_FALSE %b1, outerFail          ; Must match!
+  BRANCH_FALSE %b1, outerFail           ; Must match!
   [continue with subpattern]
 ---------------------------------------------------------------------------*/
 static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr, Label successLabel, Label outerFail,
@@ -286,28 +395,36 @@ static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr
 	std::string lexName = symM->getLexicalName(); // e.g., "Global`x"
 	auto subp = parts[1]; // e.g., Blank[Integer]
 
-	auto it = st.lexical.find(lexName);
-	if (it != st.lexical.end())
+	if (st.lexical.contains(lexName))
 	{
 		// ============================================================
 		// REPEATED VARIABLE: x already bound earlier in pattern
-		// Example: f[x_, x_] - second x must equal first x
+		// Handle bind-if-unbound vs compare-if-bound semantics
 		// ============================================================
 
-		ExprRegIndex storedReg = it->second; // Register holding first x's value
+		ExprRegIndex storedReg = st.lexical.get(lexName);
 		BoolRegIndex b = st.allocBoolReg();
+		Label bindLabel = st.newLabel();
+		Label compareLabel = st.newLabel();
+		Label continueLabel = st.newLabel();
 
-		// Check if current value (%e0) equals stored value
+		// Check if stored value is $$Failure (unbound)
+		st.emit(Opcode::MATCH_LITERAL, { OpExprReg(storedReg), ImmExpr(Expr::ToExpression("$$Failure")), OpLabel(compareLabel) });
+
+		// Unbound case: bind the variable and continue
+		st.bindLabel(bindLabel);
+		st.emit(Opcode::MOVE, { OpExprReg(storedReg), OpExprReg(0) }); // Store current value
+		st.emit(Opcode::BIND_VAR, { OpIdent(lexName), OpExprReg(0) }); // Bind in frame
+		st.emit(Opcode::JUMP, { OpLabel(continueLabel) });
+
+		// Bound case: compare values
+		st.bindLabel(compareLabel);
 		st.emit(Opcode::SAMEQ, { OpBoolReg(b), OpExprReg(storedReg), OpExprReg(0) });
-
-		// If not equal, pattern fails
 		st.emit(Opcode::BRANCH_FALSE, { OpBoolReg(b), OpLabel(outerFail) });
 
-		// If equal, still need to check the subpattern constraint
-		// Example: In f[x_Integer, x_Real], even if both x's are equal,
-		// we still need to verify the type constraints
+		// Continue with subpattern matching
+		st.bindLabel(continueLabel);
 		compilePatternRec(st, subp, successLabel, outerFail, false);
-
 		st.emitSuccessJumpIfTopLevel(successLabel, isTopLevel);
 	}
 	else
@@ -327,7 +444,7 @@ static void compilePattern(CompilerState& st, std::shared_ptr<MExprNormal> mexpr
 		// Subpattern succeeded. Now bind the variable
 		ExprRegIndex bindReg = st.allocExprReg();
 		st.emit(Opcode::MOVE, { OpExprReg(bindReg), OpExprReg(0) }); // Copy value
-		st.lexical[lexName] = bindReg; // Track for repeated variable detection
+		st.lexical.bind(lexName, bindReg); // Track for repeated variable detection
 
 		// Runtime binding: Store in frame for later retrieval
 		st.emit(Opcode::BIND_VAR, { OpIdent(lexName), OpExprReg(bindReg) });
@@ -366,14 +483,14 @@ Generated code for p1 | p2 | p3:
   TRY L_p2                 ; Create choice point → if fail, try p2
 L_p1:
   [compile p1]
-  JUMP success             ; p1 matched!
+  JUMP success             ; p1 matched
 L_p1_fail:
   FAIL                     ; Backtrack to p2
 
 L_p2:
   RETRY L_p3               ; Update choice point → if fail, try p3
   [compile p2]
-  JUMP success             ; p2 matched!
+  JUMP success             ; p2 matched
 L_p2_fail:
   FAIL                     ; Backtrack to p3
 
@@ -382,7 +499,7 @@ L_p3:
   [compile p3]
   JUMP success OR fail     ; Either matches or whole pattern fails
 
-NOTE: Each alternative gets a fresh lexical environment!
+NOTE: Each alternative gets a fresh lexical environment.
 In x_Integer | x_Real, both alternatives have their own "x" binding.
 This prevents the second alternative from thinking x is already bound.
 ---------------------------------------------------------------------------*/
@@ -414,7 +531,27 @@ static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> 
 	// - First alternative adds x → %e3 to st.lexical
 	// - Without restoration, second alternative sees x as "repeated variable"
 	// - With restoration, second alternative treats x as "first occurrence"
-	auto savedLexical = st.lexical;
+	auto savedLexical = st.lexical.snapshot();
+
+	// Track ALL variables that appear in ANY alternative
+	// These might be referenced by subsequent patterns, so we need LOAD_VAR for them.
+	//
+	// A variable referenced after alternatives can be:
+	// 1. Bound (if the matching alternative bound it) → SAMEQ check applies
+	// 2. Unbound (if the matching alternative didn't bind it) → matches anything
+	//
+	// Example: f[x_Integer | y_Real, x_] matching f[2, 2.5]
+	// - First alternative x_Integer matches 2, binds x=2
+	// - Second x_ tries to match 2.5, fails SAMEQ check (x=2 ≠ 2.5)
+	// - Pattern fails correctly
+	//
+	// Example: f[x_Integer | y_Real, x_] matching f[2.5, 3]  
+	// - Second alternative y_Real matches 2.5, binds y=2.5 (x remains unbound)
+	// - Second x_ matches 3 (no SAMEQ check since x is unbound)
+	// - Pattern succeeds
+	//
+	// We need LOAD_VAR for any variable that might be referenced later.
+	std::unordered_set<std::string> allVarNames;
 
 	// Create labels for each alternative's entry point
 	std::vector<Label> altLabels;
@@ -441,6 +578,9 @@ static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> 
 		// Compile first alternative as top-level (must jump to success)
 		compilePatternRec(st, firstAlt, localSuccess, firstFail, true);
 
+		// Initialize with variables from first alternative
+		allVarNames = st.lexical.getNewVariables(savedLexical);
+
 		// If first alternative fails, trigger backtracking
 		st.bindLabel(firstFail);
 		st.emit(Opcode::FAIL, {}); // VM will restore state and jump to altLabels[1]
@@ -454,7 +594,7 @@ static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> 
 	for (size_t i = 1; i < numAlts - 1; ++i)
 	{
 		// Restore lexical environment for independent variable tracking
-		st.lexical = savedLexical;
+		st.lexical.restore(savedLexical);
 
 		st.bindLabel(altLabels[i]);
 		// RETRY updates the choice point's next alternative pointer
@@ -466,6 +606,10 @@ static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> 
 
 		compilePatternRec(st, alt, localSuccess, altFail, true);
 
+		// Add variables from this alternative to the union
+		auto altVars = st.lexical.getNewVariables(savedLexical);
+		allVarNames = LexicalEnvironment::unionSets(allVarNames, altVars);
+
 		st.bindLabel(altFail);
 		st.emit(Opcode::FAIL, {}); // Backtrack to next alternative
 	}
@@ -475,21 +619,51 @@ static void compileAlternatives(CompilerState& st, std::shared_ptr<MExprNormal> 
 	// ============================================================
 	// TRUST commits to this alternative - no more backtracking possible
 	// If this fails, the entire pattern fails (no more alternatives to try)
-	st.lexical = savedLexical; // Restore environment one last time
+	st.lexical.restore(savedLexical); // Restore environment one last time
 
 	st.bindLabel(altLabels[numAlts - 1]);
 	st.emit(Opcode::TRUST, {}); // Remove choice point from stack
 	{
 		auto lastAlt = mexpr->part(static_cast<mint>(numAlts));
 		// Last alternative: on success → jump to successLabel
-		//                   on failure → jump to failLabel (no backtracking!)
+		//                   on failure → jump to failLabel (no backtracking)
 		compilePatternRec(st, lastAlt, localSuccess, failLabel, true);
 	}
+
+	// Add variables from last alternative to the union
+	auto lastAltVars = st.lexical.getNewVariables(savedLexical);
+	allVarNames = LexicalEnvironment::unionSets(allVarNames, lastAltVars);
 
 	// ============================================================
 	// LOCAL SUCCESS HANDLER
 	// ============================================================
 	st.bindLabel(localSuccess);
+
+	// Restore lexical environment
+	st.lexical.restore(savedLexical);
+
+	// Emit LOAD_VAR for variables that might be referenced by subsequent patterns
+	// This handles cases like f[x_Integer | y_Real, x_] where x might or might not be bound
+	//
+	// Examples:
+	// - "x_Integer | x_Real" with isTopLevel=true: No LOAD_VAR (no subsequent patterns)
+	// - "f[x_Integer | x_Real, x_]": Emit LOAD_VAR for x (appears in alternatives + referenced later)
+	// - "f[x_Integer | y_Real, x_]": Emit LOAD_VAR for x and y (both might be referenced later)
+	if (!isTopLevel && !allVarNames.empty())
+	{
+		// Emit LOAD_VAR for each variable that appeared in any alternative
+		for (const auto& varName : allVarNames)
+		{
+			// Allocate a fresh register for tracking this binding in subsequent patterns
+			ExprRegIndex trackingReg = st.allocExprReg();
+			st.lexical.bind(varName, trackingReg);
+
+			// Load the value from the runtime binding into our tracking register
+			// At runtime: if variable was bound by the successful alternative, load its value
+			//            if variable was not bound, register remains uninitialized (handled by SAMEQ)
+			st.emit(Opcode::LOAD_VAR, { OpExprReg(trackingReg), OpIdent(varName) });
+		}
+	}
 
 	// Now handle the top-level behavior
 	// If this alternative pattern is top-level, jump to global success
@@ -679,7 +853,7 @@ static std::vector<size_t> findSequencePositions(std::shared_ptr<MExprNormal> me
 compileNormalWithSequences: Match Patterns with Sequence Variables
 
 Handles patterns like:
-- {a__, b_}       → a gets {1,2}, b gets 3 (deterministic, no backtracking!)
+- {a__, b_}       → a gets {1,2}, b gets 3 (deterministic, no backtracking)
 - {a_, b__, c_}   → a=1, b={2,3}, c=4
 - {__, _}         → sequence gets all but last
 - {a__Integer, b_}→ typed sequence with following pattern
@@ -894,7 +1068,7 @@ L_block:
   [compile y_ with innerFail as fail label]
   MOVE %e0, %e1               ; Restore original
 
-  END_BLOCK L_block           ; All matched!
+  END_BLOCK L_block           ; All matched
   JUMP afterFailHandler
 
 innerFail:
@@ -970,7 +1144,7 @@ static void compileNormal(CompilerState& st, std::shared_ptr<MExprNormal> mexpr,
 		st.emit(Opcode::MOVE, { OpExprReg(0), OpExprReg(rSaved) });
 	}
 
-	// All arguments matched successfully!
+	// All arguments matched successfully
 	st.endBlock(blockLabel);
 
 	// Create continuation point for non-top-level patterns
@@ -1153,7 +1327,7 @@ std::shared_ptr<PatternBytecode> CompilePatternToBytecode(const Expr& patternExp
 	st.emit(Opcode::HALT, {});
 
 	// Finalize bytecode with metadata
-	st.out->set_metadata(pattern, st.nextExprReg, st.nextBoolReg, st.lexical);
+	st.out->set_metadata(pattern, st.nextExprReg, st.nextBoolReg, st.lexical.getBindings());
 
 	return st.out;
 }

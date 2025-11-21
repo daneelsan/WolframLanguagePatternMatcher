@@ -165,8 +165,8 @@ All backtracking instructions manipulate the choice point stack.
                            Example: SAMEQ %b1, %e3, %e0  tests if %e3 equals %e0 */
 
     //=========================================================================
-    // VARIABLE BINDING (1 opcode)
-    // Bind pattern variables to values
+    // VARIABLE BINDING (2 opcodes)
+    // Bind and load pattern variables
     //=========================================================================
     
     BIND_VAR,        /*  2: name reg           → bind(name, reg) [trails]
@@ -176,6 +176,14 @@ All backtracking instructions manipulate the choice point stack.
                            Example: BIND_VAR "Global`x", %e3
                              binds the variable x to the value in %e3
                            Used for: x_, x_Integer (after successful match) */
+
+    LOAD_VAR,        /*  2: reg name           → reg := lookup(name)
+                           Load a bound variable's value into a register.
+                           Searches the frame stack from innermost to outermost.
+                           If variable not found, behavior is undefined.
+                           Example: LOAD_VAR %e3, "Global`x"
+                             loads the value of x into %e3
+                           Used for: Retrieving variables bound in alternatives */
 
     //=========================================================================
     // CONTROL FLOW (3 opcodes)
@@ -297,7 +305,7 @@ enum class OpcodeCategory
 	ConditionalMatch, // MATCH_HEAD, MATCH_LENGTH, MATCH_LITERAL (test + branch)
 	SequenceMatching, // MATCH_MIN_LENGTH, MATCH_SEQ_HEADS, MAKE_SEQUENCE, SPLIT_SEQ
 	Comparison, // SAMEQ
-	Binding, // BIND_VAR
+	Binding, // BIND_VAR, LOAD_VAR
 	ControlFlow, // JUMP, BRANCH_FALSE, HALT
 	ScopeManagement, // BEGIN_BLOCK, END_BLOCK, EXPORT_BINDINGS
 	Backtracking, // TRY, RETRY, TRUST, CUT, FAIL
@@ -342,6 +350,7 @@ inline OpcodeCategory getOpcodeCategory(Opcode op)
 
 		// Variable binding
 		case Opcode::BIND_VAR:
+		case Opcode::LOAD_VAR:
 			return OpcodeCategory::Binding;
 
 		// Control flow
@@ -461,6 +470,7 @@ inline size_t getOperandCount(Opcode op)
 		case Opcode::LOAD_IMM:
 		case Opcode::BRANCH_FALSE:
 		case Opcode::BIND_VAR:
+		case Opcode::LOAD_VAR:
 		case Opcode::GET_LENGTH:
 		case Opcode::EVAL_CONDITION:
 			return 2;
@@ -537,6 +547,8 @@ inline const char* getOpcodeDescription(Opcode op)
 		// Binding
 		case Opcode::BIND_VAR:
 			return "Bind pattern variable";
+		case Opcode::LOAD_VAR:
+			return "Load bound variable value";
 
 		// Control flow
 		case Opcode::JUMP:
