@@ -25,7 +25,7 @@ PatternMatcherMatchQ[arg1_, arg2_, arg3__] :=
 	CatchFailure @ ThrowFailure[
 		"PatternMatcherMatchQ",
 		"Unexpected arguments: `1`.",
-		HoldCompleteForm[PatternMatcherMatchQ[args]]
+		HoldCompleteForm[PatternMatcherMatchQ[arg1, arg2, arg3]]
 	];
 
 

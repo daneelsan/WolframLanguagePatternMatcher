@@ -11,17 +11,27 @@ Needs["DanielS`PatternMatcher`"] (* for PatternMatcherReplace *)
 
 
 SyntaxInformation[PatternMatcherReplace] =
-	{"ArgumentsPattern" -> {_, _}};
+	{"ArgumentsPattern" -> {_, _.}};
 
 Options[PatternMatcherReplace] = {
 };
 
-PatternMatcherReplace[args___] :=
-	CatchFailure[iPatternMatcherReplace[args]];
+PatternMatcherReplace[arg1_, arg2_] :=
+	CatchFailure[iPatternMatcherReplace[arg1, arg2]];
+
+PatternMatcherReplace[arg_][expr_] :=
+	CatchFailure[iPatternMatcherReplace[arg][expr]];
+
+PatternMatcherReplace[arg1_, arg2_, arg3__] :=
+	CatchFailure @ ThrowFailure[
+		"PatternMatcherReplace",
+		"Unexpected arguments: `1`.",
+		HoldCompleteForm[PatternMatcherReplace[arg1, arg2, arg3]]
+	];
 
 
-iPatternMatcherReplace[(r : Rule | RuleDelayed)[vm_?PatternMatcherVirtualMachineQ, rhs_], expr_] :=
-	Module[{res, binds, bindsMExpr, resMExpr},
+iPatternMatcherReplace[(r : Rule | RuleDelayed)[vm_?PatternMatcherVirtualMachineQ, rhs_]][expr_] :=
+	Module[{res, binds, bindsMExpr, patternVars, resMExpr},
 		If[!vm["isInitialized"],
 			ThrowFailure[
 				"PatternMatcherReplace",
@@ -32,40 +42,46 @@ iPatternMatcherReplace[(r : Rule | RuleDelayed)[vm_?PatternMatcherVirtualMachine
 		res = vm["match", expr];
 		If[res,
 			binds = vm["getResultBindings"];
-			bindsMExpr = getBindingsMExpr[binds];
+			patternVars = extractPatternVariables[vm["getBytecode"]["getPattern"]["toHeldExpr"]];
+			bindsMExpr = getBindingsMExpr[patternVars, binds];
 			resMExpr = replaceBindingsInMExpr[rhs, bindsMExpr];
 			resMExpr["toExpr"]
 			,
-			expr  (* No match - return unchanged *)
+			expr
 		]
 	];
 
-iPatternMatcherReplace[(r : Rule | RuleDelayed)[lhs_, rhs_], expr_] :=
+iPatternMatcherReplace[(r : Rule | RuleDelayed)[lhs_, rhs_]][expr_] :=
 	Module[{vm},
 		vm = CreatePatternMatcherVirtualMachine[lhs];
-		iPatternMatcherReplace[r[vm, rhs], expr]
+		iPatternMatcherReplace[r[vm, rhs]][expr]
 	];
 
-iPatternMatcherReplace[args___] :=
-	ThrowFailure[
-		"PatternMatcherReplace",
-		"Unexpected arguments: `1`.",
-		HoldCompleteForm[PatternMatcherReplace[args]]
-	];
+iPatternMatcherReplace[arg1_, arg2_] :=
+	iPatternMatcherReplace[arg2][arg1];
 
 
-getBindingsMExpr[bindings_Association] :=
+(* Extract all pattern variable names from a pattern expression *)
+extractPatternVariables[patt_] :=
+	DeleteDuplicates @
+	Cases[patt, HoldPattern[Verbatim[Pattern][s_Symbol, _]] :> Context[s] <> SymbolName[s], {0, Infinity}];
+
+
+getBindingsMExpr[patternVars_List, bindings_Association] :=
 	KeyValueMap[
 		Function[{k, v},
 			With[{s = Symbol[k]}, ConstructMExpr[s = v]]
 		],
-		ConstructMExpr /@ bindings
+		ConstructMExpr /@ Join[
+			AssociationThread[patternVars, Unevaluated[Sequence[]]],
+			bindings
+		]
 	];
 
 
 SetAttributes[replaceBindingsInMExpr, HoldFirst];
 replaceBindingsInMExpr[rhs_, bindsMExpr_List] :=
-	ConstructMExpr[With[bindsMExpr, rhs]]
+	ConstructMExpr[With[bindsMExpr, rhs]];
 
 
 End[]

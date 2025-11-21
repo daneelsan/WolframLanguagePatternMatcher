@@ -20,5 +20,7 @@ TestSuite[
 		,
 		"PatternMatcher/PatternMatcherExecute.mt"
 		,
+		"PatternMatcher/SemanticEquivalence.mt"
+		,
 		"FinalizeTests.m"
 }]
