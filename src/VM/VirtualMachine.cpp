@@ -538,8 +538,17 @@ bool VirtualMachine::step()
 			mint actualEnd = exprRegs[endReg.v].as<mint>().value();
 			mint srcLen = static_cast<mint>(exprRegs[src.v].length());
 
-			// Early validation: check bounds once upfront
-			if (actualEnd < startIdx.v || startIdx.v < 1 || actualEnd > srcLen)
+			// Handle empty range: if actualEnd < startIdx, the range is empty
+			// Empty range succeeds (vacuous truth: all 0 elements have the right head)
+			if (actualEnd < startIdx.v)
+			{
+				traceOpcode("MATCH_SEQ_HEADS", "EMPTY_RANGE", "%e", src.v, "[", startIdx.v, "..", actualEnd, "]",
+							"- vacuously true");
+				break;
+			}
+
+			// Validate bounds for non-empty range
+			if (startIdx.v < 1 || actualEnd > srcLen)
 			{
 				traceOpcode("MATCH_SEQ_HEADS", "INVALID", "%e", src.v, "[", startIdx.v, "..", actualEnd, "]",
 							"srcLen=", srcLen);
