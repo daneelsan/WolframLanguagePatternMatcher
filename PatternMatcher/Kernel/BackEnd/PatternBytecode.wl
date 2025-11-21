@@ -21,8 +21,8 @@ SyntaxInformation[PatternBytecodeDisassemble] =
 PatternBytecodeDisassemble[obj_?PatternBytecodeQ] :=
 	FormatPatternBytecodeDisassembly[obj["disassemble"]];
 
-PatternBytecodeDisassemble[x_] :=
-	$Failed;
+PatternBytecodeDisassemble[patt_] :=
+	PatternBytecodeDisassemble[CompilePatternToBytecode[patt]];
 
 
 (*=============================================================================
