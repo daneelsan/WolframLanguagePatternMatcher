@@ -508,28 +508,51 @@ distance[\{x_, y_, z_\}] := Sqrt[x^2 + y^2 + z^2]
 Pattern-based definitions are evaluated repeatedly whenever the function is called.
 For frequently invoked functions, the overhead of interpreting pattern structures on every call becomes significant, motivating the need for pattern compilation.
 
+\subsection{Virtual Machines and Bytecode Compilation}
+
+A \textbf{virtual machine} (VM) is an abstract execution environment that mediates between high-level program representations and diverse hardware platforms.
+Rather than interpreting source code directly, VMs execute programs compiled into \textbf{bytecode}, a compact, platform-independent instruction format optimized for efficient execution.
+
+Bytecode compilation offers several advantages over direct interpretation:
+\begin{itemize}
+    \item \textbf{Amortized parsing and analysis}: Programs are parsed once and executed from an optimized bytecode representation.
+    \item \textbf{Explicit control flow}: Complex constructs (loops, conditionals, exceptions) are lowered into simple, traceable instruction sequences.
+    \item \textbf{Optimization opportunities}: The bytecode intermediate representation supports analyses and transformations independent of surface syntax.
+    \item \textbf{Portability}: Bytecode can be cached, serialized, and executed across platforms without recompilation.
+\end{itemize}
+
+Well-known examples include the Java Virtual Machine (JVM) for Java bytecode, CPython's bytecode interpreter, and the Lua VM for Lua bytecode.
+Each provides a register- or stack-based execution model tailored to the semantic requirements of its target language family.
+
+For pattern matching, bytecode compilation turns declarative pattern specifications into imperative instruction sequences that test structural properties, bind variables, and manage backtracking.
+This makes pattern evaluation predictable, observable, and amenable to optimization.
+
 \subsection{Why Compilation Matters}
 
-The current interpretive implementation of pattern matching has several limitations:
+The current interpretive implementation of pattern matching exhibits several limitations:
 
-\textbf{Repeated evaluation cost}: Each pattern match traverses the pattern structure recursively, even for patterns used repeatedly. In a function called thousands of times, this overhead accumulates.
+\textbf{Repeated evaluation cost}: Each match recursively traverses the pattern structure, reconstructing the same decision tree on every invocation.
+For example, repeated calls to \texttt{f[x\_Integer, y\_Real] := x + y} re-parse and re-analyze the pattern even though the logical tests do not change.
+Patterns with alternatives, such as \texttt{x\_ | y\_String}, similarly require rebuilding choice points and variable-binding contexts each time they are evaluated.
 
-\textbf{Opaque control flow}: The backtracking behavior when alternatives fail is implicit in the recursive evaluation, making it difficult to trace, debug, or optimize.
+\textbf{Opaque control flow}: Backtracking is encoded implicitly in the recursive call stack.
+When a pattern such as \texttt{(a\_ | b\_)[c\_, d\_]} fails to match \texttt{f[1, 2]}, the interpreter unwinds multiple calls without exposing which alternative was attempted, why it failed, or how bindings were created and discarded.
 
-\textbf{Limited observability}: Users cannot inspect how a pattern is being evaluated, what alternatives were tried, or where time is spent.
+\textbf{Limited observability}: Users cannot inspect how a pattern is evaluated, what alternatives were explored, or where time is spent.
+The system offers no facilities for profiling pattern-matching performance, tracing execution, or diagnosing slow or unexpected behavior.
 
-\textbf{No optimization opportunity}: Because patterns are evaluated directly, there is no opportunity to apply optimizations like redundant test elimination or constant folding.
+\textbf{No optimization opportunities}: Because evaluation operates directly on symbolic pattern expressions, there is no intermediate representation on which to perform optimizations such as redundant-test elimination, common-subpattern factoring, or constant folding.
+For example, in a pattern like \texttt{f[x\_Integer, y\_] | f[z\_Integer, w\_]}, the interpretive evaluator must test the head \texttt{f} and the \texttt{Integer} constraint separately for each alternative, even though these tests could be factored out and performed once in a compiled representation.
 
 Our virtual machine addresses these issues by:
 \begin{itemize}
-    \item Compiling patterns once to bytecode that can be executed many times
-    \item Making backtracking explicit through the TRY/RETRY/TRUST protocol
-    \item Exposing execution metrics (instruction count, cycles, backtrack events)
-    \item Creating an intermediate representation amenable to optimization passes
+    \item compiling patterns once into bytecode for repeated execution,
+    \item making backtracking explicit through a \texttt{TRY}/\texttt{RETRY}/\texttt{TRUST} protocol,
+    \item exposing execution metrics (instruction counts, backtrack events, cycle estimates),
+    \item providing an intermediate representation amenable to standard optimization passes.
 \end{itemize}
 
-The virtual machine addresses these challenges by compiling patterns to a minimal bytecode instruction set.
-The VM replaces implicit recursive traversal with explicit control flow while maintaining full semantic equivalence with native \texttt{MatchQ}.
+By replacing implicit recursive traversal with explicit bytecode-level control flow, the VM preserves full \texttt{MatchQ} semantics while enabling predictable, inspectable, and optimizable pattern-matching behavior.
 
 % ============================================================================
 % 3. DESIGN
