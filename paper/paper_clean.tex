@@ -171,6 +171,15 @@ This paper makes the following contributions:
     \item A complete Wolfram Language paclet providing a high-level API for compiling, executing, and inspecting compiled patterns.
 \end{enumerate}
 
+\textbf{Paper Organization.}
+Section \ref{sec:background} reviews the essential aspects of Wolfram Language pattern matching relevant to our work.
+Section \ref{sec:design} introduces the virtual machine architecture, including its instruction set, register model, and backtracking mechanism.
+Section \ref{sec:compilation} describes the compilation pipeline from patterns to bytecode, along with the supporting code-generation algorithms.
+Section \ref{sec:evaluation} reports on the system's correctness and performance through comprehensive pattern-coverage tests and bytecode analyses.
+Section~\ref{sec:implementation} covers implementation details, including the C++ architecture, LibraryLink integration, and paclet interface.
+Section~\ref{sec:related_work} surveys related work in pattern compilation and virtual machine design.
+Section \ref{sec:conclusion} concludes with a summary of contributions and prospects for future work.
+Readers already familiar with Wolfram Language may proceed directly to Section \ref{sec:design}; those primarily interested in implementation details may focus on Sections \ref{sec:compilation} and~\ref{sec:implementation}.
 
 % ============================================================================
 % 2. BACKGROUND
@@ -1457,6 +1466,7 @@ The VM delivers both semantic completeness and performance predictability for sy
 % 6. IMPLEMENTATION
 % ============================================================================
 \section{Implementation}
+\label{sec:implementation}
 
 The system consists of 14275 lines of code: 6684 lines of C++ for the compiler and VM core, 1962 lines of Wolfram Language for the API and paclet infrastructure, and 5629 lines of comprehensive test coverage.
 The architecture separates host language integration, compilation, and execution into distinct layers.
@@ -1768,6 +1778,7 @@ These debugging facilities, initially built for development, became permanent fe
 % 7. RELATED WORK
 % ============================================================================
 \section{Related Work}
+\label{sec:related_work}
 
 Having described the VM's design, compilation strategy, evaluation results, and 
 implementation details, we now position this work within the broader landscape 
@@ -1857,6 +1868,7 @@ This foundation enables future work on optimization while maintaining the benefi
 % 8. CONCLUSION
 % ============================================================================
 \section{Conclusion}
+\label{sec:conclusion}
 
 This work demonstrates that pattern matching in symbolic computation systems can be compiled to a minimal, explicit bytecode representation suitable for efficient execution and analysis.
 We have presented a register-based virtual machine that compiles Wolfram Language patterns to 22 opcodes with structured backtracking control adapted from the Warren Abstract Machine.
