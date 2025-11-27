@@ -1097,8 +1097,10 @@ The compiler generates bytecode directly during a single recursive descent throu
 \textbf{Lexical environment at compile-time} tracks variable names and their allocated registers during compilation. This enables detecting repeated variables (e.g., \texttt{f[x\_, x\_]}) statically, generating efficient equality checks rather than runtime symbol table lookups.
 However, alternatives complicate this approach: in \texttt{f[x\_Integer | y\_Real, x\_]}, the second \texttt{x\_} must handle the case where \texttt{x} was bound (first alternative succeeded) or unbound (second alternative succeeded).
 The solution uses conditional compilation with \texttt{LOAD\_VAR} to bridge this gap.
-However, alternatives complicate this approach: in \texttt{f[x\_Integer | y\_Real, x\_]}, the second \texttt{x\_} must handle the case where \texttt{x} was bound (first alternative succeeded) or unbound (second alternative succeeded).
-The solution uses conditional compilation with \texttt{LOAD\_VAR} to bridge this gap.
+
+\textbf{MExpr-level optimizations} can be performed on the pattern AST before bytecode generation.
+The MExpr representation preserves full pattern structure, enabling transformations like constant folding (\texttt{f[1+2]} → \texttt{f[3]}), pattern simplification (\texttt{x\_ | x\_} → \texttt{x\_}), and common subpattern factoring.
+These optimizations are more natural at the AST level where structural patterns are explicit, compared to bytecode where patterns become instruction sequences.
 
 \textbf{Fused match operations} combine testing and branching in single instructions (e.g., \texttt{MATCH\_HEAD}), reducing bytecode size by 15-20\% compared to unfused designs and improving cache locality during execution.
 
@@ -1594,7 +1596,8 @@ MExpr uses a polymorphic class hierarchy with a base class \texttt{MExpr} and de
 Virtual methods provide pattern-specific queries: \texttt{isBlank()} detects blank patterns, \texttt{isNamedPattern()} identifies named variables, \texttt{isAlternatives()} recognizes choice constructs, and accessor methods extract components like blank heads, variable names, and test predicates.
 This design enables the compiler to analyze pattern structure through method calls rather than repeated string manipulation or structural inspection via LibraryLink's \texttt{Head[]} and \texttt{Part[]} functions.
 
-The key advantage of MExpr over working directly with LibraryLink \texttt{Expr} objects is efficiency during compilation. Building a pattern's bytecode requires traversing the pattern tree, inspecting heads, extracting arguments, and analyzing pattern constructs—operations that would require creating temporary Wolfram expressions for intermediate results if performed through LibraryLink.
+The key advantage of MExpr over working directly with LibraryLink \texttt{Expr} objects is efficiency during compilation.
+Building a pattern's bytecode requires traversing the pattern tree, inspecting heads, extracting arguments, and analyzing pattern constructs—operations that would require creating temporary Wolfram expressions for intermediate results if performed through LibraryLink.
 MExpr avoids this overhead: conversion from \texttt{Expr} to \texttt{MExpr} happens once at the API boundary when a pattern enters the compiler, then all compilation operates on the C++-native representation.
 The reverse conversion (MExpr to Expr) is used when embedding literal values as immediate operands in bytecode instructions.
 
@@ -1946,6 +1949,8 @@ We identify three tiers of future development:
 
 \textbf{Immediate extensions (minimal architectural changes):}
 \begin{itemize}
+    \item \textbf{MExpr-level optimizations}: Implement pattern transformations at the AST level before bytecode generation, including constant folding (\texttt{f[1+2]} → \texttt{f[3]}), pattern simplification (\texttt{x\_ | x\_} → \texttt{x\_}), and common subpattern factoring across alternatives
+    \item \textbf{Expression pool}: Replace immediate \texttt{Expr} values embedded in instructions with pool indices, reducing bytecode size and enabling expression deduplication across multiple patterns
     \item \textbf{Bytecode caching}: Serialize compiled patterns to disk for reuse across sessions, eliminating repeated compilation overhead
     \item \textbf{Register allocation}: Implement register reuse and spilling to reduce memory footprint while maintaining unlimited virtual registers at the IR level
     \item \textbf{Basic optimizations}: Constant folding, dead code elimination, and unreachable branch removal through dataflow analysis
