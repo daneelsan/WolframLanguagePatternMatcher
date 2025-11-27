@@ -1098,8 +1098,8 @@ The compiler generates bytecode directly during a single recursive descent throu
 However, alternatives complicate this approach: in \texttt{f[x\_Integer | y\_Real, x\_]}, the second \texttt{x\_} must handle the case where \texttt{x} was bound (first alternative succeeded) or unbound (second alternative succeeded).
 The solution uses conditional compilation with \texttt{LOAD\_VAR} to bridge this gap.
 
-\textbf{MExpr-level optimizations} can be performed on the pattern AST before bytecode generation.
-The MExpr representation preserves full pattern structure, enabling transformations like constant folding (\texttt{f[1+2]} → \texttt{f[3]}), pattern simplification (\texttt{x\_ | x\_} → \texttt{x\_}), and common subpattern factoring.
+\textbf{AST-level optimizations} can be performed on the pattern Abstract Syntax Tree before bytecode generation.
+The AST representation (see Section~\ref{sec:mexpr}) preserves full pattern structure, enabling transformations like constant folding (\texttt{f[1+2]} → \texttt{f[3]}), pattern simplification (\texttt{x\_ | x\_} → \texttt{x\_}), and common subpattern factoring.
 These optimizations are more natural at the AST level where structural patterns are explicit, compared to bytecode where patterns become instruction sequences.
 
 \textbf{Fused match operations} combine testing and branching in single instructions (e.g., \texttt{MATCH\_HEAD}), reducing bytecode size by 15-20\% compared to unfused designs and improving cache locality during execution.
@@ -1324,6 +1324,10 @@ Like \texttt{APPLY\_TEST}, this requires integration with the interpreter, but e
 
 We evaluate the pattern matching VM along three dimensions: \emph{correctness}, demonstrating semantic equivalence with native \texttt{MatchQ}; \emph{efficiency}, characterizing bytecode size and execution overhead; and \emph{practicality}, identifying scenarios where compilation provides net benefits.
 These evaluations validate the central claim from Section~\ref{sec:design}—that a minimal 22-instruction ISA suffices for complete Wolfram Language pattern matching while maintaining performance predictability.
+
+\textbf{Note on performance comparisons:} This implementation prioritizes research clarity over execution speed.
+The struct-based instruction encoding, unlimited register allocation, and comprehensive instrumentation are designed for implementation transparency and debugging rather than optimal performance.
+Direct timing comparisons with Wolfram Language's highly optimized native \texttt{MatchQ} would not be meaningful, as the systems optimize for different objectives (research vs. production performance).
 
 \subsection{Correctness Validation}
 
@@ -1588,6 +1592,7 @@ The VM optionally collects execution metrics during interpretation: total instru
 These metrics support the observability design principle, exposing VM internals for performance analysis and debugging. All metrics are accessible through the Wolfram Language API described in Section~6.3.4.
 
 \subsubsection{Internal AST (MExpr)}
+\label{sec:mexpr}
 
 While the compiler generates bytecode and the VM executes it, both components operate on an intermediate representation of Wolfram expressions called MExpr (Meta-Expression).
 The MExpr layer (\texttt{AST/}, 633 LOC across 6 files) provides a C++-native expression tree optimized for pattern compilation, distinct from the LibraryLink \texttt{Expr} interface used for cross-language communication.
