@@ -230,7 +230,7 @@ void VirtualMachine::trailBind(const std::string& varName, const Expr& value)
 	// Bind the variable (overwrites existing binding if any)
 	currentFrame.bindVariable(varName, value);
 
-	traceOpcode("BIND_VAR", "INFO", varName, "\\[LongLeftArrow]", value.toString(), "(trailed)");
+	traceOpcode("BIND_VAR", "INFO", varName, "←", value.toString(), "(trailed)");
 }
 
 void VirtualMachine::unwindTrail(size_t mark)
@@ -312,7 +312,7 @@ bool VirtualMachine::step()
 				// Load Expr immediate
 				auto immExpr = std::get<ImmExpr>(instr.ops[1]);
 				exprRegs[dstExprReg->v] = immExpr;
-				traceOpcode("LOAD_IMM", "INFO", "%e", dstExprReg->v, "\\[LongLeftArrow]", immExpr.toString());
+				traceOpcode("LOAD_IMM", "INFO", "%e", dstExprReg->v, "←", immExpr.toString());
 			}
 			else
 			{
@@ -321,7 +321,7 @@ bool VirtualMachine::step()
 				auto immMint = std::get<ImmMint>(instr.ops[1]);
 				bool value = (immMint.v != 0);
 				boolRegs[dstBoolReg.v] = value;
-				traceOpcode("LOAD_IMM", "INFO", "%b", dstBoolReg.v, "\\[LongLeftArrow]", (value ? "True" : "False"));
+				traceOpcode("LOAD_IMM", "INFO", "%b", dstBoolReg.v, "←", (value ? "True" : "False"));
 			}
 			break;
 		}
@@ -331,7 +331,7 @@ bool VirtualMachine::step()
 			auto dst = std::get<ExprRegOp>(instr.ops[0]);
 			auto src = std::get<ExprRegOp>(instr.ops[1]);
 			exprRegs[dst.v] = exprRegs[src.v];
-			traceOpcode("MOVE", "INFO", "%e", dst.v, "\\[LongLeftArrow]%e", src.v, "=", exprRegs[src.v].toString());
+			traceOpcode("MOVE", "INFO", "%e", dst.v, "←%e", src.v, "=", exprRegs[src.v].toString());
 			break;
 		}
 
@@ -701,7 +701,7 @@ bool VirtualMachine::step()
 				auto targetPC = bytecode.value()->resolveLabel(label.v);
 				PM_ASSERT(targetPC.has_value(), "Failed to resolve label L", label.v);
 				pc = targetPC.value();
-				traceOpcode("BRANCH_FALSE", "TAKEN", "%b", condReg.v, "\\[DoubleLongRightArrow]L", label.v, "pc=", pc);
+				traceOpcode("BRANCH_FALSE", "TAKEN", "%b", condReg.v, "⟹L", label.v, "pc=", pc);
 			}
 			else
 			{
@@ -736,7 +736,7 @@ bool VirtualMachine::step()
 			{
 				PM_ASSERT(!frames.empty(), "BIND_VAR: No active frame");
 				frames.back().bindVariable(varName, exprRegs[reg.v]);
-				traceOpcode("BIND_VAR", "INFO", varName, "\\[LongLeftArrow]%e", reg.v, "=", exprRegs[reg.v].toString(), "(no trail)");
+				traceOpcode("BIND_VAR", "INFO", varName, "←%e", reg.v, "=", exprRegs[reg.v].toString(), "(no trail)");
 			}
 			break;
 		}
@@ -761,14 +761,14 @@ bool VirtualMachine::step()
 			{
 				// Variable is bound - load its value
 				exprRegs[reg.v] = value.value();
-				traceOpcode("LOAD_VAR", "BOUND", "%e", reg.v, "\\[LongLeftArrow]", varName, "=", exprRegs[reg.v].toString());
+				traceOpcode("LOAD_VAR", "BOUND", "%e", reg.v, "←", varName, "=", exprRegs[reg.v].toString());
 			}
 			else
 			{
 				// Variable is unbound - load $$Failure as a sentinel value
 				// The pattern compiler will handle the bind-vs-compare logic
 				exprRegs[reg.v] = Expr::ToExpression("$$Failure");
-				traceOpcode("LOAD_VAR", "UNBOUND", "%e", reg.v, "\\[LongLeftArrow]", varName, "(unbound \\[Rule] $$Failure)");
+				traceOpcode("LOAD_VAR", "UNBOUND", "%e", reg.v, "←", varName, "(unbound → $$Failure)");
 			}
 			break;
 		}
@@ -820,7 +820,7 @@ bool VirtualMachine::step()
 		{
 			auto nextAlt = std::get<LabelOp>(instr.ops[0]);
 			createChoicePoint(nextAlt.v);
-			traceOpcode("TRY", "INFO", "choice point", "\\[DoubleLongRightArrow]L", nextAlt.v, "depth=", choiceStack.size());
+			traceOpcode("TRY", "INFO", "choice point", "⟹L", nextAlt.v, "depth=", choiceStack.size());
 			break;
 		}
 
@@ -831,7 +831,7 @@ bool VirtualMachine::step()
 			if (!choiceStack.empty())
 			{
 				choiceStack.back().nextAlternative = nextAlt.v;
-				traceOpcode("RETRY", "INFO", "updated choice point", "\\[DoubleLongRightArrow]L", nextAlt.v);
+				traceOpcode("RETRY", "INFO", "updated choice point", "⟹L", nextAlt.v);
 			}
 			else
 			{

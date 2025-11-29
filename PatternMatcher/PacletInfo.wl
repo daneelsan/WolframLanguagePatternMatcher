@@ -10,6 +10,7 @@ PacletObject[
     "Version" -> "1.0.0",
     "WolframVersion" -> "14.4+",
     "PrimaryContext" -> "DanielS`PatternMatcher`",
+    "SystemID" -> {"MacOSX-ARM64"},
     "DocumentationURL" -> "https://resources.wolframcloud.com/PacletRepository/resources",
     "Extensions" -> {
       {
@@ -40,9 +41,7 @@ PacletObject[
         "Root" -> "Documentation",
         "Language" -> "English"
       },
-      {
-        "LibraryResources"
-      }
+      {"LibraryResources"}
     }
   |>
 ]
