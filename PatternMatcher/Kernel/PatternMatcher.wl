@@ -13,6 +13,18 @@ PatternBytecodeQ::usage =
 	"PatternBytecodeQ[x] returns True if x is a valid PatternBytecode[...] object, and False otherwise.";
 
 
+PatternBytecodeDisassemble::usage =
+	"PatternBytecodeDisassemble[bytecodeObj] returns a formatted, colorized disassembly of the bytecodeObj.";
+
+
+PatternBytecodeInformation::usage =
+	"PatternBytecodeInformation[bc] returns an Association with statistics about the bytecode structure.";
+
+
+OptimizePatternBytecode::usage =
+	"OptimizePatternBytecode[bytecodeObj] performs optimization passes on the given pattern bytecode object.";
+
+
 CompilePatternToBytecode::usage =
 	"CompilePatternToBytecode[patt] converts a pattern expression into bytecode to be run in a virtual machine.";
 
@@ -29,12 +41,28 @@ PatternMatcherExecute::usage =
 	"RunPatternMatcher[vm, expr] does pattern matching on the expr using the pattern matcher virtual machine.";
 
 
+PatternMatcherMatchQ::usage =
+	"PatternMatcherMatchQ[vm, expr] returns True if expr matches the pattern in the virtual machine vm, and False otherwise.";
+
+
+PatternMatcherReplace::usage =
+	"PatternMatcherReplace[expr, lhs_ -> rhs_] replaces parts of expr that match the pattern lhs with rhs.";
+
+
 PatternMatcherStep::usage =
 	"PatternMatcherStep[vm] runs one step of the pattern matcher virtual machine.";
 
 
 ResetPatternMatcherVirtualMachine::usage =
 	"ResetPatternMatcherVirtualMachine[vm] resets the state of the pattern matcher virtual machine.";
+
+
+PatternMatcherEnableTrace::usage =
+	"PatternMatcherEnableTrace[True|False] enables or disables trace output globally for all VMs.";
+
+
+PatternMatcherTraceEnabledQ::usage =
+	"PatternMatcherTraceEnabledQ[] returns whether trace output is currently enabled.";
 
 
 Begin["`Private`"];

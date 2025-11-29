@@ -208,6 +208,8 @@ public:
 
 	std::optional<bool> protectedQ() const;
 
+	Expr toSymbol() const;
+
 	std::string toString() const;
 
 	std::string toInputFormString() const;

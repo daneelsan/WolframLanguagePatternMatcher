@@ -95,6 +95,7 @@ add_library(${PROJECT_NAME} SHARED
     src/VM/PatternBytecode.cpp
     src/VM/Opcode.cpp
     src/VM/CompilePatternToBytecode.cpp
+    src/VM/OptimizePatternBytecode.cpp
 )
 
 # Include directories
@@ -111,8 +112,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-    PM_LOG_DEBUG # TODO: Make this depend on Debug build type
-    PM_LOG_LEVEL_TRACE
+    $<$<CONFIG:Debug>:PM_LOG_DEBUG>
+    $<$<CONFIG:Debug>:PM_LOG_LEVEL_TRACE>
 )
 
 # Disable platform-specific "lib" prefix for shared library

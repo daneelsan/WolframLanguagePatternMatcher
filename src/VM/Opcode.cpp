@@ -23,10 +23,14 @@ const char* opcodeName(Opcode op)
 			return "DEBUG_PRINT";
 		case Opcode::END_BLOCK:
 			return "END_BLOCK";
+		case Opcode::EVAL_CONDITION:
+			return "EVAL_CONDITION";
 		case Opcode::EXPORT_BINDINGS:
 			return "EXPORT_BINDINGS";
 		case Opcode::FAIL:
 			return "FAIL";
+		case Opcode::GET_LENGTH:
+			return "GET_LENGTH";
 		case Opcode::GET_PART:
 			return "GET_PART";
 		case Opcode::HALT:
@@ -35,12 +39,22 @@ const char* opcodeName(Opcode op)
 			return "JUMP";
 		case Opcode::LOAD_IMM:
 			return "LOAD_IMM";
+		case Opcode::LOAD_VAR:
+			return "LOAD_VAR";
 		case Opcode::MATCH_HEAD:
 			return "MATCH_HEAD";
 		case Opcode::MATCH_LENGTH:
 			return "MATCH_LENGTH";
 		case Opcode::MATCH_LITERAL:
 			return "MATCH_LITERAL";
+		case Opcode::MATCH_MIN_LENGTH:
+			return "MATCH_MIN_LENGTH";
+		case Opcode::MATCH_SEQ_HEADS:
+			return "MATCH_SEQ_HEADS";
+		case Opcode::MAKE_SEQUENCE:
+			return "MAKE_SEQUENCE";
+		case Opcode::SPLIT_SEQ:
+			return "SPLIT_SEQ";
 		case Opcode::MOVE:
 			return "MOVE";
 		case Opcode::RETRY:

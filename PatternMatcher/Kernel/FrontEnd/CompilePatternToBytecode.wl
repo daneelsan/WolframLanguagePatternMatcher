@@ -17,6 +17,9 @@ Needs["DanielS`PatternMatcher`"] (* for CompilePatternToBytecode *)
 CompilePatternToBytecode::unsup =
 	"The pattern expression `1` is currently not supported.";
 
+SyntaxInformation[CompilePatternToBytecode] =
+	{"ArgumentsPattern" -> {_, _.}};
+
 CompilePatternToBytecode[pattExpr_, vm_?PatternMatcherVirtualMachineQ] :=
 	Module[{res},
 		res = vm["compilePattern", pattExpr];

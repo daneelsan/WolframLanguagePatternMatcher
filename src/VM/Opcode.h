@@ -59,9 +59,16 @@ All backtracking instructions manipulate the choice point stack.
                            The immediate is embedded in the bytecode. */
 
     //=========================================================================
-    // EXPRESSION INTROSPECTION (1 opcode)
-    // Extract parts of structured expressions
+    // EXPRESSION INTROSPECTION (2 opcodes)
+    // Extract parts and properties of structured expressions
     //=========================================================================
+    
+    GET_LENGTH,      /*  2: dest src           → dest := length(src)
+                           Get length of expression as integer.
+                           Returns length for lists, argument count for functions, 1 for atoms.
+                           Example: GET_LENGTH %e1, %e0
+                             %e1 := Length[%e0]
+                           Used for: Computing sequence ranges, iteration bounds */
     
     GET_PART,        /*  3: dest src index     → dest := part(src, index)
                            Extract the index-th part of src expression.
@@ -99,6 +106,53 @@ All backtracking instructions manipulate the choice point stack.
                              jumps if %e0 does not return true for the IntegerQ test
                            Used for: type patterns like IntegerQ, RealQ, StringQ */
 
+    EVAL_CONDITION,  /*  2: cond fail          → jump fail if eval(cond) != True
+                           Evaluate arbitrary WL expression and test if result is True.
+                           Condition may reference pattern variables bound in current frame.
+                           Example: EVAL_CONDITION x > 0, L_fail
+                             evaluates x > 0 and jumps if result is not True
+                           Used for: Condition patterns like x_Integer /; x > 0 */
+
+    //=========================================================================
+    // SEQUENCE MATCHING (4 opcodes)
+    // Match variable-length sequences of expressions
+    //=========================================================================
+    
+    MATCH_MIN_LENGTH,   /*  3: reg minLen fail    → jump fail if length(reg) < minLen
+                           Test if expression has at least minLen parts.
+                           Example: MATCH_MIN_LENGTH %e0, 1, L_fail
+                             jumps if %e0 has 0 parts (for __)
+                           Used for: __ (min=1), ___ (min=0) */
+    
+    MATCH_SEQ_HEADS, /*  5: reg start endreg head fail → jump fail if any part has wrong head
+                           Test if all parts in range [start, end] have given head.
+                           The end index must be in a register (as integer).
+                           Example: MATCH_SEQ_HEADS %e0, 1, %e1, Integer, L_fail
+                             jumps if any part in [1..%e1] is not an Integer
+                           Used for: __Integer, ___Real typed sequences */
+    
+    MAKE_SEQUENCE,   /*  4: dest src start end → dest := List[src[[start..end]]]
+                           Extract subsequence and wrap in List.
+                           Example: MAKE_SEQUENCE %e2, %e0, 1, 3
+                             %e2 = List[%e0[[1]], %e0[[2]], %e0[[3]]]
+                           Used for: Binding sequence variables like a__ */
+    
+    SPLIT_SEQ,       /*  5: src splitPos minRest nextLabel fail → create split choice point
+                           Create choice point for sequence splitting.
+                           - src: expression being split
+                           - splitPos: where to split (how many go to first seq)
+                           - minRest: minimum elements for remaining patterns
+                           - nextLabel: where to try next split on backtrack
+                           - fail: where to jump if no valid splits exist
+                           
+                           On backtrack: decrements splitPos and retries
+                           
+                           Example: {a__, b_} matching {1,2,3} (length=3)
+                             Try splitPos=2: a={1,2}, b=3
+                             Backtrack: splitPos=1: a={1}, b=2 (then 3 fails)
+                           
+                           Used for: Patterns with sequences like {a__, b_, c__} */
+
     //=========================================================================
     // COMPARISON (1 opcode)
     // Compute equality between expressions
@@ -111,8 +165,8 @@ All backtracking instructions manipulate the choice point stack.
                            Example: SAMEQ %b1, %e3, %e0  tests if %e3 equals %e0 */
 
     //=========================================================================
-    // VARIABLE BINDING (1 opcode)
-    // Bind pattern variables to values
+    // VARIABLE BINDING (2 opcodes)
+    // Bind and load pattern variables
     //=========================================================================
     
     BIND_VAR,        /*  2: name reg           → bind(name, reg) [trails]
@@ -122,6 +176,14 @@ All backtracking instructions manipulate the choice point stack.
                            Example: BIND_VAR "Global`x", %e3
                              binds the variable x to the value in %e3
                            Used for: x_, x_Integer (after successful match) */
+
+    LOAD_VAR,        /*  2: reg name           → reg := lookup(name)
+                           Load a bound variable's value into a register.
+                           Searches the frame stack from innermost to outermost.
+                           If variable not found, behavior is undefined.
+                           Example: LOAD_VAR %e3, "Global`x"
+                             loads the value of x into %e3
+                           Used for: Retrieving variables bound in alternatives */
 
     //=========================================================================
     // CONTROL FLOW (3 opcodes)
@@ -239,10 +301,11 @@ All backtracking instructions manipulate the choice point stack.
 enum class OpcodeCategory
 {
 	DataMovement, // MOVE, LOAD_IMM
-	Introspection, // GET_PART
+	Introspection, // GET_PART, GET_LENGTH
 	ConditionalMatch, // MATCH_HEAD, MATCH_LENGTH, MATCH_LITERAL (test + branch)
+	SequenceMatching, // MATCH_MIN_LENGTH, MATCH_SEQ_HEADS, MAKE_SEQUENCE, SPLIT_SEQ
 	Comparison, // SAMEQ
-	Binding, // BIND_VAR
+	Binding, // BIND_VAR, LOAD_VAR
 	ControlFlow, // JUMP, BRANCH_FALSE, HALT
 	ScopeManagement, // BEGIN_BLOCK, END_BLOCK, EXPORT_BINDINGS
 	Backtracking, // TRY, RETRY, TRUST, CUT, FAIL
@@ -262,15 +325,24 @@ inline OpcodeCategory getOpcodeCategory(Opcode op)
 			return OpcodeCategory::DataMovement;
 
 		// Introspection
+		case Opcode::GET_LENGTH:
 		case Opcode::GET_PART:
 			return OpcodeCategory::Introspection;
 
 		// Conditional matching (fused test + branch)
 		case Opcode::APPLY_TEST:
+		case Opcode::EVAL_CONDITION:
 		case Opcode::MATCH_HEAD:
 		case Opcode::MATCH_LENGTH:
 		case Opcode::MATCH_LITERAL:
 			return OpcodeCategory::ConditionalMatch;
+
+		// Sequence matching
+		case Opcode::MATCH_MIN_LENGTH:
+		case Opcode::MATCH_SEQ_HEADS:
+		case Opcode::MAKE_SEQUENCE:
+		case Opcode::SPLIT_SEQ:
+			return OpcodeCategory::SequenceMatching;
 
 		// Comparisons
 		case Opcode::SAMEQ:
@@ -278,6 +350,7 @@ inline OpcodeCategory getOpcodeCategory(Opcode op)
 
 		// Variable binding
 		case Opcode::BIND_VAR:
+		case Opcode::LOAD_VAR:
 			return OpcodeCategory::Binding;
 
 		// Control flow
@@ -325,8 +398,8 @@ inline bool isControlFlow(Opcode op)
 /// branches (BRANCH_FALSE, MATCH_*, FAIL). Used for control flow analysis.
 inline bool isBranch(Opcode op)
 {
-	return op == Opcode::JUMP || op == Opcode::APPLY_TEST || op == Opcode::BRANCH_FALSE || op == Opcode::MATCH_HEAD
-		|| op == Opcode::MATCH_LENGTH || op == Opcode::MATCH_LITERAL || op == Opcode::FAIL;
+	return op == Opcode::JUMP || op == Opcode::APPLY_TEST || op == Opcode::EVAL_CONDITION || op == Opcode::BRANCH_FALSE 
+		|| op == Opcode::MATCH_HEAD || op == Opcode::MATCH_LENGTH || op == Opcode::MATCH_LITERAL || op == Opcode::FAIL;
 }
 
 /// @brief Check if opcode has side effects beyond register writes
@@ -352,6 +425,7 @@ inline bool hasSideEffects(Opcode op)
 		case Opcode::TRUST:
 		case Opcode::CUT:
 		case Opcode::FAIL:
+		case Opcode::SPLIT_SEQ: // Creates choice point for splits
 
 		// RETRY modifies existing choice point
 		case Opcode::RETRY:
@@ -396,6 +470,9 @@ inline size_t getOperandCount(Opcode op)
 		case Opcode::LOAD_IMM:
 		case Opcode::BRANCH_FALSE:
 		case Opcode::BIND_VAR:
+		case Opcode::LOAD_VAR:
+		case Opcode::GET_LENGTH:
+		case Opcode::EVAL_CONDITION:
 			return 2;
 
 		// 3 operands
@@ -404,8 +481,18 @@ inline size_t getOperandCount(Opcode op)
 		case Opcode::MATCH_HEAD:
 		case Opcode::MATCH_LENGTH:
 		case Opcode::MATCH_LITERAL:
+		case Opcode::MATCH_MIN_LENGTH:
 		case Opcode::SAMEQ:
 			return 3;
+
+		// 4 operands
+		case Opcode::MAKE_SEQUENCE:
+			return 4;
+
+		// 5 operands
+		case Opcode::MATCH_SEQ_HEADS:
+		case Opcode::SPLIT_SEQ:
+			return 5;
 
 		default:
 			return 0;
@@ -426,18 +513,32 @@ inline const char* getOpcodeDescription(Opcode op)
 			return "Load immediate constant";
 
 		// Introspection
+		case Opcode::GET_LENGTH:
+			return "Get expression length";
 		case Opcode::GET_PART:
 			return "Extract part of expression";
 
 		// Pattern matching
 		case Opcode::APPLY_TEST:
 			return "Apply pattern test and branch on failure";
+		case Opcode::EVAL_CONDITION:
+			return "Evaluate condition and branch on failure";
 		case Opcode::MATCH_HEAD:
 			return "Match head and branch on failure";
 		case Opcode::MATCH_LENGTH:
 			return "Match argument count and branch on failure";
 		case Opcode::MATCH_LITERAL:
 			return "Match literal value and branch on failure";
+
+		// Sequence matching
+		case Opcode::MATCH_MIN_LENGTH:
+			return "Test minimum sequence length";
+		case Opcode::MATCH_SEQ_HEADS:
+			return "Match heads of sequence elements";
+		case Opcode::MAKE_SEQUENCE:
+			return "Extract and wrap subsequence";
+		case Opcode::SPLIT_SEQ:
+			return "Create split choice point for sequences";
 
 		// Comparison
 		case Opcode::SAMEQ:
@@ -446,6 +547,8 @@ inline const char* getOpcodeDescription(Opcode op)
 		// Binding
 		case Opcode::BIND_VAR:
 			return "Bind pattern variable";
+		case Opcode::LOAD_VAR:
+			return "Load bound variable value";
 
 		// Control flow
 		case Opcode::JUMP:

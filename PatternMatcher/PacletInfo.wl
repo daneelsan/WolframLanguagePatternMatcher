@@ -10,6 +10,7 @@ PacletObject[
     "Version" -> "1.0.0",
     "WolframVersion" -> "14.4+",
     "PrimaryContext" -> "DanielS`PatternMatcher`",
+    "SystemID" -> {"MacOSX-ARM64"},
     "DocumentationURL" -> "https://resources.wolframcloud.com/PacletRepository/resources",
     "Extensions" -> {
       {
@@ -20,12 +21,19 @@ PacletObject[
           "DanielS`PatternMatcher`CompilePatternToBytecode",
           "DanielS`PatternMatcher`PatternToMatchFunction",
           "DanielS`PatternMatcher`PatternBytecode",
+          "DanielS`PatternMatcher`PatternBytecodeDisassemble",
+          "DanielS`PatternMatcher`PatternBytecodeInformation",
+          "DanielS`PatternMatcher`OptimizePatternBytecode",
           "DanielS`PatternMatcher`PatternBytecodeQ",
           "DanielS`PatternMatcher`PatternMatcherVirtualMachine",
           "DanielS`PatternMatcher`CreatePatternMatcherVirtualMachine",
           "DanielS`PatternMatcher`ResetPatternMatcherVirtualMachine",
-          "DanielS`PatternMatcher`PatternMatcherMatch",
-          "DanielS`PatternMatcher`PatternMatcherStep"
+          "DanielS`PatternMatcher`PatternMatcherMatchQ",
+          "DanielS`PatternMatcher`PatternMatcherReplace",
+          "DanielS`PatternMatcher`PatternMatcherStep",
+          "DanielS`PatternMatcher`PatternMatcherExecute",
+          "DanielS`PatternMatcher`PatternMatcherEnableTrace",
+          "DanielS`PatternMatcher`PatternMatcherTraceEnabledQ"
         }
       },
       {
@@ -33,9 +41,7 @@ PacletObject[
         "Root" -> "Documentation",
         "Language" -> "English"
       },
-      {
-        "LibraryResources"
-      }
+      {"LibraryResources"}
     }
   |>
 ]

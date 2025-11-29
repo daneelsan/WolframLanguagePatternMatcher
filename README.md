@@ -1,187 +1,236 @@
 # A Virtual Machine for the Wolfram Language Pattern Matcher
 
-## Estado Actual del Proyecto (Octubre 2025)
+A register-based virtual machine that compiles Wolfram Language patterns into bytecode for efficient execution.
+This system compiles patterns once and executes the bytecode repeatedly, enabling performance optimization and detailed execution analysis while maintaining complete semantic equivalence with native `MatchQ`.
 
-### ✅ Implementado y Funcional
+## Documentation
 
-**Arquitectura Core Completa:**
-- **Máquina Virtual**: Ejecutor de bytecode con 20+ instrucciones especializadas
-- **Compilador de Patrones**: Transformación automática de patrones Wolfram a bytecode optimizado
-- **Sistema AST**: Representación robusta de expresiones matemáticas (`MExpr*`)
-- **Integración LibraryLink**: Interfaz bidireccional con Mathematica
-- **Paclet Wolfram**: Funciones nativas accesibles desde notebooks
+Full documentation is available at:  
+**https://resources.wolframcloud.com/PacletRepository/resources/DanielS/PatternMatcher**
 
-**Capacidades de Pattern Matching:**
+## Installation
+
 ```mathematica
-(* Patrones actualmente soportados *)
-MatchQ[42, x_]                    (* Variables pattern *)
+PacletInstall["DanielS/PatternMatcher"]
+<< DanielS`PatternMatcher`
+```
+
+## Quick Start
+
+```mathematica
+(* Compile a pattern to bytecode *)
+bytecode = CompilePatternToBytecode[{x_, x_}]
+
+(* Create a virtual machine *)
+vm = CreatePatternMatcherVirtualMachine[{x_, x_}]
+
+(* Execute pattern matching *)
+PatternMatcherMatchQ[vm, {5, 5}]
+(* True *)
+
+PatternMatcherExecute[vm, {5, 5}]
+(* <|"Result" -> True, "CyclesExecuted" -> 12, "Bindings" -> <|"Global`x" -> 5|>|> *)
+```
+
+## Current Project Status (November 2025)
+
+### ✅ Implemented and Functional
+
+**Complete Core Architecture:**
+- **Virtual Machine**: Bytecode executor with 22+ specialized instructions
+- **Pattern Compiler**: Automatic transformation of Wolfram patterns to optimized bytecode
+- **AST System**: Robust representation of mathematical expressions (`MExpr`)
+- **LibraryLink Integration**: Bidirectional interface with Wolfram Language
+- **Wolfram Paclet**: Native functions accessible from notebooks
+
+**Pattern Matching Capabilities:**
+```mathematica
+(* Currently supported patterns *)
+MatchQ[42, x_]                    (* Variable patterns *)
 MatchQ[f[1, 2], f[x_, y_]]       (* Structural matching *)
 MatchQ[{1, 2, 3}, {a_, b_, c_}]  (* List patterns *)
 MatchQ[Sin[x], head_[arg_]]      (* Head extraction *)
+MatchQ[{1, 2, 3}, {x__, y_}]     (* Sequence patterns *)
+MatchQ[5, x_ /; x > 0]           (* Conditional patterns *)
+MatchQ[3.14, _Integer | _Real]   (* Alternative patterns *)
 ```
 
-**ISA Implementada (20+ Opcodes):**
-- Data movement: `MOVE`, `LOAD_IMM`, `LOAD_INPUT`
-- Introspection: `GET_HEAD`, `GET_PART`, `TEST_LENGTH`
-- Optimized matching: `MATCH_HEAD`, `MATCH_LITERAL`, `MATCH_LENGTH`
-- Pattern binding: `BIND_VAR`, `GET_VAR`, `PATTERN_TEST`
-- Control flow: `JUMP`, `JUMP_IF_FALSE`, `HALT`
+**Implemented ISA (22 Opcodes):**
+- Data movement: `MOVE`, `LOAD_IMM`
+- Introspection: `GET_PART`, `GET_LENGTH`
+- Optimized matching: `MATCH_HEAD`, `MATCH_LITERAL`, `MATCH_LENGTH`, `MATCH_MIN_LENGTH`
+- Sequence support: `MATCH_SEQ_HEADS`, `MAKE_SEQUENCE`
+- Pattern binding: `BIND_VAR`, `LOAD_VAR`
+- Tests: `APPLY_TEST`, `EVAL_CONDITION`, `SAMEQ`
+- Control flow: `JUMP`, `BRANCH_FALSE`, `HALT`
+- Backtracking: `TRY`, `RETRY`, `TRUST`, `FAIL`, `CUT`
+- Scoping: `BEGIN_BLOCK`, `END_BLOCK`, `EXPORT_BINDINGS`
 
-**Herramientas de Desarrollo:**
-- Sistema de logging configurable
-- Factory pattern para type safety
-- Debugging infrastructure completa
+**Development Tools:**
+- Configurable logging system
+- Factory pattern for type safety
+- Complete debugging infrastructure
+- Bytecode disassembler and analyzer
 
-### 🔄 En Desarrollo Activo
+### 🔄 Active Development
 
-**Optimizaciones del Compilador:**
-- Análisis de liveness para register allocation
-- Peephole optimization en bytecode
-- Eliminación de código muerto
+**Compiler Optimizations:**
+- Liveness analysis for register allocation
+- Peephole optimization in bytecode
+- Dead code elimination
 
-**Patrones Avanzados:**
-- Sequence patterns (`x___`, `x__`)
-- Conditional patterns (`x_?NumericQ`)
-- Alternative patterns (`x_|y_`)
+**Advanced Patterns:**
+- ✅ Sequence patterns (`x___`, `x__`)
+- ✅ Conditional patterns (`x_?NumericQ`, `x_ /; condition`)
+- ✅ Alternative patterns (`x_|y_`)
 
 ---
 
-## Árbol de Problemas
+## Problem Statement
 
-### Problema Central
+### Core Problem
 
-**ES: El pattern matching en Wolfram Language no escala en complejidad ni paralelismo debido a su implementación como árboles de expresiones interpretadas recursivamente, con gestión de memoria ineficiente.**
+Wolfram Language's pattern matching fails to scale in complexity and parallelism due to its recursive tree-walking implementation and inefficient memory management.
 
-**EN: Wolfram Language's pattern matching fails to scale in complexity and parallelism due to its recursive tree-walking implementation and inefficient memory management.**
+### Root Causes
 
-### Problemas Causa
-
-ES:
-| ID | Problema | Descripción |
-|----|---------|-------------|
-| PC1 | **Interpretación dinámica sin compilación** | Los patrones se evalúan mediante recorrido recursivo de árboles, sin transformación a representaciones ejecutables optimizadas |
-| PC2 | **Algoritmo único para todos los patrones** | No hay diferenciación entre patrones simples (`_`) y complejos (`f[x_?OddQ, __]`), llevando a _overhead_ constante |
-| PC3 | **Copia profunda sistemática** | Inmutabilidad implementada mediante duplicación completa de subexpresiones, incluso cuando son compartibles |
-
-EN:
 | ID | Problem | Description |
 |----|---------|-------------|
 | PC1 | **Dynamic interpretation** | Patterns are evaluated through recursive tree traversal without compilation to optimized representations |
 | PC2 | **One-size-fits-all algorithm** | No differentiation between simple (`_`) and complex (`f[x_?OddQ]`) patterns leads to constant overhead |
 | PC3 | **Deep-copy semantics** | Immutability implemented via full expression duplication prevents sharing |
 
-### Problemas Efecto
+### Effects
 
-ES:
-| ID | Efecto | Descripción |
-|----|--------|---------------|
-| PE1 | **Rendimiento no lineal** | Tiempos de ejecución crecen desproporcionadamente con anidamiento de patrones |
-| PE2 | **Barrera a optimizaciones** | Arquitectura monolítica impide aplicar JIT, memoización o paralelismo efectivo |
-| PE3 | **Overhead en memoria** | Uso de memoria excesiva durante operaciones de matching/reemplazo |
-
-EN:
 | ID | Effect | Manifestation |
 |----|--------|---------------|
 | PE1 | **Non-linear performance** | Execution time grows disproportionately with pattern nesting depth |
 | PE2 | **Optimization barrier** | Monolithic architecture blocks JIT/memoization opportunities |
 | PE3 | **Memory overhead** | Excessive allocations during matching/replacement operations |
 
-## Árbol de Objetivos
+## Project Objectives
 
-### Objetivo General
+### General Objective
 
-ES:
-
-**Diseñar una máquina virtual especializada para pattern matching que, mediante compilación a bytecode, kernels optimizados y gestión de memoria inteligente, garantice escalabilidad predecible y eficiencia en memoria.**
-
-EN:
-
-**Design a specialized virtual machine that delivers scalable pattern matching through:**  
+Design a specialized virtual machine that delivers scalable pattern matching through:
 1. Static pattern compilation  
 2. Type-specialized kernels  
 3. Structural memory sharing  
-**while maintaining full Wolfram Language semantics.**
 
-### Objetivos Específicos (Estado Actual)
+while maintaining full Wolfram Language semantics.
 
-ES:
-| ID | Objetivo | Estado | Descripción | Progreso |
-|-----------|--------------------|--------|------------------|----------|
-| **OE1** | **Compilación estática de patrones** | ✅ **COMPLETADO** | ISA definida, compilador funcional | 100% |
-| **OE2** | **Kernels especializados** | 🔄 **EN PROGRESO** | Matchers básicos implementados, avanzados pendientes | 60% |
-| **OE3** | **Rediseño de modelo de memoria** | ⏳ **PENDIENTE** | Análisis realizado, implementación pendiente | 20% |
+### Specific Objectives (Current Status)
 
-EN:
 | ID | Objective | Status | Description | Progress |
 |-----------|--------------------|--------|------------------|----------|
 | **OE1** | **Bytecode compilation** | ✅ **COMPLETED** | ISA defined, compiler functional | 100% |
-| **OE2** | **Specialized kernels** | 🔄 **IN PROGRESS** | Basic matchers done, advanced pending | 60% |
+| **OE2** | **Specialized kernels** | ✅ **COMPLETED** | All pattern types implemented | 100% |
 | **OE3** | **Memory model redesign** | ⏳ **PENDING** | Analysis done, implementation pending | 20% |
 
-## Cronograma Actualizado (Octubre 2025 - Diciembre 2025)
+## Updated Timeline (October 2025 - December 2025)
 
-### Fase 3: Optimización y Validación (Octubre - Diciembre 2025)
-- **Octubre **:
-  - ✅ Arquitectura core completada
-  - ✅ Compilador de patrones funcional
-  - ✅ Integración LibraryLink operativa
-  - 🔄 Optimizaciones de bytecode (peephole, liveness analysis)
-  - 🔄 Sequence patterns (`___`, `__`)
-  - ⏳ Conditional patterns (`?test`)
-  - ⏳ Suite de benchmarks vs Mathematica
-- **Noviembre **:
+### Phase 3: Optimization and Validation (October - December 2025)
+- **October**:
+  - ✅ Core architecture completed
+  - ✅ Pattern compiler functional
+  - ✅ LibraryLink integration operational
+  - ✅ Bytecode optimizations (peephole, liveness analysis)
+  - ✅ Sequence patterns (`___`, `__`)
+  - ✅ Conditional patterns (`?test`, `/; condition`)
+  - ✅ Alternative patterns (`|`)
+- **November**:
+  - ✅ Comprehensive test suite (semantic equivalence)
+  - ✅ Documentation and examples
+  - ⏳ Benchmark suite vs Mathematica
   - ⏳ Memory model optimization (COW, arenas)
-  - ⏳ Perfilamiento y hotspot optimization
-  - ⏳ Benchmark comparativo completo
-  - ⏳ Documentación técnica completa
-  - ⏳ Análisis cuantitativo de mejoras
-  - ⏳ Redacción de tesis (resultados OE1-OE3)
-- **Diciembre **:
-  - ⏳ Redacción de tesis (continuación)
-  - ⏳ Preparación de presentación
+  - ⏳ Profiling and hotspot optimization
+  - ⏳ Thesis writing (OE1-OE2 results)
+- **December**:
+  - ⏳ Thesis writing (continuation)
+  - ⏳ Presentation preparation
+  - ⏳ Final benchmarks and analysis
 
-## Logros Destacados vs Plan Original
+## Key Achievements vs Original Plan
 
-### ✅ Superado las Expectativas
-- **Arquitectura más robusta**: Sistema de 3 capas con separación clara de responsabilidades
-- **Integración nativa**: LibraryLink + Paclet permiten uso directo desde Mathematica
-- **ISA extensible**: 20+ opcodes con categorización y análisis automático
-- **Type safety**: Sistema robusto de tipos que previene errores
+### ✅ Exceeded Expectations
+- **More robust architecture**: 3-layer system with clear separation of responsibilities
+- **Native integration**: LibraryLink + Paclet allow direct use from Mathematica
+- **Extensible ISA**: 22 opcodes with categorization and automatic analysis
+- **Type safety**: Robust type system preventing errors
+- **Complete pattern coverage**: All major pattern constructs implemented
 
-### 🎯 Cumpliendo Cronograma
-- **Compilación a bytecode (OE1)**: Completado según plan
-- **Kernels especializados (OE2)**: En progreso, matching básico operativo
-- **Herramientas de desarrollo**: Logger, factory patterns, debugging
+### 🎯 On Schedule
+- **Bytecode compilation (OE1)**: Completed as planned
+- **Specialized kernels (OE2)**: Completed, all pattern types operational
+- **Development tools**: Logger, factory patterns, debugging, disassembler
 
-### ⚠️ Ajustes Necesarios
-- **Memory model (OE3)**: Retraso de 2 meses, prioridad para Diciembre
-- **Benchmarking**: Pendiente implementar suite comprehensiva
-- **Documentación académica**: Foco en Q1 2026
+### ⚠️ Adjustments Needed
+- **Memory model (OE3)**: 2-month delay, priority for December
+- **Benchmarking**: Need to implement comprehensive suite
+- **Academic documentation**: Focus on Q1 2026
 
-## Riesgos Actuales y Mitigación
+## Current Risks and Mitigation
 
-| Riesgo | Probabilidad | Impacto | Mitigación |
+| Risk | Probability | Impact | Mitigation |
 |--------|-------------|---------|------------|
-| Memory model complexity | Media | Alto | Implementar incrementalmente, MVP primero |
-| Benchmark framework delay | Baja | Medio | Usar Mathematica timing functions existentes |
-| Conditional patterns complexity | Media | Medio | Implementar subconjunto representativo |
-| Tesis writing time | Alta | Alto | Comenzar escritura en paralelo en Diciembre |
+| Memory model complexity | Medium | High | Implement incrementally, MVP first |
+| Benchmark framework delay | Low | Medium | Use existing Mathematica timing functions |
+| Thesis writing time | High | High | Begin writing in parallel in December |
 
-## Recursos y Referencias Clave
+## Key Resources and References
 
-**Implementación Técnica:**
+**Technical Implementation:**
 - "Virtual Machine Design and Implementation in C/C++" (Bill Blunden)
-- "Engineering a Compiler" (Cooper & Torczon) - Para optimizaciones
-- LLVM Kaleidoscope Tutorial - Para ISA design patterns
+- "Engineering a Compiler" (Cooper & Torczon) - For optimizations
+- LLVM Kaleidoscope Tutorial - For ISA design patterns
 
 **Pattern Matching:**
 - "Compiling Pattern Matching to Good Decision Trees" (Luc Maranget)
 - "The Implementation of Functional Programming Languages" (Peyton Jones)
 - "Efficient Compilation of Pattern Matching" (Augustsson)
 
-**Sistema Actual de Wolfram:**
+**Wolfram System:**
 - Wolfram Language Documentation (Pattern matching internals)
 - MathLink/WSTP Developer Guide
 - LibraryLink Tutorial
+
+## Building from Source
+
+### Requirements
+- CMake 3.15+
+- C++17 compiler
+- Wolfram Engine 14.3+
+
+### Build Instructions
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake --build build --config Debug && cmake --install build --config Debug
+```
+
+## Project Structure
+
+```
+wolfram-vm/
+├── src/                    # C++ implementation
+│   ├── VM/                 # Virtual machine core
+│   │   ├── VirtualMachine.cpp
+│   │   ├── CompilePatternToBytecode.cpp
+│   │   └── Opcode.cpp
+│   └── AST/                # Expression representation
+│       └── MExpr.cpp
+├── PatternMatcher/         # Wolfram Language paclet
+│   ├── Kernel/             # WL implementation
+│   │   ├── FrontEnd/       # User-facing functions
+│   │   └── BackEnd/        # VM interface
+│   └── Documentation/      # Guide pages and examples
+└── tests/                  # Comprehensive test suite
+    └── PatternMatcher/
+        ├── SemanticEquivalence.mt
+        └── PatternMatcherExecute.mt
+```
+
+## License
+
+MIT License - see LICENSE file for details
 
 ---

@@ -39,7 +39,11 @@ CreatePatternMatcherVirtualMachine[] :=
 CreatePatternMatcherVirtualMachine[pattExpr_] :=
 	Module[{vm, patt},
 		vm = CreatePatternMatcherVirtualMachine[];
-		patt = CompilePatternToBytecode[pattExpr, vm];
+		patt = If[PatternBytecodeQ[pattExpr],
+			pattExpr
+			,
+			CompilePatternToBytecode[pattExpr, vm]
+		];
 		vm["initialize", patt];
 		vm
 	];
@@ -82,7 +86,7 @@ toBoxes[obj_, fmt_] :=
 			},
 			{
 				If[initialized,
-					BoxForm`SummaryItem[{"Current bytecode: ", obj["getBytecode"]}],
+					BoxForm`SummaryItem[{"Bytecode: ", obj["getBytecode"]}],
 					Nothing
 				]
 				(*BoxForm`SummaryItem[{"Stack: ", stack}],
@@ -92,15 +96,6 @@ toBoxes[obj_, fmt_] :=
 			fmt
 		]
 	];
-
-
-(*=============================================================================
-	PatternMatcherMatch
-=============================================================================*)
-
-(*=============================================================================
-	PatternMatcherStep
-=============================================================================*)
 
 
 End[]

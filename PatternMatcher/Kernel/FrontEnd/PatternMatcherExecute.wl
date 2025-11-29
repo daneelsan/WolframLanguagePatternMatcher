@@ -9,9 +9,8 @@ Needs["DanielS`PatternMatcher`ErrorHandling`"]
 Needs["DanielS`PatternMatcher`"] (* for PatternMatcherExecute *)
 
 
-(*=============================================================================
-	CompilePatternToBytecode
-=============================================================================*)
+SyntaxInformation[PatternMatcherExecute] =
+	{"ArgumentsPattern" -> {_, _}};
 
 Options[PatternMatcherExecute] = {
 };
@@ -30,7 +29,6 @@ iPatternMatcherExecute[vm_?PatternMatcherVirtualMachineQ, expr_] :=
 		];
 		vm["reset"];
 		res = vm["match", expr];
-		(* TODO: Add bound expressions, stats, etc. *)
 		<|
 			"Result" -> res,
 			"CyclesExecuted" -> vm["getCycles"],
